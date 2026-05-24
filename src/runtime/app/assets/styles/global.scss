@@ -1,42 +1,42 @@
 @font-face {
   font-family: "km-200";
-  src: url(assets/fonts/NotoSansKhmer-Regular.ttf);
+  src: url('/fonts/NotoSansKhmer-Regular.ttf');
 }
 @font-face {
   font-family: "km-300";
-  src: url(assets/fonts/NotoSansKhmer-Regular.ttf);
+  src: url('/fonts/NotoSansKhmer-Regular.ttf');
 }
 @font-face {
   font-family: "km-400";
-  src: url(assets/fonts/NotoSansKhmer-Regular.ttf);
+  src: url('/fonts/NotoSansKhmer-Regular.ttf');
 }
 @font-face {
   font-family: "km-500";
-  src: url(assets/fonts/NotoSansKhmer-SemiBold.ttf);
+  src: url('/fonts/NotoSansKhmer-SemiBold.ttf');
 }
 @font-face {
   font-family: "km-600";
-  src: url(assets/fonts/NotoSansKhmer-Bold.ttf);
+  src: url('/fonts/NotoSansKhmer-Bold.ttf');
 }
 @font-face {
   font-family: "en-200";
-  src: url(assets/fonts/Inter-Regular.ttf);
+  src: url('/fonts/Inter-Regular.ttf');
 }
 @font-face {
   font-family: "en-300";
-  src: url(assets/fonts/Inter-Regular.ttf);
+  src: url('/fonts/Inter-Regular.ttf');
 }
 @font-face {
   font-family: "en-400";
-  src: url(assets/fonts/Inter-Regular.ttf);
+  src: url('/fonts/Inter-Regular.ttf');
 }
 @font-face {
   font-family: "en-500";
-  src: url(assets/fonts/Inter-SemiBold.ttf);
+  src: url('/fonts/Inter-SemiBold.ttf');
 }
 @font-face {
   font-family: "en-600";
-  src: url(assets/fonts/Inter-Bold.ttf);
+  src: url('/fonts/Inter-Bold.ttf');
 }
 :root {
   --font-200: "en-200", "km-200";
