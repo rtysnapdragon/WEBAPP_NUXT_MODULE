@@ -2,7 +2,10 @@
   "name": "webapp-nuxt-module",
   "version": "1.0.0",
   "description": "nuxt module for webapp",
-  "repository": "https://github.com/rtysnapdragon/WEBAPP_NUXT_MODULE.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rtysnapdragon/WEBAPP_NUXT_MODULE.git"
+  },
   "license": "MIT",
   "type": "module",
   "types": "./dist/types.d.ts",
