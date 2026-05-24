@@ -74,7 +74,7 @@ npm install fs-extra
 npm install nuxt-swiper
 npm install @nuxt/content
 npm install better-sqlite3
-
+npm install @nuxt/module-builder @nuxt/kit typescript -D
 </details>
 
 <!-- Badges -->
