@@ -2,7 +2,7 @@
   "name": "webapp-nuxt-module",
   "version": "1.0.0",
   "description": "nuxt module for webapp",
-  "repository": "your-org/my-module",
+  "repository": "https://github.com/rtysnapdragon/WEBAPP_NUXT_MODULE.git",
   "license": "MIT",
   "type": "module",
   "main": "src/module.ts",
@@ -42,7 +42,6 @@
     "@nuxt/kit": "^4.4.6",
     "better-sqlite3": "^12.10.0",
     "fs-extra": "^11.3.5",
-    "nuxt-content-assets": "^1.8.3",
     "nuxt-swiper": "^2.0.2"
   },
   "devDependencies": {
