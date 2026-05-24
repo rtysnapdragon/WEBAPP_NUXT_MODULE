@@ -21,8 +21,8 @@ export interface ModuleOptions {}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: "rtmodule",
-    configKey: "rtmodule",
+    name: "webapp-nuxt-module",
+    configKey: "webappModule",
   },
 
   defaults: {},

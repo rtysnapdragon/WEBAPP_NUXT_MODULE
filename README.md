@@ -9,6 +9,9 @@ Find and replace all on all files (CMD+SHIFT+F):
 
 # My Module
 
+--- This generates the correct module structure automatically.
+npx nuxi module init
+
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]

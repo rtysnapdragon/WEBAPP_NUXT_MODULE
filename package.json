@@ -8,10 +8,7 @@
   "main": "src/module.ts",
   "private": false,
   "exports": {
-    ".": {
-      "types": "./dist/types.d.mts",
-      "import": "./dist/module.mjs"
-    }
+    ".": "./src/module.ts"
   },
   "typesVersions": {
     "*": {
