@@ -6,7 +6,7 @@
     </div>
     <div class="stat-card__label">{{ label }}</div>
     <div class="stat-card__value">
-      <!-- <AnimatedNumber :value="value" /> -->
+      <AnimatedNumber :value="value" />
     </div>
     <div v-if="change !== undefined" class="stat-card__change" :class="change >= 0 ? 'stat-card__change--up' : 'stat-card__change--down'">
       <span>{{ change >= 0 ? '↑' : '↓' }}</span>
