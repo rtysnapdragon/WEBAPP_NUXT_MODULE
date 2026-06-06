@@ -9,14 +9,14 @@
             <div v-for="i in data.item.inputs">
               <RFormGroup v-if="typeof i === 'object' && !Array.isArray(i) && !i.hidden" :label="i.label"
                 :name="i.name" class="w-full mb-2" :required="i.required">
-                <OCInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="i"
+                <RInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="i"
                   :ref="(elm) => setRefInput(elm, i.name)" />
               </RFormGroup>
 
               <div class="flex gap-2" v-if="typeof i === 'object' && Array.isArray(i)">
                 <RFormGroup v-for="j in i" v-if="!j?.hidden" :label="j.label" :name="j.name" class="w-full mb-2"
                   :required="j.required">
-                  <OCInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="j"
+                  <RInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="j"
                     :ref="(elm) => setRefInput(elm, j.name)" />
                 </RFormGroup>
               </div>
@@ -28,14 +28,14 @@
       <div v-else v-for="i in inputs">
         <RFormGroup v-if="typeof i === 'object' && !Array.isArray(i) && !i.hidden" :label="i.label" :name="i.name"
           class="w-full" :required="i.required">
-          <OCInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="i"
+          <RInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="i"
             :ref="(elm) => setRefInput(elm, i.name)" />
         </RFormGroup>
 
         <div class="grid grid-cols-2 gap-2" v-if="typeof i === 'object' && Array.isArray(i)">
           <RFormGroup v-for="j in i" :label="j.label" :name="j.name" :class="['w-full', j?.hidden ? 'hidden' : '']"
             :required="j.required">
-            <OCInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="j"
+            <RInputForm v-model:state="state" v-model:dataUpdate="dataUpdate" :input="j"
               :ref="(elm) => setRefInput(elm, j.name)" />
           </RFormGroup>
         </div>

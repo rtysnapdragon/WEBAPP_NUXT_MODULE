@@ -1,0 +1,274 @@
+<template>
+  <UInput ref="refOCInput" v-model="value" :size="props.size ?? ' text-[12px]'" :name="props.name" :ui="ui" :type="type"
+    :placeholder="placeholder" :loading="loading" :leading="leading" :loading-icon="loadingIcon" :trailing="trailing"
+    :padded="padded" :icon="icon" :autofocus="autofocus" :autofocus-delay="autofocusDelay" :autocomplete="autocomplete"
+    :leading-icon="leadingIcon" :trailing-icon="trailingIcon" class=""
+    :inputClass="score ? 'ocs-input-score' : 'ocs-input'" @focus="(v) => emits('onFocus', v)"
+    @blur="(v) => emits('onBlur', v)" @input="(v) => emits('onInput', v)" :min="min" :max="max">
+    <template #leading v-if="$slots.leading">
+      <slot name="leading" />
+    </template>
+
+    <template #trailing v-if="$slots.trailing">
+      <slot name="trailing" class="right-[10px]" />
+    </template>
+  </UInput>
+</template>
+
+<script setup>
+const refOCInput = ref();
+const value = defineModel();
+const props = defineProps([
+  "size",
+  "name",
+  "type",
+  "ui",
+  "icon",
+  "placeholder",
+  "autofocus",
+  "autofocusDelay",
+  "loading",
+  "leading",
+  "trailing",
+  "loadingIcon",
+  "leadingIcon",
+  "trailingIcon",
+  "autocomplete",
+  "min",
+  "max",
+  "score",
+  "isRight"
+]);
+
+const loading = computed(() => props.loading);
+const trailing = computed(() => props.trailing);
+const leading = computed(() => props.leading);
+const type = computed(() => props.type);
+const placeholder = computed(() => props.placeholder);
+const autofocus = computed(() => props.autofocus);
+const autofocusDelay = computed(() => props.autofocusDelay);
+const loadingIcon = computed(() => props.loadingIcon);
+const leadingIcon = computed(() => props.leadingIcon);
+const trailingIcon = computed(() => props.trailingIcon);
+const autocomplete = computed(() => props.autocomplete);
+const padded = computed(() => props.padded);
+const icon = computed(() => props.icon);
+const min = computed(() => props.min);
+const max = computed(() => props.max);
+const score = computed(() => props.score);
+const isRight = computed(() => props.isRight ?? false)
+
+watch(value, (newValue) => {
+  if (type.value === "number") {
+    let formattedValue = newValue?.toString();
+    formattedValue = formattedValue?.replace(/[^0-9.]/g, "");
+    if (isEmpty(formattedValue)) return;
+    const parts = formattedValue?.split(".");
+    if (parts?.length > 2) {
+      formattedValue = parts[0] + "." + parts[1];
+    }
+    if (parts[1]) {
+      formattedValue = parts[0] + "." + parts[1]?.substring(0, 2);
+    }
+    value.value = formattedValue;
+  }
+});
+
+// sinh
+const emits = defineEmits(["onFocus", "onBlur", "onInput"]);
+
+const ui = computed(() => {
+  const defaultUI = {
+    wrapper: 'relative oc-input-wrapper',
+    placeholder: "placeholder:text-[12px]",
+    rounded: "",
+    file: {
+      base: "file:hidden",
+    },
+    size: {},
+    gap: {
+      xs: "gap-x-2",
+    },
+    padding: {
+      xs: "px-3 py-2.5",
+    },
+    leading: {
+      padding: {
+        xs: "ps-10",
+      },
+    },
+    trailing: {
+      padding: {
+        xs: "pe-20",
+      },
+    },
+    icon: {
+      base: "flex justify-center items-center",
+      size: {},
+      leading: {
+        wrapper: 'absolute inset-y-0 start-0 flex items-center position-right-custom text-[18px]',
+
+      },
+      trailing: {
+        wrapper: `absolute inset-y-0 end-0 flex items-center position-right-custom position-${isRight.value ? `right` : ''} text-[18px]`,
+      }
+    },
+  };
+
+  const resultUI = {
+    ...defaultUI,
+    ...props.ui,
+    file: {
+      ...defaultUI.file,
+      ...props.ui?.file,
+    },
+    size: {
+      ...defaultUI.size,
+      ...props.ui?.size,
+    },
+    gap: {
+      ...defaultUI.gap,
+      ...props.ui?.gap,
+    },
+    padding: {
+      ...defaultUI.padding,
+      ...props.ui?.padding,
+    },
+    leading: {
+      ...defaultUI.leading,
+      ...props.ui?.leading,
+      padding: {
+        ...defaultUI.leading.padding,
+        ...props.ui?.leading?.padding,
+      },
+    },
+    trailing: {
+      ...defaultUI.trailing,
+      ...props.ui?.trailing,
+      padding: {
+        ...defaultUI.trailing.padding,
+        ...props.ui?.trailing?.padding,
+      },
+    },
+    icon: {
+      ...defaultUI.icon,
+      ...props.ui?.icon,
+      size: {
+        ...defaultUI.icon.size,
+        ...props.ui?.icon?.size,
+      },
+      leading: {
+        ...defaultUI.icon.leading,
+        ...props.ui?.icon?.leading,
+      },
+      trailing: {
+        ...defaultUI.icon.trailing,
+        ...props.ui?.icon?.trailing,
+      },
+    },
+  };
+  return resultUI;
+});
+
+function ocInput() {
+  return refOCInput.value;
+}
+
+defineExpose({ ocInput });
+</script>
+
+<style lang="scss">
+.oc-input-wrapper {
+  .position-right-custom {
+    right: 12px;
+  }
+  .position-right {
+    right: 5px !important;
+  }
+}
+
+.loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-w-b-3);
+  border-bottom-color: var(--color-w-b-2);
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+[type="text"] {
+  &::placeholder {
+    color: var(--color-w-b-3) !important;
+  }
+}
+
+.ocs-input {
+  box-shadow: none !important;
+  border: 1px solid var(--color-w-b-4) !important;
+  border-radius: 8px !important;
+  font-size: 14px;
+  color: var(--color-w-b-1);
+  height: 38px;
+  background-color: transparent !important;
+
+  &:focus {
+    border: 1px solid var(--color-primary) !important;
+  }
+  
+  // &:focus-visible{
+  //   outline: 1px solid var(--color-primary) !important;
+  // }
+
+  &:disabled {
+    background: var(--bg-wrapper-50) !important;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+}
+
+.ocs-input-score {
+  box-shadow: none !important;
+  border: 1px solid var(--color-w-b-4) !important;
+  border-radius: 8px !important;
+  text-align: end !important;
+  padding-left: 46px !important;
+  padding-right: 45px !important;
+  font-size: 14px;
+  color: var(color-w-b-1);
+  background-color: transparent !important;
+
+  &:focus {
+    border: 1px solid var(--color-primary) !important;
+  }
+
+  // &:focus-visible{
+  //   outline: 1px solid var(--color-primary) !important;
+  // }
+
+  &:disabled {
+    background: var(--bg-wrapper-50) !important;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+}
+</style>

@@ -27,8 +27,8 @@ export default defineNuxtConfig({
       },
     },
   },
-  // / ── Auto-import composables ──
-  imports: {
-    dirs: ['composables/**', 'stores/**'],
-  },
+  // // / ── Auto-import composables ──
+  // imports: {
+  //   dirs: ['composables/**', 'stores/**','utils/**'],
+  // },
 })

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <OCSelect
+    <RSelect
       v-if="input.type == 'select'"
       v-model="state[input.name]"
       :required="input.required"
@@ -32,7 +32,7 @@
     >
       <template #leading="{ data }" v-if="isEmpty(input?.templateLeading)">
         <div v-if="isEmpty(input.template)">
-           <OCTruncateText :text="isNotEmpty(input.title)
+           <RTruncateText :text="isNotEmpty(input.title)
               ? data[input.title]
               : tBy({ km: data.Name, en: data.EnglishName })" />
           <!-- {{
@@ -45,7 +45,7 @@
           v-else-if="isNotEmpty(input.template)"
           class="flex items-center gap-1"
         >
-          <OCAvatar
+          <RAvatar
             v-if="
               input.template(data)?.avatar != null &&
               input.template(data)?.avatar != undefined
@@ -55,11 +55,11 @@
             border="s"
             :src="input.template(data)?.avatar"
           />
-          <OCTooltip :text="input.template(data)?.title">
+          <RTooltip :text="input.template(data)?.title">
             <div class="flex items-center gap-1">
               <OCViewInfo :title="input.template(data)?.title" size="line-clamp-1" />
             </div>
-          </OCTooltip>
+          </RTooltip>
         </div>
       </template>
       <template #option="{ data }" v-if="isEmpty(input?.templateOption)">
@@ -75,7 +75,7 @@
             v-else-if="isNotEmpty(input.template)"
             class="flex items-center gap-1"
           >
-            <OCAvatar
+            <RAvatar
               v-if="
                 input.template(data)?.avatar != null &&
                 input.template(data)?.avatar != undefined
@@ -92,9 +92,9 @@
           </div>
         </div>
       </template>
-    </OCSelect>
+    </RSelect>
 
-    <OCTextarea
+    <RTextarea
       v-else-if="input.type == 'textarea'"
       v-model="state[input.name]"
       :placeholder="getPlaceholder()"
@@ -116,7 +116,7 @@
       "
     />
 
-    <OCDatePicker
+    <RDatePicker
       v-else-if="input.type == 'date'"
       :format="dateForm"
       class="startDate"
@@ -146,7 +146,7 @@
       :ref="(elm) => setRefInput(elm, input.name)"
     />
 
-    <OCDatePicker
+    <RDatePicker
       v-else-if="input.type == 'time'"
       mode="time"
       class="startDate"
@@ -176,7 +176,7 @@
       :ref="(elm) => setRefInput(elm, input.name)"
     />
 
-    <OCDateRangePicker
+    <RDateRangePicker
       v-else-if="input.type == 'dateRange'"
       v-model="input.value"
       :label="input.value"
@@ -208,7 +208,7 @@
          modelApi:{start:'Start',end:'End'}
     -->
 
-    <OCCheckbox
+    <RCheckbox
       v-else-if="input.type == 'checkbox'"
       v-model="state[input.name]"
       :label="input.label"
@@ -224,9 +224,9 @@
       <template #label v-if="isNotEmpty(input.slotLabel)">
         {{ input.slotLabel }}
       </template>
-    </OCCheckbox>
+    </RCheckbox>
 
-    <OCCheckboxes
+    <RCheckboxes
       v-else-if="input.type == 'groupCheckbox'"
       v-model="state[input.name]"
       :options="input.options"
@@ -237,7 +237,7 @@
       <template #label v-if="isNotEmpty(input.slotLabel)">
         {{ input.slotLabel }}
       </template>
-    </OCCheckboxes>
+    </RCheckboxes>
 
     <OCRadios
       v-else-if="input.type == 'radio'"
