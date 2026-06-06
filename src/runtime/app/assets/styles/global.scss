@@ -66,7 +66,11 @@
 .fill-bg {
   fill: var(--color-primary) !important;
 }
-
+/* ── Selection ── */
+::selection {
+  background: rgba(255, 140, 66, 0.2);
+  color: var(--c-text);
+}
 /*
  * CKEditor 5 (v40.2.0) content styles.
  * Generated on Mon, 08 Jan 2024 11:43:09 GMT.

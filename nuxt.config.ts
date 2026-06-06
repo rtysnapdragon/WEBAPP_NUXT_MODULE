@@ -7,5 +7,28 @@ export default defineNuxtConfig({
     "@nuxtjs/prismic",
     "@pinia/nuxt",
     "@vueuse/nuxt"
-  ]
+  ],
+  
+  // ── NuxtUI v4 ──
+  ui: {
+    colorMode: true,
+  },
+ 
+  // ── Global SCSS ──
+  css: ['./runtime/app/assets/scss/main.scss'],
+
+  vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          // Make mixins available in every component <style lang="scss">
+          additionalData: `@use '@/assets/scss/_mixin' as *;`,
+        },
+      },
+    },
+  },
+  // / ── Auto-import composables ──
+  imports: {
+    dirs: ['composables/**', 'stores/**'],
+  },
 })

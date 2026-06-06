@@ -1,4 +1,118 @@
 
+/* ============================================
+   SARIKA — Design Tokens
+   CSS Variables Only (max 10 color vars)
+   ============================================ */
+
+:root {
+  /* ── SURFACES ── */
+  --bg-primary: #f8f9fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f3f6;
+
+  /* ── COLOR PALETTE ── */
+  --c-bg:        #f8f5f0;
+  --c-surface:   #ffffff;
+  --c-accent:    #ff8c42;
+  --c-border:    rgba(255, 140, 66, 0.16);
+  --c-accent-2:  #ffb347;
+  --c-text:      #1a1510;
+  --c-muted:     #8a7f72;
+  --c-success:   #4ade80;
+  --c-danger:    #f87171;
+  --c-info:      #60a5fa;
+  --c-hover:     #ff8c42;
+  --c-active:    #ff8c42;
+
+  --color-w-b-1: #4a4545;
+  --color-w-b-2: #554f4f;
+  --color-w-b-3: #878080;
+  --color-w-b-4: #5f5656;
+  --color-w-b-5: #f8f5f0;
+  --color-w-b-6: #e8e2d9;
+
+  --color-green:   #4ade80;
+  --color-blue:    #60a5fa;
+  --color-yellow:  #ffb347;
+  --color-red:     #f87171;
+  --color-orange:  #ff8c42;
+  --color-warning: #ff8c42;
+
+  /* ── TYPOGRAPHY ── */
+  --font-fallback: 'Inter', 'Battambang', 'NotoSansKhmer', system-ui, sans-serif;
+
+  /* ── RADIUS ── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  /* ── SPACING ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ── GLASS ── */
+  --glass-bg:      rgba(255, 255, 255, 0.72);
+  --glass-blur:    blur(24px) saturate(180%);
+  --glass-blur-sm: blur(12px) saturate(150%);
+  --glass-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --glass-border:  rgba(255, 140, 66, 0.16);
+
+  /* ── GLOW ── */
+  --glow-accent-sm: 0 0 16px rgba(255, 140, 66, 0.18);
+  --glow-text:      0 0 12px rgba(255, 140, 66, 0.25);
+  --glow-accent:
+    0 0 40px rgba(255, 140, 66, 0.08),
+    0 0 80px rgba(255, 140, 66, 0.03);
+
+  /* ── TRANSITION ── */
+  --transition-fast:   all 0.15s ease;
+  --transition-base:   all 0.2s ease;
+  --transition-slow:   all 0.35s ease;
+}
+
+/* ── SYSTEM DARK ── */
+.dark {
+  --c-bg:        #0a0a0b;
+  --c-surface:   rgba(19, 19, 26, 0.72);
+  --c-border:    rgba(255, 140, 66, 0.12);
+  --c-text:      #f0ece4;
+  --c-muted:     #7a7585;
+  --c-hover:     #1d1c1b;
+  --c-active:    #8aa70b;
+  --c-accent:    #ff8c42;
+  --c-accent-2:  #ffb347;
+  --c-success:   #4ade80;
+  --c-danger:    #f87171;
+  --c-info:      #60a5fa;
+
+  --color-w-b-1: #c1bcbc;
+  --color-w-b-2: #797272;
+  --color-w-b-3: #9e7575;
+  --color-w-b-4: #e8e2d9;
+  --color-w-b-5: #f8f5f0;
+  --color-w-b-6: #9e7575;
+
+  --glass-bg:      rgba(19, 19, 26, 0.72);
+  --glass-blur:    blur(24px) saturate(180%);
+  --glass-blur-sm: blur(12px) saturate(150%);
+  --glass-shadow:  0 8px 32px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+  --glass-border:  rgba(255, 140, 66, 0.12);
+
+  --glow-accent-sm: 0 0 16px rgba(255, 140, 66, 0.3);
+  --glow-text:      0 0 20px rgba(255, 140, 66, 0.5);
+  --glow-accent:    0 0 40px rgba(255, 140, 66, 0.12), 0 0 80px rgba(255, 140, 66, 0.04);
+}
+
+
 :root {
   --color-primary: rgb(var(--color-primary-400));
   --color-accent: rgb(var(--color-accent-400));
