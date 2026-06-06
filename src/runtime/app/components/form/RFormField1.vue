@@ -110,7 +110,7 @@ function handleBlur() {
       {{ label }}
       <span v-if="field.validation?.required" class="r-field__required" aria-hidden="true">*</span>
       <span v-if="!field.validation?.required" class="r-field__optional">
-        ({{ $t('common.optional') }})
+        ({{ $t('optional') }})
       </span>
     </label>
 
@@ -134,7 +134,7 @@ function handleBlur() {
         :disabled="isDisabled || loadingOptions"
         @blur="handleBlur"
       >
-        <option value="" disabled>{{ placeholder || $t('common.select') }}</option>
+        <option value="" disabled>{{ placeholder || $t('select') }}</option>
         <option
           v-for="opt in resolvedOptions"
           :key="String(opt.value)"
@@ -263,7 +263,6 @@ function handleBlur() {
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
 
 /* ── Decorators ── */
 .r-field-divider {

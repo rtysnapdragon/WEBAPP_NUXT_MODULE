@@ -1,120 +1,148 @@
-<script setup lang="ts">
-// RFormGroup — collapsible section grouping form fields
-import { ref } from 'vue'
-
-const props = withDefaults(defineProps<{
-  title?:       string
-  icon?:        string
-  cols?:        1 | 2 | 3 | 4
-  collapsible?: boolean
-  collapsed?:   boolean
-  span?:        number   // grid span override
-}>(), {
-  cols: 1,
-  collapsed: false,
-})
-
-const open = ref(!props.collapsed)
-</script>
-
 <template>
-  <div
-    :class="['r-form-group', { 'r-form-group--has-title': title }]"
-    :style="span ? { gridColumn: `span ${span}` } : {}"
+  <UFormGroup
+    :size="props.size ?? 'md'"
+    :label="label"
+    :name="props.name"
+    :ui="ui"
+    :required="required"
+    :hint="hint"
+    :error="error"
+    :description="description"
+    :help="help"
+    :eager-validation="eagerValidation"
   >
-    <!-- Group header -->
-    <div
-      v-if="title"
-      class="r-form-group__header"
-      :class="{ 'r-form-group__header--clickable': collapsible }"
-      @click="collapsible && (open = !open)"
+    <template
+      #label="{ error, label, name, hint, description, help }"
+      v-if="$slots.label"
     >
-      <div class="r-form-group__title-row">
-        <UIcon v-if="icon" :name="icon" class="r-form-group__icon" />
-        <span class="r-form-group__title">{{ title }}</span>
-      </div>
-      <UIcon
-        v-if="collapsible"
-        :name="open ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-        class="r-form-group__toggle"
+      <slot
+        name="label"
+        v-bind="{ error, label, name, hint, description, help }"
       />
-    </div>
+    </template>
 
-    <!-- Fields grid -->
-    <Transition name="collapse">
-      <div
-        v-show="!collapsible || open"
-        :class="['r-form-group__fields', `r-form-group__fields--cols-${cols}`]"
-      >
-        <slot />
-      </div>
-    </Transition>
-  </div>
+    <template
+      #hint="{ error, label, name, hint, description, help }"
+      v-if="$slots.hint"
+    >
+      <slot
+        name="hint"
+        v-bind="{ error, label, name, hint, description, help }"
+      />
+    </template>
+
+    <template
+      #description="{ error, label, name, hint, description, help }"
+      v-if="$slots.description"
+    >
+      <slot
+        name="description"
+        v-bind="{ error, label, name, hint, description, help }"
+      />
+    </template>
+
+    <template #default="{ error, label, name, hint, description, help }">
+      <slot
+        name="default"
+        v-bind="{ error, label, name, hint, description, help }"
+      />
+    </template>
+
+    <template
+      #help="{ error, label, name, hint, description, help }"
+      v-if="$slots.help"
+    >
+      <slot
+        name="help"
+        v-bind="{ error, label, name, hint, description, help }"
+      />
+    </template>
+
+    <template #error="{ error }" v-if="$slots.error">
+      <slot name="error" v-bind="{ error }" />
+    </template>
+  </UFormGroup>
 </template>
 
-<style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
+<script setup>
+// import OCTooltip from "../OCTooltip.vue";
 
-.r-form-group {
-  display: contents;
+const props = defineProps([
+  "label",
+  "name",
+  "required",
+  "description",
+  "ui",
+  "error",
+  "help",
+  "hint",
+  "eagerValidation",
+  "size",
+]);
 
-  &--has-title {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    grid-column: 1 / -1;
-  }
+const ui = computed(() => {
+  const defaultUI = {
+    wrapper: "",
+    inner: "",
+    label: {
+      wrapper: "flex content-center items-center justify-between",
+      base: "block font-normal text-[13px]  ocs-truncate color-w-b-2 ocs-input-focus",
+      required:
+        "after:content-['*'] after:ms-0.5 after:text-red-500 dark:after:text-red-400",
+    },
+    size: {
+      "2xs": "text-xs",
+      xs: "text-xs",
+      sm: "text-sm",
+      md: "text-sm",
+      lg: "text-sm",
+      xl: "text-base",
+    },
+    container: "mt-1 no-relative",
+    description: "text-gray-500 dark:text-gray-400",
+    hint: "text-gray-500 dark:text-gray-400",
+    help: "mt-2 text-gray-500 dark:text-gray-400",
+    error: "mt-0 !text-xs text-red-500 dark:text-red-400",
+    default: {
+      size: "sm",
+    },
+  };
 
-  &__header {
-    @include flex-between;
-    padding-bottom: var(--space-2);
-    border-bottom: 1px solid var(--c-border);
+  const resultUI = {
+    ...defaultUI,
+    ...props.ui,
+    label: {
+      ...defaultUI.label,
+      ...props.ui?.label,
+    },
+    size: {
+      ...defaultUI.size,
+      ...props.ui?.size,
+    },
+    default: {
+      ...defaultUI.default,
+      ...props.ui?.default,
+    },
+  };
+  return resultUI;
+});
 
-    &--clickable {
-      cursor: pointer;
-      user-select: none;
-      &:hover .r-form-group__title { color: var(--c-accent); }
-    }
-  }
+const label = computed(() => props.label);
+const required = computed(() => props.required);
+const description = computed(() => props.description);
+const help = computed(() => props.help);
+const hint = computed(() => props.hint);
+const error = computed(() => props.error);
+const eagerValidation = computed(() => props.eagerValidation);
+</script>
 
-  &__title-row {
-    display:     flex;
-    align-items: center;
-    gap:         var(--space-2);
-  }
-
-  &__icon  { color: var(--c-accent); font-size: 1rem; }
-  &__title { font-size: 0.83rem; font-weight: 600; color: var(--c-text); text-transform: uppercase; letter-spacing: 0.05em; }
-  &__toggle { color: var(--c-muted); @include transition(fast); }
-
-  &__fields {
-    display: grid;
-    gap:     var(--space-4);
-
-    &--cols-1 { grid-template-columns: 1fr; }
-    &--cols-2 { grid-template-columns: repeat(2, 1fr); }
-    &--cols-3 { grid-template-columns: repeat(3, 1fr); }
-    &--cols-4 { grid-template-columns: repeat(4, 1fr); }
-
-    @include mobile-only {
-      grid-template-columns: 1fr !important;
-    }
-    @include tablet-only {
-      &--cols-3, &--cols-4 { grid-template-columns: repeat(2, 1fr); }
-    }
-  }
+<style>
+.ocs-input-focus:focus {
+  --tw-ring-shadow: #ff5722 !important;
+  border-color: #ff5722;
 }
 
-/* Collapse transition */
-.collapse-enter-active, .collapse-leave-active {
-  transition: all 0.22s ease;
-  overflow: hidden;
-}
-.collapse-enter-from, .collapse-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-.collapse-enter-to, .collapse-leave-from {
-  max-height: 800px;
+.no-relative {
+  position: unset !important;
 }
 </style>

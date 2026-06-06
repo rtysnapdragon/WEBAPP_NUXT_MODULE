@@ -48,10 +48,10 @@ i18n/
 
 ## Slideover Behavior
 
-| Device  | Direction | Width     |
-|---------|-----------|-----------|
-| Desktop | RTL (right) | max-w-xl |
-| Tablet  | RTL (right) | max-w-xl |
+| Device  | Direction    | Width                          |
+| ------- | ------------ | ------------------------------ |
+| Desktop | RTL (right)  | max-w-xl                       |
+| Tablet  | RTL (right)  | max-w-xl                       |
 | Mobile  | BTT (bottom) | full width, 90dvh, rounded top |
 
 ---
@@ -144,58 +144,58 @@ function handleSubmit(data) {
 ## UI Store
 
 ```ts
-const ui = useUIStore()
+const ui = useUIStore();
 
 // Theme
-ui.setTheme('dark')    // 'light' | 'dark' | 'system'
-ui.toggleTheme()
+ui.setTheme("dark"); // 'light' | 'dark' | 'system'
+ui.toggleTheme();
 
 // Locale
-ui.setLocale('km')     // 'en' | 'km'
+ui.setLocale("km"); // 'en' | 'km'
 
 // Toasts
-ui.success('Saved!', 'Your changes have been saved.')
-ui.error('Failed', 'Something went wrong.')
+ui.success("Saved!", "Your changes have been saved.");
+ui.error("Failed", "Something went wrong.");
 
 // Loading
-ui.startLoading('save-user')
-await saveUser()
-ui.stopLoading('save-user')
+ui.startLoading("save-user");
+await saveUser();
+ui.stopLoading("save-user");
 
 // Or:
-await ui.withLoading('save-user', () => saveUser())
+await ui.withLoading("save-user", () => saveUser());
 
 // Device
-ui.isMobile   // boolean
-ui.isTablet   // boolean
-ui.isDesktop  // boolean
+ui.isMobile; // boolean
+ui.isTablet; // boolean
+ui.isDesktop; // boolean
 ```
 
 ---
 
 ## Field Types
 
-| Type        | Renders                    |
-|-------------|----------------------------|
-| text        | `<input type="text">`      |
-| email       | `<input type="email">`     |
-| password    | `<input type="password">`  |
-| number      | `<input type="number">`    |
-| tel         | `<input type="tel">`       |
-| textarea    | `<textarea>`               |
-| select      | `<select>` native          |
-| multiselect | USelectMenu (NuxtUI)       |
-| toggle      | Custom toggle switch       |
-| checkbox    | `<input type="checkbox">`  |
-| radio       | Radio group                |
-| date        | `<input type="date">`      |
+| Type        | Renders                         |
+| ----------- | ------------------------------- |
+| text        | `<input type="text">`           |
+| email       | `<input type="email">`          |
+| password    | `<input type="password">`       |
+| number      | `<input type="number">`         |
+| tel         | `<input type="tel">`            |
+| textarea    | `<textarea>`                    |
+| select      | `<select>` native               |
+| multiselect | USelectMenu (NuxtUI)            |
+| toggle      | Custom toggle switch            |
+| checkbox    | `<input type="checkbox">`       |
+| radio       | Radio group                     |
+| date        | `<input type="date">`           |
 | datetime    | `<input type="datetime-local">` |
-| file        | Styled file upload area    |
-| range       | Range slider + value       |
-| color       | Color picker               |
-| hidden      | Hidden input               |
-| divider     | Horizontal rule            |
-| heading     | Section heading text       |
+| file        | Styled file upload area         |
+| range       | Range slider + value            |
+| color       | Color picker                    |
+| hidden      | Hidden input                    |
+| divider     | Horizontal rule                 |
+| heading     | Section heading text            |
 
 ---
 

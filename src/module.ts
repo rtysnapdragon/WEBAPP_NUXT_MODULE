@@ -123,7 +123,6 @@ export default defineNuxtModule<ModuleOptions>({
       pathPrefix: false,
     });
     const componentsDir = path.join(runtimeDir, "components");
-    console.log("Components: ----------------->",componentsDir);
     function addComponentsFromDir(
       directory: string,
       baseDir: string = componentsDir
