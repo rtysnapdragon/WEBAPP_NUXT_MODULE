@@ -17,7 +17,7 @@
                 <li class="item" ref="refImgVideo">
                   <img v-if="type == 'image'" :src="pathUrl" @error="(e) => { defaultImg.get(e, errorType) }"
                     class="container-image-video" />
-                  <OCVideo v-else :path="pathUrl" :autoPlay="true" VideoStyle="container-image-video" />
+                  <RVideo v-else :path="pathUrl" :autoPlay="true" VideoStyle="container-image-video" />
                 </li>
               </ul>
             </div>
@@ -62,7 +62,7 @@
 
 <script setup>
 import { onMounted } from 'vue';
-import OCVideo from './OCVideo.vue';
+import RVideo from './RVideo.vue'
 
 const defaultImg = UseDefaultImagStore();
 const isPreview = defineModel();

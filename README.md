@@ -79,6 +79,7 @@ npm install @nuxt/module-builder @nuxt/kit typescript -D
 npm install -D sass-embedded
 npm install axios
 npm install zod
+npm install v-calendar@3
 
 </details>
 
