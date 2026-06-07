@@ -1,5 +1,5 @@
 <template>
-  <USlideover v-model="isOpen" :side="side" :ui="ui" :transition="transition" :overlay="overlay"
+  <USlideover v-model:open="isOpen" :side="side" :ui="ui" :transition="transition" :overlay="overlay" :modal="false"
     :prevent-close="preventClose" :appear="appear">
     <div class="oc-drawer-container" ref="refWrapperOCDrawer">
       <div class="oc-drawer-header" v-if="$slots.header">

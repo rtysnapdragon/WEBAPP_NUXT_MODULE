@@ -19,7 +19,7 @@
           : $t("create_form")
       }}
     </template>
-    <RFormBuilder
+    <!-- <RFormBuilder
       v-model:data="dataUpdate"
       :inputs="inputs"
       :tabs="tabs"
@@ -39,7 +39,7 @@
       @onLoading="loadingForm"
       @onError="errorForm"
       @onSuccess="successForm"
-    />
+    /> -->
 
     <template #footer>
       <RBtn
