@@ -5,6 +5,8 @@
     :description="description"
     :transition="true"
     :fullscreen="isFullScreen"
+    :dismissible="noClose"
+    closeIcon="ri-close-line"
     :close="{
       color: 'primary',
       variant: 'outline',
@@ -66,6 +68,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  noClose: {
+    type: Boolean,
+    default: true
+  },
   ui: {
     type: Object,
     default: () => ({})
@@ -98,6 +104,64 @@ const mergedUi = computed(() => ({
   overlay: "r-modal__overlay",
   rounded: "r-modal__rounded",
   shadow: "r-modal__shadow",
+  slots: {
+    overlay: 'fixed inset-0',
+    content: 'bg-default divide-y divide-default flex flex-col focus:outline-none',
+    header: 'flex items-center gap-1.5 p-4 sm:px-6 min-h-(--ui-header-height)',
+    wrapper: '',
+    body: 'flex-1 p-4 sm:p-6',
+    footer: 'flex items-center gap-1.5 p-4 sm:px-6',
+    title: 'text-highlighted font-semibold',
+    description: 'mt-1 text-muted text-sm',
+    close: 'absolute top-4 end-4'
+  },
+  variants: {
+    transition: {
+      true: {
+        overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
+        content: 'data-[state=open]:animate-[scale-in_200ms_ease-out] data-[state=closed]:animate-[scale-out_200ms_ease-in]'
+      }
+    },
+    fullscreen: {
+      true: {
+        content: 'inset-0'
+      },
+      false: {
+        content: 'w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default'
+      }
+    },
+    overlay: {
+      true: {
+        overlay: 'bg-elevated/75'
+      }
+    },
+    scrollable: {
+      true: {
+        overlay: 'overflow-y-auto',
+        content: 'relative'
+      },
+      false: {
+        content: 'fixed',
+        body: 'overflow-y-auto'
+      }
+    }
+  },
+  compoundVariants: [
+    {
+      scrollable: true,
+      fullscreen: false,
+      class: {
+        overlay: 'grid place-items-center p-4 sm:py-8'
+      }
+    },
+    {
+      scrollable: false,
+      fullscreen: false,
+      class: {
+        content: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-hidden'
+      }
+    }
+  ],
   ...props.ui
 }))
 </script>
@@ -105,6 +169,19 @@ const mergedUi = computed(() => ({
 <style scoped>
 .r-modal{
   background-color: var(--c-bg) !important;
+  z-index: 9999;
+  border-radius: 10px;
+  --ui-radius: var(--r-xl);
+
+  :deep([role='dialog']) {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  :deep(.backdrop) {
+    backdrop-filter: blur(10px);
+  }
 }
 /* ===== Overlay ===== */
 .r-modal :deep(.r-modal__overlay) {
@@ -121,12 +198,12 @@ const mergedUi = computed(() => ({
 }
 
 /* ===== Header ===== */
-/* .r-modal :deep(.r-modal__header) {
+.r-modal :deep(.r-modal__header) {
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 600;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-} */
+}
 
 .r-modal__header{
     padding: 5px 15px;
@@ -137,15 +214,15 @@ const mergedUi = computed(() => ({
 .r-modal__body {
   padding: 15px 15px;
   font-size: 13px;
-  color: #374151;
-  max-height: 70vh;
+  color: var(--c-text);
+  /* max-height: 70vh; */
   overflow-y: auto;
 }
 
 /* ===== Footer ===== */
 .r-modal__footer {
-  padding: 5px 15px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px 15px;
+  /* border-top: 1px solid rgba(0, 0, 0, 0.08); */
 }
 
 /* footer actions */
@@ -153,6 +230,8 @@ const mergedUi = computed(() => ({
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  width: 100%;
+  align-items: center;
 }
 
 /* buttons */
@@ -161,7 +240,7 @@ const mergedUi = computed(() => ({
 }
 
 /* rounded override */
-.r-modal :deep(.r-modal__rounded) {
+.r-modal__rounded {
   border-radius: 50px;
 }
 </style>

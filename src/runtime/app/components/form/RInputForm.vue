@@ -57,7 +57,7 @@
           />
           <RTooltip :text="input.template(data)?.title">
             <div class="flex items-center gap-1">
-              <OCViewInfo :title="input.template(data)?.title" size="line-clamp-1" />
+              <RViewInfo :title="input.template(data)?.title" size="line-clamp-1" />
             </div>
           </RTooltip>
         </div>
@@ -85,7 +85,7 @@
               border="s"
               :src="input.template(data)?.avatar"
             />
-            <OCViewInfo
+            <RViewInfo
               :title="input.template(data)?.title"
               :subTitle="input.template(data)?.subtitle"
             />
@@ -239,7 +239,7 @@
       </template>
     </RCheckboxes>
 
-    <OCRadios
+    <RRadios
       v-else-if="input.type == 'radio'"
       v-model="state[input.name]"
       :options="input.options"
@@ -259,13 +259,13 @@
       <template #label="{ option }" v-if="isNotEmpty(input.slotLabel)">
         {{ input.slotLabel(option) }}
       </template>
-    </OCRadios>
+    </RRadios>
 
     <div
       v-else-if="input.type == 'color'"
       class="flex items-center gap-2 w-full"
     >
-      <OCInputColor
+      <RInputColor
         v-model="state[input.name]"
         :disabled="input.disabled"
         @onChange="
@@ -281,7 +281,7 @@
       <FileUpload v-model="state[input.name]" showIconDelete="test" />
     </div>
 
-    <OCInput
+    <RInput
       v-else
       v-model="state[input.name]"
       :type="input.type"
@@ -317,7 +317,7 @@
       <template #trailing v-if="isNotEmpty(input.slotTrailing)">
         {{ input.slotTrailing }}
       </template>
-    </OCInput>
+    </RInput>
   </div>
 </template>
 

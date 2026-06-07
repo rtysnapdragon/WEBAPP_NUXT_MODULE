@@ -81,6 +81,9 @@ npm install axios
 npm install zod
 npm install v-calendar@3
 
+npm install v-calendar
+npm install vue-screen-utils
+
 </details>
 
 <!-- Badges -->

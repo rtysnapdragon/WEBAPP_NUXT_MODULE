@@ -34,6 +34,7 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.build.transpile.push(runtimeDir);
     // // Add global.scss to the global CSS array
     nuxt.options.css = nuxt.options.css || [];
+    console.log("resolve(runtimeDir, assets , styles tailwind.css,resolve(runtimeDir-------->",resolve(runtimeDir, "assets", "styles", "tailwind.css"))
     nuxt.options.css.push(
       resolve(runtimeDir, "assets", "styles", "tailwind.css")
     );

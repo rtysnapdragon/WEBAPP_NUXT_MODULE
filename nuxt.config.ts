@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   },
  
   // ── Global SCSS ──
-  css: ['./runtime/app/assets/scss/main.scss'],
+  css: ['./runtime/app/assets/styles/global.scss','./runtime/app/assets/styles/tailwind.css'],
 
   vite: {
     css: {
