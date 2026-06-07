@@ -53,13 +53,10 @@
         </slot>
       </div>
     </template>
-
   </UModal>
 </template>
 
-
 <script setup>
-
 const open = defineModel()
 
 const props = defineProps({
@@ -106,6 +103,9 @@ const mergedUi = computed(() => ({
 </script>
 
 <style scoped>
+.r-modal{
+  background-color: var(--c-bg) !important;
+}
 /* ===== Overlay ===== */
 .r-modal :deep(.r-modal__overlay) {
   background: rgba(0, 0, 0, 0.55);
@@ -120,46 +120,32 @@ const mergedUi = computed(() => ({
   overflow: hidden;
 }
 
-.dark .r-modal :deep(.r-modal__content) {
-  background: #18181b;
-}
-
 /* ===== Header ===== */
-.r-modal :deep(.r-modal__header) {
-  padding: 16px 20px;
+/* .r-modal :deep(.r-modal__header) {
+  padding: 10px 20px;
   font-size: 14px;
   font-weight: 600;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
+} */
 
-.dark .r-modal :deep(.r-modal__header) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
 .r-modal__header{
-    padding: 20px 20px 0px 20px;
+    padding: 5px 15px;
     width: 100%;
 }
+
 /* ===== Body ===== */
 .r-modal__body {
-  padding: 20px;
+  padding: 15px 15px;
   font-size: 13px;
   color: #374151;
   max-height: 70vh;
   overflow-y: auto;
 }
 
-.dark .r-modal__body {
-  color: #e4e4e7;
-}
-
 /* ===== Footer ===== */
 .r-modal__footer {
-  padding: 20px 20px 20px 20px;
+  padding: 5px 15px;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.dark .r-modal__footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* footer actions */
@@ -176,6 +162,6 @@ const mergedUi = computed(() => ({
 
 /* rounded override */
 .r-modal :deep(.r-modal__rounded) {
-  border-radius: 12px;
+  border-radius: 50px;
 }
 </style>
