@@ -322,6 +322,10 @@
 </template>
 
 <script setup>
+import FileUpload from '../FileUpload.vue'
+import RRadios from '../checkRadio/RRadios.vue'
+import RTooltip from '../RTooltip.vue'
+import RViewInfo from '../RViewInfo.vue'
 const state = defineModel("state");
 const props = defineProps(["input"]);
 const input = computed(() => props.input);

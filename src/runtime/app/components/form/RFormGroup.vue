@@ -1,5 +1,5 @@
 <template>
-  <UFormGroup
+  <UFormField
     :size="props.size ?? 'md'"
     :label="label"
     :name="props.name"
@@ -61,7 +61,7 @@
     <template #error="{ error }" v-if="$slots.error">
       <slot name="error" v-bind="{ error }" />
     </template>
-  </UFormGroup>
+  </UFormField>
 </template>
 
 <script setup>

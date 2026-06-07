@@ -42,6 +42,7 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
+    "@easylogic/colorpicker": "^1.10.11",
     "@nuxt/content": "^3.14.0",
     "@nuxt/ui": "4.4.0",
     "axios": "^1.17.0",
