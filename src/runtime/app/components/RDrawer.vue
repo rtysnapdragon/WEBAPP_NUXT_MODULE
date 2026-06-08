@@ -169,8 +169,7 @@ function handleSubmit() {
    UI Helpers
 ----------------------------- */
 const slideoverSide = computed(() => {
-  console.log('ui.isMobile--------------->>', ui.isMobile)
-  console.log("ui.detectDevice().device ============> ", ui.detectDevice())
+  console.log("ui.isMobile ====================> : ", ui.isMobile)
   return ui.isMobile ? 'bottom' : props.side
 })
 
