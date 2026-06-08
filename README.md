@@ -84,7 +84,7 @@ npm install v-calendar@3
 npm install v-calendar
 npm install vue-screen-utils
 npm install @easylogic/colorpicker
-
+npm install @popperjs/core
 </details>
 
 <!-- Badges -->

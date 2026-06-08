@@ -45,6 +45,7 @@
     "@easylogic/colorpicker": "^1.10.11",
     "@nuxt/content": "^3.14.0",
     "@nuxt/ui": "4.4.0",
+    "@popperjs/core": "^2.11.8",
     "axios": "^1.17.0",
     "better-sqlite3": "^12.10.0",
     "fs-extra": "^11.3.5",

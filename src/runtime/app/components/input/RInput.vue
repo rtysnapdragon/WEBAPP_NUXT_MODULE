@@ -21,7 +21,7 @@ const value = defineModel();
 const props = defineProps([
   "size",
   "name",
-  "type",
+  "type", //file/search/text/password/number/textarea/checkbox/radio/switch/select/time/date
   "ui",
   "icon",
   "placeholder",

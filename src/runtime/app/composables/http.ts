@@ -32,6 +32,8 @@ export const useHttp = async (
       await useRefreshToken();
     }
 
+    console.log("Url --------------> ", url)
+    console.log("Options --------------> ", options)
     const httpConfig = useOptions(url, options);
 
     if (!httpConfig) return { data: ref(null), error: ref(true) };

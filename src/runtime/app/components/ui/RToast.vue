@@ -36,7 +36,6 @@ const icons: Record<string, string> = {
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
 
 .r-toast-stack {
   position:       fixed;

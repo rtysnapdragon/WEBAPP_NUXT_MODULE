@@ -13,22 +13,22 @@
       <template #label="{ selected }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(selected) && !selected.isDefault" name="leading" :data="selected" />
-        <OCTruncateText :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
+        <RTruncateText :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
         <OCProfileInfo size="2xs" border="s" :src="selected[templateLeading.imagePath]"
           :errorType="templateLeading.imageType" :gender="selected[templateLeading?.gender]"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
           <template #title>
-            <OCTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
         </OCProfileInfo>
 
-        <OCViewInfo
+        <RViewInfo
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
           <template #title>
-            <OCTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
-        </OCViewInfo>
+        </RViewInfo>
 
         <div v-else :class="[colorPlaceholder ? 'text-[--color-primary]' : 'opacity-[0.6] text-[12px]', 'line-clamp-1']">
           {{ placeholder ? placeholder : $t("please_select") }}
@@ -44,23 +44,23 @@
               <slot name="leading" :data="item"></slot>
             </span>
 
-            <OCTruncateText :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
+            <RTruncateText :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
               v-else-if="!$slots.leading && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
 
             <OCProfileInfo size="2xs" border="s" :src="item[templateLeading.imagePath]"
               :errorType="templateLeading.imageType" :gender="item[templateLeading?.gender]"
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
               <template #title>
-                <OCTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
+                <RTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
             </OCProfileInfo>
 
-            <OCViewInfo
+            <RViewInfo
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
               <template #title>
-                <OCTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
+                <RTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
-            </OCViewInfo>
+            </RViewInfo>
 
             <i v-if="!(item?.isSelectAll || item?.isDefault)" class="ri-close-circle-fill"
               @click.stop="fnRemoveMultiple(item)"></i>
@@ -110,11 +110,11 @@
             </template>
           </OCProfileInfo>
 
-          <OCViewInfo v-else :subTitle="fnGenerateTextSubLabel(item, templateOption)">
+          <RViewInfo v-else :subTitle="fnGenerateTextSubLabel(item, templateOption)">
             <template #title>
               {{ fnGenerateTextLabel(item, templateOption) }}
             </template>
-          </OCViewInfo>
+          </RViewInfo>
         </div>
 
       </template>

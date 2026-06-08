@@ -77,7 +77,6 @@ export default defineNuxtModule<ModuleOptions>({
     // add import utils, stores, composables
     const dirsToAdd = ["utils", "composables", "stores"];
     for (const dir of dirsToAdd) {
-      console.log("runtimeDir-------------> ", resolve(runtimeDir, dir))
       addImportsDir(resolve(runtimeDir, dir));
     }
 

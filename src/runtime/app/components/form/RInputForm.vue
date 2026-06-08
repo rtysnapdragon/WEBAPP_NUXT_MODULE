@@ -322,7 +322,7 @@
 </template>
 
 <script setup>
-import FileUpload from '../FileUpload.vue'
+import FileUpload from '../files/FileUpload.vue'
 import RRadios from '../checkRadio/RRadios.vue'
 import RTooltip from '../RTooltip.vue'
 import RViewInfo from '../RViewInfo.vue'

@@ -16,81 +16,10 @@ Features:
 */
 // ============================================================
 // SARIKA — UI Store  (stores/ui.ts)
-// ============================================================
-export type ThemeMode  = 'light' | 'dark' | 'system'
-export type LocaleCode = 'en' | 'km'
-export type DeviceType = 'mobile' | 'tablet' | 'desktop'
- 
-interface Toast {
-  id:       string
-  type:     'success' | 'error' | 'info' | 'warning'
-  title:    string
-  message?: string
-  duration: number
-}
-
-export interface NotificationItem {
-  Id: number
-  Type: 'like' | 'comment' | 'follow' | 'save' | 'system'
-  Message: string
-  From?: string
-  FromAvatar?: string
-  IsRead: boolean
-  CreatedAt: string
-
-  /*
-  Route when clicked
-  Example:
-  /gallery/mekong-memories
-  /artists/sophea-khun
-  /dashboard/notifications
-  */
-  Href?: string
-
-  /*
-  optional image
-  */
-  Cover?: string
-}
-
-type ReportStatus = 'idle' | 'generating' | 'success' | 'error'
-
-
-type TrackStage = 'pending' | 'picking' | 'packed' | 'in_transit' | 'delivered' | 'canceled'
-
-
-interface UIState {
-  isDark: boolean
-  isCollapse: boolean
-  isSidebarCollapsed: boolean
-  notifPanelOpen: boolean
-  aiAssistantOpen: boolean
-  searchOpen: boolean
-  isMobileOpen : boolean
-
-  notifSocket: WebSocket | null
-  notifLoading: boolean
-  notifToken: string | null
-
-  searching: Boolean
-  reportStatus: ReportStatus
-  trackStage: TrackStage
-  lastScanValue: string
-
-  theme:          ThemeMode
-  locale:         LocaleCode
-  sidebarOpen:    boolean
-  sidebarCollapsed: boolean
-  device:         DeviceType
-  toasts:         Toast[]
-  loadingKeys:    Set<string>
-  slideoverStack: string[]
-  modalStack:     string[]
-
-}
+// ============================================================\
 
 export const useUIStore = defineStore('ui', {
-  state: (): UIState => ({
+  state: () => ({
     isDark: false,
     isCollapse: false,
     isSidebarCollapsed: false,
@@ -104,23 +33,23 @@ export const useUIStore = defineStore('ui', {
     notifToken: null,
 
     searching: false,
-    reportStatus: 'idle' as ReportStatus,
-    trackStage: 'pending' as TrackStage,
-    lastScanValue: '' as string,
+    reportStatus: 'idle',
+    trackStage: 'pending',
+    lastScanValue: '',
 
-    theme: 'system' as ThemeMode,
-    locale: 'km' as LocaleCode,
+    theme: 'system',
+    locale: 'km',
     sidebarOpen: false,
     sidebarCollapsed: false,
-    device: 'desktop' as DeviceType,
-    toasts: [] as Toast[],
-    loadingKeys: new Set<string>(),
-    slideoverStack: [] as string[],
-    modalStack: [] as string[],
+    device: 'desktop',
+    toasts: [],
+    loadingKeys: new Set(),
+    slideoverStack: [],
+    modalStack: []
   }),
 
   getters: {
-    isDark(state): boolean {
+    isDark(state) {
       if (state.theme === 'system') {
         return typeof window !== 'undefined'
           ? window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -133,7 +62,7 @@ export const useUIStore = defineStore('ui', {
     isTablet:  (state) => state.device === 'tablet',
     isDesktop: (state) => state.device === 'desktop',
  
-    isLoading: (state) => (key: string) => state.loadingKeys.has(key),
+    isLoading: (state) => (key) => state.loadingKeys.has(key),
     anyLoading:(state) => state.loadingKeys.size > 0,
   },
 
@@ -141,7 +70,7 @@ export const useUIStore = defineStore('ui', {
     /* =======================
        THEME
     ======================= */
-    setTheme(mode: ThemeMode) {
+    setTheme(mode) {
       this.theme = mode
       if (typeof document !== 'undefined') {
         const isDark = mode === 'dark' ||
@@ -188,7 +117,7 @@ export const useUIStore = defineStore('ui', {
       )
     },
     /* ── Locale ── */
-    setLocale(locale: LocaleCode) {
+    setLocale(locale) {
       this.locale = locale
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('lang', locale)
@@ -198,10 +127,10 @@ export const useUIStore = defineStore('ui', {
  
     openSearch() { this.searchOpen = true },
     closeSearch() { this.searchOpen = false },
-    setReportStatus(s: ReportStatus) { this.reportStatus = s },
+    setReportStatus(s) { this.reportStatus = s },
     
-    setTrackStage(s: TrackStage) { this.trackStage = s },
-    setLastScan(v: string) { this.lastScanValue = v },
+    setTrackStage(s) { this.trackStage = s },
+    setLastScan(v) { this.lastScanValue = v },
 
     /* =======================
        PANELS
@@ -214,7 +143,7 @@ export const useUIStore = defineStore('ui', {
     collapseSidebar() {
       this.sidebarCollapsed = !this.sidebarCollapsed
     },
-    setSidebarOpen(open: boolean) {
+    setSidebarOpen(open) {
       this.sidebarOpen = open
     },
 
@@ -241,7 +170,6 @@ export const useUIStore = defineStore('ui', {
       this.isMobileOpen  = !this.isMobileOpen 
     },
 
-
     closeAll() {
       this.notifPanelOpen = false
       this.aiAssistantOpen = false
@@ -265,13 +193,13 @@ export const useUIStore = defineStore('ui', {
     },
  
     /* ── Loading ── */
-    startLoading(key: string) {
+    startLoading(key) {
       this.loadingKeys.add(key)
     },
-    stopLoading(key: string) {
+    stopLoading(key) {
       this.loadingKeys.delete(key)
     },
-    async withLoading<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    async withLoading(key, fn) {
       this.startLoading(key)
       try {
         return await fn()
@@ -281,34 +209,34 @@ export const useUIStore = defineStore('ui', {
     },
     
     /* ── Toasts ── */
-    addToast(toast: Omit<Toast, 'id'>) {
+    addToast(toast) {
       const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       this.toasts.push({ ...toast, id })
       setTimeout(() => this.removeToast(id), toast.duration ?? 4000)
     },
-    removeToast(id: string) {
+    removeToast(id) {
       const idx = this.toasts.findIndex(t => t.id === id)
       if (idx !== -1) this.toasts.splice(idx, 1)
     },
-    success(title: string, message?: string) {
+    success(title, message) {
       this.addToast({ type: 'success', title, message, duration: 3500 })
     },
-    error(title: string, message?: string) {
+    error(title, message) {
       this.addToast({ type: 'error', title, message, duration: 5000 })
     },
-    info(title: string, message?: string) {
+    info(title, message) {
       this.addToast({ type: 'info', title, message, duration: 4000 })
     },
-    warn(title: string, message?: string) {
+    warn(title, message) {
       this.addToast({ type: 'warning', title, message, duration: 4000 })
     },
  
     /* ── Slideover stack ── */
-    openSlideover(id: string) {
+    openSlideover(id) {
       if (!this.slideoverStack.includes(id))
         this.slideoverStack.push(id)
     },
-    closeSlideover(id: string) {
+    closeSlideover(id) {
       this.slideoverStack = this.slideoverStack.filter(s => s !== id)
     },
     closeAllSlideovers() {
@@ -316,11 +244,11 @@ export const useUIStore = defineStore('ui', {
     },
  
     /* ── Modal stack ── */
-    openModal(id: string) {
+    openModal(id) {
       if (!this.modalStack.includes(id))
         this.modalStack.push(id)
     },
-    closeModal(id: string) {
+    closeModal(id) {
       this.modalStack = this.modalStack.filter(m => m !== id)
     },
   }

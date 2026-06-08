@@ -2,9 +2,10 @@
 <template>
   <USlideover
     v-model:open="open"
-    :side="side"
+    :side="slideoverSide"
     :dismissible="dismissible"
     :title="title"
+    :subtitle="subtitle"
     :description="description"
     :overlay="true"
     :closeIcon="true"
@@ -17,8 +18,9 @@
       square: true,
       onClick: () => handleClose(false)
     }"
-     @update:open="onOpenChange"
+    @update:open="onOpenChange"
     class="r-drawer"
+    :class="['r-form-builder', `r-form-builder--${slideoverSide}`]"
   >
     <!-- Header -->
     <template #header>
@@ -74,9 +76,9 @@
 
     <!-- Body -->
     <template #body>
-        <div class="r-body">
-            <slot />
-        </div>
+      <div class="r-body space-y-4 w-full flex flex-col">
+          <slot />
+      </div>
     </template>
 
     <!-- Footer -->
@@ -106,14 +108,17 @@
   </USlideover>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
-
+import { ref, computed, watch } from 'vue'
+import type { FormSchema } from '../types/form'
+import { useUIStore } from '../stores/ui'
+import { useI18n } from 'vue-i18n'
 const open = defineModel<boolean>()
 
 const props = withDefaults(
   defineProps<{
     title?: string
     description?: string
+    subtitle?: string
 
     side?: 'left' | 'right' | 'top' | 'bottom'
 
@@ -132,6 +137,7 @@ const props = withDefaults(
   {
     side: 'right', //right/left/top/bottom
     dismissible: true,
+    subtitle: '',
 
     showCancel: true,
     showSubmit: false,
@@ -144,6 +150,7 @@ const props = withDefaults(
     ui: () => ({})
   }
 )
+const ui = useUIStore()
 
 const emit = defineEmits<{
   close: [boolean]
@@ -158,6 +165,14 @@ function handleClose(result = false) {
 function handleSubmit() {
   emit('submit')
 }
+/* -----------------------------
+   UI Helpers
+----------------------------- */
+const slideoverSide = computed(() => {
+  console.log('ui.isMobile--------------->>', ui.isMobile)
+  console.log("ui.detectDevice().device ============> ", ui.detectDevice())
+  return ui.isMobile ? 'bottom' : props.side
+})
 
 const mergedUi = computed(() => ({
   slots: {
@@ -261,5 +276,97 @@ function onOpenChange(value: boolean) {
 .r-footer :deep(button) {
   width: 100%;
   max-width: 250px;
+}
+
+
+.r-form-builder {
+  /* Mobile: bottom sheet style */
+  &--bottom :deep(.slideover-panel) {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height:   90dvh;
+  }
+
+  &__header {
+    @include flex-between;
+    padding:     var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--c-border);
+    gap:         var(--space-4);
+  }
+
+  &__title-wrap {
+    display:     flex;
+    align-items: center;
+    gap:         var(--space-3);
+  }
+
+  &__icon-wrap {
+    width:         40px;
+    height:        40px;
+    border-radius: var(--radius-md);
+    background:    rgba(255,140,66,0.12);
+    color:         var(--c-accent);
+    @include flex-center;
+    font-size:     1.1rem;
+    flex-shrink:   0;
+  }
+
+  &__title {
+    font-size:   1rem;
+    font-weight: 600;
+    color:       var(--c-text);
+  }
+
+  &__subtitle {
+    font-size: 0.8rem;
+    color:     var(--c-muted);
+    margin-top: 2px;
+  }
+
+  &__close {
+    width:         32px;
+    height:        32px;
+    border:        none;
+    border-radius: var(--radius-md);
+    background:    transparent;
+    color:         var(--c-muted);
+    cursor:        pointer;
+    @include flex-center;
+    @include transition(fast);
+    flex-shrink:   0;
+
+    &:hover {
+      background: rgba(255,140,66,0.1);
+      color:      var(--c-accent);
+    }
+  }
+
+  &__body {
+    flex:      1;
+    overflow-y: auto;
+    padding:   var(--space-5) var(--space-6);
+    display:   flex;
+    flex-direction: column;
+    gap:       var(--space-5);
+
+    @include mobile-only {
+      padding: var(--space-4);
+    }
+  }
+
+  &__footer {
+    display:       flex;
+    align-items:   center;
+    justify-content: flex-end;
+    gap:           var(--space-3);
+    padding:       var(--space-4) var(--space-6);
+    border-top:    1px solid var(--c-border);
+    background:    var(--c-surface);
+
+    @include mobile-only {
+      padding:      var(--space-4);
+      flex-direction: column;
+      > * { width: 100%; }
+    }
+  }
 }
 </style>
