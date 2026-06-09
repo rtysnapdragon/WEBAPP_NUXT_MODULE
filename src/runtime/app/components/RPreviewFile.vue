@@ -63,8 +63,9 @@
 <script setup>
 import { onMounted } from 'vue';
 import RVideo from './RVideo.vue'
-
-const defaultImg = UseDefaultImagStore();
+import { UseDefaultImageStore } from "../stores/defaultImage";
+// import { UseDefaultImageStore } from "@/stores/defaultImage"
+const defaultImg = UseDefaultImageStore();
 const isPreview = defineModel();
 const props = defineProps(["pathUrl", "typeFile", "isBGClose", "errorType", 'isMulti', 'selected', 'page', 'extension', 'src']);
 const emit = defineEmits(["onClickBackGroundBlur"]);

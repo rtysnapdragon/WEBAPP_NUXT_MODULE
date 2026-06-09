@@ -3,6 +3,7 @@
     <UTextarea
       ref="textareaComponent"
       v-model="value"
+      :model-modifiers="{ nullable: true }"
       :name="props.name"
       :size="props.size ?? 'md'"
       :rows="props.rows"

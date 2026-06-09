@@ -49,7 +49,6 @@ withDefaults(defineProps<{
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/_mixin' as *;
 
 .r-card {
   background:    var(--c-surface);

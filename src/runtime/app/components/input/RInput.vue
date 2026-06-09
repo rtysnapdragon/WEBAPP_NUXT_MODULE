@@ -1,5 +1,5 @@
 <template>
-  <UInput ref="refOCInput" v-model="value" :size="props.size ?? ' text-[12px]'" :name="props.name" :ui="ui" :type="type"
+  <UInput ref="refOCInput" v-model="value" v-model.nullable="value" :size="props.size ?? ' text-[12px]'" :name="props.name" :ui="ui" :type="type"
     :placeholder="placeholder" :loading="loading" :leading="leading" :loading-icon="loadingIcon" :trailing="trailing"
     :padded="padded" :icon="icon" :autofocus="autofocus" :autofocus-delay="autofocusDelay" :autocomplete="autocomplete"
     :leading-icon="leadingIcon" :trailing-icon="trailingIcon" class=""

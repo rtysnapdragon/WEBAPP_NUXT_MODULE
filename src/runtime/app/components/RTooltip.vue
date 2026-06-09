@@ -25,15 +25,17 @@
     </div>
 
     <!-- Default Tooltip Fallback -->
-    <UPopover v-else :prevent="prevent" :text="text" :popper="{ placement: placement }" :ui="{
-      wrapper: 'relative inline-flex w-full',
-      base: '[@media(pointer:coarse)]:hidden h-full px-2 py-1 text-xs font-normal relative',
-      rounded: 'rty-rounded-s',
-      background: 'color-bg-content',
-      shadow: 'shadow-tooltip',
-      ring: '',
-      }">
-      <slot></slot>
+    <UPopover v-else :prevent="prevent" mode="hover" :text="text" :content="{
+      align: 'center',
+      side: 'top',
+      sideOffset: 8
+    }" :popper="{ placement: placement ? placement : 'top'  }" :ui="ui">
+      <slot />
+      <template #content>
+        <span class="block px-2 py-1 text-xs">
+          {{ text }}
+        </span>
+      </template>
     </UPopover>
   </div>
 </template>
@@ -72,7 +74,8 @@ let closeTimeout = null;
 const isVisible = computed(() => !!(useSlots().text || props.text));
 
 const ui = {
-  wrapper: "relative inline-flex",
+  wrapper: "relative inline-flex w-full",
+  base: '[@media(pointer:coarse)]:hidden h-full px-2 py-1 text-xs font-normal relative',
   // color: "text-gray-900 dark:text-white",
   // shadow: "shadow",
   // rounded: "rounded",
@@ -84,9 +87,9 @@ const ui = {
   width: "max-w-xs",
   background: "color-bg-content",
   color: "text-gray-900 dark:text-white",
-  shadow: "shadow",
+  shadow: "shadow-xl",
   rounded: "rounded",
-  ring: "",
+  ring: "ring-0",
   base: "[@media(pointer:coarse)]:hidden h-full w-fit px-2 py-1 text-xs font-normal relative",
   shortcuts: "hidden md:inline-flex flex-shrink-0 gap-0.5",
   middot: "mx-1 text-gray-700 dark:text-gray-200",
