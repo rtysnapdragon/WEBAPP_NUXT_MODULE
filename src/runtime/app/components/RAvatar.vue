@@ -41,7 +41,9 @@
 
 <script setup>
 import { computed } from "vue";
-const defaultImg = UseDefaultImagStore();
+import { UseDefaultImageStore } from "../stores/defaultImage";
+// import { UseDefaultImageStore } from "@/stores/defaultImage"
+const defaultImg = UseDefaultImageStore();
 const isPreviewImage = ref(false);
 const props = defineProps({
   notUsePreviewImage: {
@@ -116,7 +118,7 @@ const extraCount = computed(() => {
 
 const handleError = (e) => {
   defaultImg.get(e, props.errorType);
-};useScannerInput
+};
 
 const isShowModal = ref(false);
 

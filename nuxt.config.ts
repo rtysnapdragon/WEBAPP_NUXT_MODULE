@@ -12,6 +12,20 @@ export default defineNuxtConfig({
   // ── NuxtUI v4 ──
   ui: {
     colorMode: true,
+    // prefix: 'Nuxt',
+    // content: true,
+    // // global: true,  
+    // theme: {
+    //   colors: ['primary', 'error'],
+    //   unstyled: true,
+    //   // prefix: 'tw'
+    // },
+    // // global: false,
+    // experimental: {
+    //   componentDetection: true,
+    //   // componentDetection: ['Modal', 'Dropdown', 'Popover']
+
+    // }
   },
  
   // ── Global SCSS ──
