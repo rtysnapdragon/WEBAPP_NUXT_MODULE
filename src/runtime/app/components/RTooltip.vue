@@ -25,7 +25,11 @@
     </div>
 
     <!-- Default Tooltip Fallback -->
-    <UPopover v-else :prevent="prevent" :text="text" :popper="{ placement: placement }" :ui="{
+    <UPopover v-else :prevent="prevent" mode="hover" :text="text" :content="{
+      align: 'center',
+      side: 'bottom',
+      sideOffset: 8
+    }" :popper="{ placement: placement ? placement : 'top'  }" :ui="{
       wrapper: 'relative inline-flex w-full',
       base: '[@media(pointer:coarse)]:hidden h-full px-2 py-1 text-xs font-normal relative',
       rounded: 'rty-rounded-s',
@@ -33,7 +37,10 @@
       shadow: 'shadow-tooltip',
       ring: '',
       }">
-      <slot></slot>
+      <slot />
+      <template #content>
+        {{ text }}
+      </template>
     </UPopover>
   </div>
 </template>
