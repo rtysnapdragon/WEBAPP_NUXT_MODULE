@@ -15,13 +15,13 @@
         <slot v-if="$slots.leading && isNotEmpty(selected) && !selected.isDefault" name="leading" :data="selected" />
         <RTruncateText :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
-        <OCProfileInfo size="2xs" border="s" :src="selected[templateLeading.imagePath]"
+        <RProfileInfo size="2xs" border="s" :src="selected[templateLeading.imagePath]"
           :errorType="templateLeading.imageType" :gender="selected[templateLeading?.gender]"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
           <template #title>
             <RTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
-        </OCProfileInfo>
+        </RProfileInfo>
 
         <RViewInfo
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
@@ -47,13 +47,13 @@
             <RTruncateText :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
               v-else-if="!$slots.leading && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
 
-            <OCProfileInfo size="2xs" border="s" :src="item[templateLeading.imagePath]"
+            <RProfileInfo size="2xs" border="s" :src="item[templateLeading.imagePath]"
               :errorType="templateLeading.imageType" :gender="item[templateLeading?.gender]"
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
               <template #title>
                 <RTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
-            </OCProfileInfo>
+            </RProfileInfo>
 
             <RViewInfo
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
@@ -102,13 +102,13 @@
 
         <div v-else-if="!$slots.option && isNotEmpty(templateOption) && !item?.isSelectAll && !item?.isDefault"
           class="flex items-center py-2 px-3.5 !w-full">
-          <OCProfileInfo v-if="isNotEmpty(templateOption?.imagePath)" size="2xs" border="s"
+          <RProfileInfo v-if="isNotEmpty(templateOption?.imagePath)" size="2xs" border="s"
             :src="item[templateOption.imagePath]" :errorType="templateOption.imageType"
             :subTitle="fnGenerateTextSubLabel(item, templateOption)" :gender="item[templateOption?.gender]">
             <template #title>
               {{ fnGenerateTextLabel(item, templateOption) }}
             </template>
-          </OCProfileInfo>
+          </RProfileInfo>
 
           <RViewInfo v-else :subTitle="fnGenerateTextSubLabel(item, templateOption)">
             <template #title>

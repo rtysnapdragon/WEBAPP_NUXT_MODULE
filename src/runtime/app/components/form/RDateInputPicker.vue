@@ -1,0 +1,640 @@
+<script setup lang="ts">
+/**
+ * RDatePicker — SARIKA single date picker, NuxtUI 4.4.0
+ *
+ * ROOT CAUSE (confirmed from reka-ui source):
+ *   DateFieldRoot calls: passive = props.modelValue === void 0
+ *   When passive=true, vueuse useVModel does: const proxy = ref(defaultDate.copy())
+ *   ref() deep-proxies CalendarDate → .set() returns undefined → crash.
+ *
+ * THE FIX:
+ *   1. Always pass a real CalendarDate (never undefined/null) to :model-value
+ *      on DateField.Root — use today() as the "empty" placeholder value.
+ *   2. Track selected state separately with a boolean `hasValue`.
+ *   3. toRaw() every CalendarDate before it crosses any component boundary.
+ *   4. On @update:model-value from UInputDate, only update if it differs
+ *      from the placeholder (so navigating months doesn't set a value).
+ *
+ * Usage:
+ *   <RDatePicker v-model="date" label="Pick a date" />
+ *   date: shallowRef<CalendarDate | null>(null)
+ */
+import { shallowRef, computed, watch, toRaw } from 'vue'
+import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
+import { useI18n } from 'vue-i18n'
+
+// ── Props ─────────────────────────────────────────────────────────────────
+const props = withDefaults(defineProps<{
+  modelValue?:    CalendarDate | null
+  label?:         string
+  labelKm?:       string
+  placeholder?:   string
+  placeholderKm?: string
+  hint?:          string
+  error?:         string
+  size?:          'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  required?:      boolean
+  disabled?:      boolean
+  clearable?:     boolean
+  readonly?:      boolean
+  minValue?:      CalendarDate
+  maxValue?:      CalendarDate
+  ui?:            Record<string, unknown>
+}>(), {
+  size:      'md',
+  clearable: true,
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [val: CalendarDate | null]
+  change:              [val: CalendarDate | null]
+  clear:               []
+  blur:                []
+}>()
+
+const { locale } = useI18n()
+
+// ── Internal state ────────────────────────────────────────────────────────
+// shallowRef = no deep proxy on CalendarDate instances
+const EMPTY = today(getLocalTimeZone()) // stable fallback placeholder
+const selected  = shallowRef<CalendarDate | null>(
+  props.modelValue ? toRaw(props.modelValue) : null
+)
+
+// CRITICAL: The value fed into UInputDate must NEVER be undefined or null.
+// Reka-UI goes into passive mode when modelValue===undefined and creates
+// a deep ref() of the default date — breaking .set() on CalendarDate.
+// Always give it a real CalendarDate. Use `selected ?? EMPTY`.
+const inputValue = computed((): CalendarDate =>
+  selected.value ? toRaw(selected.value) : toRaw(EMPTY)
+)
+
+// Keep in sync with parent
+watch(() => props.modelValue, v => {
+  selected.value = v ? toRaw(v) : null
+})
+
+// Emit up
+watch(selected, v => {
+  emit('update:modelValue', v)
+  emit('change', v)
+})
+
+// ── Handlers ──────────────────────────────────────────────────────────────
+function onInputUpdate(raw: unknown) {
+  // UInputDate emits the new CalendarDate; strip proxy before storing
+  const v = raw as CalendarDate | null | undefined
+  if (!v) return
+  selected.value = toRaw(v)
+}
+
+function onCalendarUpdate(raw: unknown) {
+  const v = raw as CalendarDate | null | undefined
+  if (!v) return
+  selected.value = toRaw(v)
+}
+
+function setToday() {
+  selected.value = toRaw(today(getLocalTimeZone()))
+}
+
+function clearValue() {
+  selected.value = null
+  emit('clear')
+}
+
+// ── Display helpers ────────────────────────────────────────────────────────
+const displayLabel = computed(() =>
+  locale.value === 'km' && props.labelKm ? props.labelKm : props.label,
+)
+
+const displayPlaceholder = computed(() =>
+  locale.value === 'km' && props.placeholderKm
+    ? props.placeholderKm
+    : (props.placeholder ?? 'Select a date'),
+)
+
+const formattedDate = computed(() => {
+  if (!selected.value) return null
+  const d = selected.value
+  return new Date(d.year, d.month - 1, d.day).toLocaleDateString(
+    locale.value === 'km' ? 'km-KH' : 'en-US',
+    { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' },
+  )
+})
+
+const inputDate = useTemplateRef('inputDate')
+// Raw min/max — must also be stripped of proxy
+const rawMin = computed(() => props.minValue ? toRaw(props.minValue) : undefined)
+const rawMax = computed(() => props.maxValue ? toRaw(props.maxValue) : undefined)
+const sizeClasses = computed(() => ({
+  xs: '32px',
+  sm: '36px',
+  md: '44px',
+  lg: '48px',
+  xl: '56px'
+}))
+
+const inputHeight = computed(() => {
+  return sizeClasses.value[props.size] || '44px'
+})
+
+const defaultUI = {
+  base: [
+    'rdp-input', // bind with scss global
+    'w-full',
+    'rounded-[14px]',  // 15px not work bz of not in tailwind
+    'border',
+    'bg-[var(--c-surface)]',
+    'border-[var(--c-border)]',
+    'text-[var(--c-text)]',
+    'transition-all duration-200',
+    'focus-within:border-[var(--c-accent)]',
+    'focus-within:ring-2',
+    'focus-within:ring-[var(--c-accent)]/20',
+    // 'border-4 border-red-500 bg-yellow-100'
+  ],
+  size: {
+    md: {
+      base: [
+        'px-2.5 py-1.5 text-base/5'
+      ]
+    }
+  },
+  segment: [
+    'rounded',
+    'text-center',
+    'outline-none',
+    'transition-colors',
+    'data-placeholder:text-[var(--c-muted)]',
+    'data-invalid:text-red-500',
+    'data-disabled:opacity-50',
+    'flex items-center justify-center',
+    'h-full',
+  ],
+
+  leading: 'absolute inset-y-0 start-0 flex items-center',
+
+  trailing: 'absolute inset-y-0 end-0 flex items-center',
+
+  separatorIcon: 'shrink-0 text-[var(--c-muted)]'
+}
+// const mergedUi = computed(() => ({
+//   ...defaultUI,
+//   ...(props.ui ?? {}),
+// }))
+
+import { defu } from 'defu'
+
+const mergedUi = computed(() =>
+  defu(props.ui || {}, defaultUI)
+)
+const calendarUI = {
+  root: 'rdp-calendar border-4 border-red-500 bg-transparent',
+  header: 'mb-4 bg-yellow-200',
+  heading: 'font-semibold text-[12px] text-red-500 text-xl',
+  grid: 'w-full border-collapse select-none space-y-1 focus:outline-none',
+  gridRow: 'grid grid-cols-7 place-items-center',
+  gridWeekDaysRow: 'mb-4 grid w-full grid-cols-7',
+  gridBody: 'grid',
+  headCellWeek: 'text-xs text-muted',
+  cellWeek: 'relative text-center text-muted',
+  cell: 'relative text-center',
+  cellTrigger: [
+    'rdp-calendar-day',
+    'size-9',
+    'rounded-xl',
+    'transition-all',
+    'hover:bg-primary-50',
+    'data-[selected]:bg-primary',
+    'data-[selected]:text-white'
+  ],
+  prevButton: 'rounded-xl border border-[var(--c-border)]',
+  nextButton: 'rounded-xl border border-[var(--c-border)]',
+  prev: 'rounded-xl bg-black-500 border',
+  next: 'rounded-xl border'
+}
+const calendarUI1 = {
+  root: '',
+  header: 'flex items-center justify-between',
+  body: 'flex flex-col space-y-4 pt-4 sm:flex-row sm:space-x-4 sm:space-y-0',
+  heading: 'text-center font-medium truncate mx-auto',
+  grid: 'w-full border-collapse select-none space-y-1 focus:outline-none',
+  gridRow: 'grid grid-cols-7 place-items-center',
+  gridWeekDaysRow: 'mb-1 grid w-full grid-cols-7',
+  gridBody: 'grid',
+  headCell: 'rounded-md',
+  headCellWeek: 'rounded-md text-muted',
+  cell: 'relative text-center',
+  cellTrigger: [
+    'm-0.5 relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted',
+    'transition'
+  ],
+  cellWeek: 'relative text-center text-muted'
+}
+</script>
+
+<template>
+  <div
+    :class="[
+      'rdp',
+      `rdp--${size}`,
+      {
+        'rdp--disabled': disabled,
+        'rdp--error':    !!error,
+        'rdp--readonly': readonly,
+        'rdp--filled':   !!selected,
+      },
+    ]"
+  >
+    <!-- Label row -->
+    <div v-if="displayLabel || (hint && !error)" class="rdp__label-row">
+      <label v-if="displayLabel" class="rdp__label">
+        {{ displayLabel }}
+        <span v-if="required" class="rdp__required" aria-hidden="true">*</span>
+      </label>
+      <span v-if="hint && !error" class="rdp__hint">{{ hint }}</span>
+    </div>
+
+    <!-- Input -->
+    <div class="rdp__field">
+      <UInputDate
+        :model-value="inputValue"
+        :disabled="disabled"
+        :readonly="readonly"
+        :min-value="rawMin"
+        :max-value="rawMax"
+        :ui="mergedUi"
+        class="rdp__input"
+        @update:model-value="onInputUpdate"
+        @blur="emit('blur')"
+      >
+        <template #leading v-if="$slots.leading">
+          <slot name="leading" />
+        </template>
+
+        <template #trailing>
+          <div class="rdp__trailing">
+            <!-- Clear -->
+            <Transition name="rdp-fade">
+              <button
+                v-if="clearable && selected"
+                type="button"
+                class="rdp__clear"
+                aria-label="Clear date"
+                tabindex="-1"
+                @click.stop="clearValue"
+              >
+                <UIcon name="i-lucide-x" />
+              </button>
+            </Transition>
+
+            <!-- Calendar popover -->
+            <UPopover :ui="{ content: 'rdp-pop' }" :reference="inputDate?.inputsRef[3]?.$el">
+              <button
+                type="button"
+                :disabled="disabled || readonly"
+                :class="['rdp__cal-btn', { 'rdp__cal-btn--active': !!selected }]"
+                aria-label="Open calendar"
+              >
+                <i class="ri ri-calendar-line" />
+              </button>
+
+              <template #content>
+                <div class="rdp-pop__inner">
+                  <!-- Quick actions -->
+                  <div class="rdp-pop__quick">
+                    <button type="button" class="rdp-pop__chip" @click="setToday">
+                      <i class="ri ri-calendar-check-line" />
+                      {{ locale === 'km' ? 'ថ្ងៃនេះ' : 'Today' }}
+                    </button>
+                    <button
+                      v-if="selected"
+                      type="button"
+                      class="rdp-pop__chip rdp-pop__chip--danger"
+                      @click="clearValue"
+                    >
+                      <i class="ri ri-trash-2-line" />
+                      {{ locale === 'km' ? 'លុបចោល' : 'Clear' }}
+                    </button>
+                  </div>
+
+                  <div class="rdp-pop__sep" />
+
+                  <!-- Calendar — same fix: pass raw computed value -->
+                  <UCalendar
+                    :model-value="inputValue"
+                    :min-value="rawMin"
+                    :max-value="rawMax"
+                    :ui="calendarUI"
+                    class="rdp-pop__cal p-2"
+                    @update:model-value="onCalendarUpdate"
+                  >
+                   
+                        <div class="flex items-center justify-between px-2">
+                          <div class="flex gap-1">
+                            <UButton
+                              icon="i-heroicons-chevron-double-left"
+                              variant="ghost"
+                              @click="goToFirstMonth"
+                            />
+
+                            <UButton
+                              icon="i-heroicons-chevron-left"
+                              variant="ghost"
+                              @click="prevPage"
+                            />
+                          </div>
+
+                          <span class="font-semibold">
+                            {{ date }}
+                          </span>
+
+                          <div class="flex gap-1">
+                            <UButton
+                              icon="i-heroicons-chevron-right"
+                              variant="ghost"
+                              @click="nextPage"
+                            />
+
+                            <UButton
+                              icon="i-heroicons-chevron-double-right"
+                              variant="ghost"
+                              @click="goToLastMonth"
+                            />
+                          </div>
+                        </div>
+                
+                  </UCalendar>
+
+                  <!-- Footer -->
+                  <div class="rdp-pop__footer">
+                    <UIcon
+                      :name="selected ? 'i-lucide-check-circle-2' : 'i-lucide-calendar'"
+                      :class="selected ? 'text-[--c-success]' : 'text-[--c-muted]'"
+                    />
+                    <span class="rdp-pop__date-label">
+                      {{ formattedDate ?? (locale === 'km' ? 'មិនទាន់ជ្រើស' : 'No date selected') }}
+                    </span>
+                  </div>
+                </div>
+              </template>
+            </UPopover>
+          </div>
+        </template>
+      </UInputDate>
+    </div>
+
+    <!-- Error -->
+    <Transition name="rdp-fade">
+      <p v-if="error" class="rdp__error" role="alert">
+        <UIcon name="i-lucide-alert-circle" />
+        {{ error }}
+      </p>
+    </Transition>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.rdp {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+  font-family:    var(--font-fallback);
+
+  &--xs  { --rdp-fs: 0.72rem;  }
+  &--sm  { --rdp-fs: 0.8rem;   }
+  &--md  { --rdp-fs: 0.875rem; }
+  &--lg  { --rdp-fs: 0.95rem;  }
+  &--xl  { --rdp-fs: 1rem;     }
+
+  &--disabled { opacity: 0.5; pointer-events: none; }
+  &--readonly { cursor: default; }
+
+  &--error .rdp__input :deep([data-slot="base"]) {
+    --tw-ring-color: var(--c-danger) !important;
+    border-color: var(--c-danger) !important;
+  }
+}
+
+// ── Label ──────────────────────────────────────────────────────────────────
+.rdp__label-row {
+  display:         flex;
+  align-items:     baseline;
+  justify-content: space-between;
+}
+
+.rdp__label {
+  font-size:   0.82rem;
+  font-weight: 500;
+  color:       var(--c-text);
+  display:     flex;
+  gap:         3px;
+}
+
+.rdp__required { color: var(--c-danger); }
+.rdp__hint     { font-size: 0.72rem; color: var(--c-muted); }
+
+// ── Error ──────────────────────────────────────────────────────────────────
+.rdp__error {
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+  font-size:   0.75rem;
+  color:       var(--c-danger);
+  margin:      0;
+}
+
+// ── Input override ─────────────────────────────────────────────────────────
+.rdp__input {
+  width: 100%;
+  font-size: var(--rdp-fs, 0.875rem);
+
+  // Focus ring in accent color
+  :deep([data-slot="base"]) {
+    transition: border-color 0.18s, box-shadow 0.18s;
+
+    &:focus-within {
+      border-color: var(--c-accent) !important;
+      box-shadow:   0 0 0 3px rgba(255,140,66,0.14) !important;
+    }
+  }
+
+  // Segment highlight
+  :deep([data-slot="segment"]) {
+    &:focus, &[data-focused=""] {
+      background:    rgba(255,140,66,0.14) !important;
+      color:         var(--c-accent) !important;
+      border-radius: 3px;
+      outline:       none;
+    }
+  }
+}
+
+// ── Trailing ───────────────────────────────────────────────────────────────
+.rdp__trailing {
+  display:     flex;
+  align-items: center;
+  gap:         2px;
+}
+
+.rdp__clear {
+  width:         20px;
+  height:        20px;
+  border:        none;
+  border-radius: 50%;
+  background:    rgba(248,113,113,0.1);
+  color:         var(--c-danger);
+  cursor:        pointer;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  padding:       0;
+  font-size:     0.7rem;
+  transition:    background 0.15s;
+
+  &:hover { background: rgba(248,113,113,0.22); }
+}
+
+.rdp__cal-btn {
+  width:         28px;
+  height:        28px;
+  margin-right: 10px;
+  border:        1px solid var(--c-border);
+  border-radius: 8px;
+  background:    transparent;
+  color:         var(--c-muted);
+  cursor:        pointer;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  padding:       0;
+  transition:    border-color 0.15s, background 0.15s, color 0.15s;
+
+  &:hover, &--active {
+    border-color: var(--c-accent);
+    background:   rgba(255,140,66,0.08);
+    color:        var(--c-accent);
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// ── Transitions ────────────────────────────────────────────────────────────
+.rdp-fade-enter-active, .rdp-fade-leave-active { transition: opacity 0.15s; }
+.rdp-fade-enter-from,   .rdp-fade-leave-to     { opacity: 0; }
+</style>
+
+<!-- Popover teleports outside scoped — must be global -->
+<style lang="scss">
+
+.calendar-nav-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+// can override the NuxtUI style but need css class to base of ui of NuxtUI but need as global without scoped
+.rdp-input {
+  min-height: v-bind(inputHeight) !important ; //base
+  padding: 0 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+}
+
+.rdp-pop {
+  padding:       0 !important;
+  overflow:      hidden;
+  border:        1px solid var(--c-border) !important;
+  // background:    var(--c-surface) !important;
+  border-radius: 14px !important;
+  box-shadow:    var(--glass-shadow) !important;
+  min-width:     264px;
+}
+
+.rdp-calendar {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+}
+
+.rdp-calendar-day {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+::deep(.rdp-input) {
+  height: 44px !important;
+}
+.rdp-pop__inner {
+  display:        flex;
+  flex-direction: column;
+}
+
+.rdp-pop__quick {
+  display: flex;
+  gap:     6px;
+  padding: 10px 12px 8px;
+}
+
+// chip button action clear&today
+.rdp-pop__chip {
+  display:       flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       4px 10px;
+  border:        1px solid var(--c-border);
+  border-radius: 20px;
+  background:    transparent;
+  font-size:     0.73rem;
+  color:         var(--c-text);
+  cursor:        pointer;
+  font-family:   var(--font-fallback);
+  transition:    all 0.15s;
+
+  &:hover         { border-color: var(--c-accent); color: var(--c-accent); background: rgba(255,140,66,0.07); }
+  &--danger:hover { border-color: var(--c-danger);  color: var(--c-danger);  background: rgba(248,113,113,0.07); }
+}
+
+.rdp-pop__sep {
+  height: 1px;
+  background: var(--c-border);
+  margin: 0 12px;
+}
+
+.rdp-pop__cal { padding: 10px 12px; }
+
+.rdp-pop__cal {
+  :deep([data-slot="prev-button"]),
+  :deep([data-slot="next-button"]) {
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border-radius: 8px;
+  }
+}
+
+.rdp-pop__footer {
+  border-top: 1px solid var(--c-border);
+  padding:    8px 12px;
+  display:    flex;
+  align-items: center;
+  gap:        6px;
+}
+
+.rdp-pop__date-label {
+  font-size: 0.75rem;
+  color:     var(--c-muted);
+  font-family: var(--font-fallback);
+}
+</style>

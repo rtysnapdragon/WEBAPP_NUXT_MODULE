@@ -41,6 +41,9 @@ export default defineNuxtModule<ModuleOptions>({
       resolve(runtimeDir, "assets", "styles", "global.scss")
     ); 
 
+    nuxt.options.css.push(
+      resolve(runtimeDir, "assets", "styles", "date.scss")
+    ); 
     // Install external modules
     const modulesToInstall = [
       "@nuxt/ui",
