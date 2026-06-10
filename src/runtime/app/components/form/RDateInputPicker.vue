@@ -214,24 +214,6 @@ const calendarUI = {
   prev: 'rounded-xl bg-black-500 border',
   next: 'rounded-xl border'
 }
-const calendarUI1 = {
-  root: '',
-  header: 'flex items-center justify-between',
-  body: 'flex flex-col space-y-4 pt-4 sm:flex-row sm:space-x-4 sm:space-y-0',
-  heading: 'text-center font-medium truncate mx-auto',
-  grid: 'w-full border-collapse select-none space-y-1 focus:outline-none',
-  gridRow: 'grid grid-cols-7 place-items-center',
-  gridWeekDaysRow: 'mb-1 grid w-full grid-cols-7',
-  gridBody: 'grid',
-  headCell: 'rounded-md',
-  headCellWeek: 'rounded-md text-muted',
-  cell: 'relative text-center',
-  cellTrigger: [
-    'm-0.5 relative flex items-center justify-center rounded-full whitespace-nowrap focus-visible:ring-2 focus:outline-none data-disabled:text-muted data-unavailable:line-through data-unavailable:text-muted data-unavailable:pointer-events-none data-today:font-semibold data-[outside-view]:text-muted',
-    'transition'
-  ],
-  cellWeek: 'relative text-center text-muted'
-}
 </script>
 
 <template>
@@ -337,7 +319,6 @@ const calendarUI1 = {
                    v-model="selected"
                    :min-value="rawMin"
                    :max-value="rawMax"
-                   :ui="calendarUI"
                    />
                   <!-- Footer -->
                   <div class="rdp-pop__footer">
