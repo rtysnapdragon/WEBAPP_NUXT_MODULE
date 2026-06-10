@@ -189,31 +189,31 @@ import { defu } from 'defu'
 const mergedUi = computed(() =>
   defu(props.ui || {}, defaultUI)
 )
-const calendarUI = {
-  root: 'rdp-calendar border-4 border-red-500 bg-transparent',
-  header: 'mb-4 bg-yellow-200',
-  heading: 'font-semibold text-[12px] text-red-500 text-xl',
-  grid: 'w-full border-collapse select-none space-y-1 focus:outline-none',
-  gridRow: 'grid grid-cols-7 place-items-center',
-  gridWeekDaysRow: 'mb-4 grid w-full grid-cols-7',
-  gridBody: 'grid',
-  headCellWeek: 'text-xs text-muted',
-  cellWeek: 'relative text-center text-muted',
-  cell: 'relative text-center',
-  cellTrigger: [
-    'rdp-calendar-day',
-    'size-9',
-    'rounded-xl',
-    'transition-all',
-    'hover:bg-primary-50',
-    'data-[selected]:bg-primary',
-    'data-[selected]:text-white'
-  ],
-  prevButton: 'rounded-xl border border-[var(--c-border)]',
-  nextButton: 'rounded-xl border border-[var(--c-border)]',
-  prev: 'rounded-xl bg-black-500 border',
-  next: 'rounded-xl border'
-}
+// const calendarUI = {
+//   root: 'rdp-calendar border-4 border-red-500 bg-transparent',
+//   header: 'mb-4 bg-yellow-200',
+//   heading: 'font-semibold text-[12px] text-red-500 text-xl',
+//   grid: 'w-full border-collapse select-none space-y-1 focus:outline-none',
+//   gridRow: 'grid grid-cols-7 place-items-center',
+//   gridWeekDaysRow: 'mb-4 grid w-full grid-cols-7',
+//   gridBody: 'grid',
+//   headCellWeek: 'text-xs text-muted',
+//   cellWeek: 'relative text-center text-muted',
+//   cell: 'relative text-center',
+//   cellTrigger: [
+//     'rdp-calendar-day',
+//     'size-9',
+//     'rounded-xl',
+//     'transition-all',
+//     'hover:bg-primary-50',
+//     'data-[selected]:bg-primary',
+//     'data-[selected]:text-white'
+//   ],
+//   prevButton: 'rounded-xl border border-[var(--c-border)]',
+//   nextButton: 'rounded-xl border border-[var(--c-border)]',
+//   prev: 'rounded-xl bg-black-500 border',
+//   next: 'rounded-xl border'
+// }
 </script>
 
 <template>
@@ -349,6 +349,7 @@ const calendarUI = {
 </template>
 
 <style lang="scss" scoped>
+
 .rdp {
   display:        flex;
   flex-direction: column;
@@ -482,19 +483,6 @@ const calendarUI = {
 <!-- Popover teleports outside scoped — must be global -->
 <style lang="scss">
 
-.calendar-nav-btn {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-}
-
-.calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
 // can override the NuxtUI style but need css class to base of ui of NuxtUI but need as global without scoped
 .rdp-input {
   min-height: v-bind(inputHeight) !important ; //base
@@ -514,17 +502,17 @@ const calendarUI = {
   min-width:     264px;
 }
 
-.rdp-calendar {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: 16px;
-}
+// .rdp-calendar {
+//   background: var(--c-surface);
+//   border: 1px solid var(--c-border);
+//   border-radius: 16px;
+// }
 
-.rdp-calendar-day {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-}
+// .rdp-calendar-day {
+//   width: 36px;
+//   height: 36px;
+//   border-radius: 10px;
+// }
 
 ::deep(.rdp-input) {
   height: 44px !important;
@@ -565,7 +553,7 @@ const calendarUI = {
   margin: 0 12px;
 }
 
-.rdp-pop__cal { padding: 10px 12px; }
+// .rdp-pop__cal { padding: 10px 12px; }
 
 .rdp-pop__cal {
   :deep([data-slot="prev-button"]),

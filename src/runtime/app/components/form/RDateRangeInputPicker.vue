@@ -2,6 +2,7 @@
 import { computed, useTemplateRef } from 'vue'
 import type { CalendarDate } from '@internationalized/date'
 import { defu } from 'defu'
+import { calendar } from '#build/ui'
 
 type DateRange = {
   start?: CalendarDate | null
@@ -38,20 +39,37 @@ const model = computed({
 
 const defaultUi = {
   root: 'w-full',
-  base: `
-    rounded-xl
-    border
-    transition-all
-    duration-200
-    bg-[var(--c-surface)]
-    border-[var(--c-border)]
-    text-[var(--c-text)]
-    shadow-sm
-    hover:border-[var(--c-accent)]
-    focus-within:border-[var(--c-accent)]
-    focus-within:ring-2
-    focus-within:ring-[var(--c-accent)]/15
-  `,
+  base: [
+    'rdp-input', // bind with scss global
+    'w-full',
+    'rounded-[14px]',  // 15px not work bz of not in tailwind
+    'border',
+    'bg-[var(--c-surface)]',
+    'border-[var(--c-border)]',
+    'text-[var(--c-text)]',
+    'transition-all duration-200',
+    'focus-within:border-[var(--c-accent)]',
+    'focus-within:ring-2',
+    'focus-within:ring-[var(--c-accent)]/20',
+    'group relative inline-flex items-center rounded-md select-none',
+    'transition-colors'
+    // 'border-4 border-red-500 bg-yellow-100'
+  ],
+  // base: `
+  //   rounded-xl
+  //   border
+  //   transition-all
+  //   duration-200
+  //   bg-[var(--c-surface)]
+  //   border-[var(--c-border)]
+  //   text-[var(--c-text)]
+  //   shadow-sm
+  //   hover:border-[var(--c-accent)]
+  //   focus-within:border-[var(--c-accent)]
+  //   focus-within:ring-2
+  //   focus-within:ring-[var(--c-accent)]/15
+  // `,
+
   trailing: 'pe-2',
     inputDate: {
       slots: {
@@ -324,10 +342,36 @@ const defaultUi = {
     }
   }
 
-const mergedUi = computed(() =>
-  defu(props.ui ?? {}, defaultUi)
-)
-
+const mergedUi = computed(() =>({
+  ...defaultUi,
+  ...(props.ui ?? {})
+}))
+const calendarUI = {
+  root: 'rcalendar rouned-xl p-2 border-4 border-red-500 bg-transparent',
+  header: 'rcalendar-header mb-4 bg-yellow-200',
+  heading: 'rcalendar-heading font-semibold text-[12px] text-red-500',
+  grid: 'rcalendar-grid w-full border-collapse select-none space-y-1 focus:outline-none',
+  gridRow: 'rcalendar-grid-row grid grid-cols-7 place-items-center',
+  gridWeekDaysRow: 'rcalendar-grid-week-days-row mb-4 grid w-full grid-cols-7',
+  gridBody: 'rcalendar-grid-body grid',
+  headCellWeek: 'text-xs text-muted',
+  cellWeek: 'relative text-center text-muted',
+  cell: 'relative text-center',
+  cellTrigger: [
+    'rdp-calendar-day',
+    'size-9',
+    'rounded-full',
+    'transition-all',
+    'hover:bg-primary-50',
+    'data-[selected]:bg-primary',
+    'data-[selected]:text-white',
+    'transition-colors'
+  ],
+  prevButton: 'rounded-xl border border-[var(--c-border)]',
+  nextButton: 'rounded-xl border border-[var(--c-border)]',
+  prev: 'rounded-xl bg-black-500 border',
+  next: 'rounded-xl border'
+}
 </script>
 
 <template>
@@ -345,14 +389,22 @@ const mergedUi = computed(() =>
       <UPopover
         :reference="inputDate?.inputsRef?.[0]?.$el"
       >
-        <UButton
+        <!-- <UButton
           color="neutral"
           variant="ghost"
           size="sm"
           icon="i-lucide-calendar-range"
           aria-label="Select date range"
           class="r-date-range-picker__trigger"
-        />
+        /> -->
+       <button
+                type="button"
+                :disabled="disabled"
+                :class="['rdp__cal-btn', { 'rdp__cal-btn--active': !!model }]"
+                aria-label="Open calendar"
+              >
+                <i class="ri ri-calendar-line" />
+              </button>
 
         <template #content>
           <div class="r-date-range-picker__popover">
@@ -360,6 +412,7 @@ const mergedUi = computed(() =>
               v-model="model"
               range
               :number-of-months="numberOfMonths"
+              :ui="calendarUI"
             />
           </div>
         </template>
@@ -374,6 +427,7 @@ const mergedUi = computed(() =>
 
   :deep(input) {
     color: var(--c-text);
+    height: 60px;
   }
 
   :deep(input::placeholder) {
@@ -382,31 +436,91 @@ const mergedUi = computed(() =>
 
   :deep([data-invalid]) {
     border-color: var(--c-danger);
+    height: 54px;
+  }
+
+// &__trigger {
+//   color: var(--c-accent);
+
+//   &:hover {
+//     background: color-mix(
+//       in srgb,
+//       var(--c-accent) 12%,
+//       transparent
+//     );
+//   }
+// }
+
+  &__popover {
+    padding: 12px;
+    border-radius: 15px;
+
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
   }
 }
 
-.r-date-range-picker__trigger {
-  color: var(--c-accent);
+// calendar btn inside
+.rcalendar {
+  background: var(--c-surface);
+  // border-radius: 16px;
+}
+.rcalendar {
+  :deep(button[aria-label*="Previous"]),
+  :deep(button[aria-label*="Next"]) {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    // max-width: 22px !important;
+    padding: 0 !important;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    gap:4px;
 
-  &:hover {
-    background: color-mix(
-      in srgb,
-      var(--c-accent) 12%,
-      transparent
-    );
+    margin: 10px 0 !important;
+    border-radius: 8px;
+    background: var(--c-surface);
+    // border: 0.5px solid var(--c-border);
+  }
+
+  :deep(button[aria-label*="Previous"]:hover),
+  :deep(button[aria-label*="Next"]:hover) {
+    background: var(--c-primary-50);
   }
 }
 
-.r-date-range-picker__popover {
-  padding: 12px;
-  border-radius: 16px;
 
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
 
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+//calendar btn
+
+.rdp__cal-btn {
+  width:         28px;
+  height:        28px;
+  margin-right: 10px;
+  border:        1px solid var(--c-border);
+  border-radius: 8px;
+  background:    transparent;
+  color:         var(--c-muted);
+  cursor:        pointer;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  padding:       0;
+  transition:    border-color 0.15s, background 0.15s, color 0.15s;
+
+  &:hover, &--active {
+    border-color: var(--c-accent);
+    background:   rgba(255,140,66,0.08);
+    color:        var(--c-accent);
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
+
 
 /* Calendar Customization */
 :deep(.ui-calendar) {
@@ -434,6 +548,16 @@ const mergedUi = computed(() =>
 
 
 <style lang="scss">
+// input
+// can override the NuxtUI style but need css class to base of ui of NuxtUI but need as global without scoped
+.rdp-input {
+  height: 40px !important; //base
+  padding: 0 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  // border-radius: 12px;
+}
+
 
 //    ─────────────────────────────────────────────
 //      GLOBAL — targets NuxtUI portal / teleport
