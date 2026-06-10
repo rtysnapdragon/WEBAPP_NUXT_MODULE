@@ -2,6 +2,7 @@ import type { Ref, AbortController, AbortSignal } from "#imports";
 
 export interface HttpOptions {
   data?: object;
+  body?: FormData | object;
   method?: string;
   headers?: object;
   isGlobal?: boolean;

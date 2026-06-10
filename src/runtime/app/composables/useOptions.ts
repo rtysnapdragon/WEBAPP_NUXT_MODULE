@@ -29,26 +29,30 @@ export default function useOptions(
 
   if (isNotEmpty(options?.headers)) {
     newHeader = options?.headers;
-
     delete options?.headers;
   }
 
+  // Map `body` → `data` so axios receives the payload correctly
+  const { body, ...restOptions } = options ?? {};
+
   options = {
-    ...{
-      headers: {
-        ...{
-          Authorization: authorization,
-          "Content-Type": "application/json",
-          Accept: "application/json, text/javascript, */*; q=0.01",
-          lang,
-          oc_device_id: deviceId,
-          oc_database: dbCookie.value,
-        },
-        ...newHeader,
-      },
+    headers: {
+      Authorization: authorization,
+      "Content-Type": body instanceof FormData ? undefined : "application/json",
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      lang,
+      oc_device_id: deviceId,
+      oc_database: dbCookie.value,
+      ...newHeader,
     },
-    ...options,
+    ...restOptions,
+    ...(body !== undefined ? { data: body } : {}),
   };
+
+  // Remove undefined Content-Type so browser sets multipart boundary for FormData
+  if (body instanceof FormData) {
+    delete (options.headers as any)["Content-Type"];
+  }
 
   return { url: getUrl(url, options?.isWeb), options };
 }
