@@ -322,7 +322,7 @@ const calendarUI1 = {
                   <div class="rdp-pop__sep" />
 
                   <!-- Calendar — same fix: pass raw computed value -->
-                  <UCalendar
+                  <!-- <UCalendar
                     :model-value="inputValue"
                     :min-value="rawMin"
                     :max-value="rawMax"
@@ -330,43 +330,15 @@ const calendarUI1 = {
                     class="rdp-pop__cal p-2"
                     @update:model-value="onCalendarUpdate"
                   >
-                   
-                        <div class="flex items-center justify-between px-2">
-                          <div class="flex gap-1">
-                            <UButton
-                              icon="i-heroicons-chevron-double-left"
-                              variant="ghost"
-                              @click="goToFirstMonth"
-                            />
-
-                            <UButton
-                              icon="i-heroicons-chevron-left"
-                              variant="ghost"
-                              @click="prevPage"
-                            />
-                          </div>
-
-                          <span class="font-semibold">
-                            {{ date }}
-                          </span>
-
-                          <div class="flex gap-1">
-                            <UButton
-                              icon="i-heroicons-chevron-right"
-                              variant="ghost"
-                              @click="nextPage"
-                            />
-
-                            <UButton
-                              icon="i-heroicons-chevron-double-right"
-                              variant="ghost"
-                              @click="goToLastMonth"
-                            />
-                          </div>
-                        </div>
-                
-                  </UCalendar>
-
+       
+                  </UCalendar> -->
+                  
+                  <RCalendar
+                   v-model="selected"
+                   :min-value="rawMin"
+                   :max-value="rawMax"
+                   :ui="calendarUI"
+                   />
                   <!-- Footer -->
                   <div class="rdp-pop__footer">
                     <UIcon
@@ -430,6 +402,7 @@ const calendarUI1 = {
   color:       var(--c-text);
   display:     flex;
   gap:         3px;
+  white-space: nowrap !important;
 }
 
 .rdp__required { color: var(--c-danger); }
