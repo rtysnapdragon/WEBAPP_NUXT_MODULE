@@ -73,7 +73,7 @@ const mergedUi = computed(() => ({
 </template>
 
 
-<style lang="scss">
+<style scoped lang="scss">
 .rcalendar {
   background: var(--c-surface);
   // border-radius: 16px;
