@@ -1,76 +1,265 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { defu } from 'defu'
+
+type SwitchMode =
+  | 'default'
+  | 'icon'
+  | 'text'
+  | 'icon-text'
+
+type SwitchSize =
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
 
 interface Props {
   modelValue?: boolean
-  label?: string
-  description?: string
+
   disabled?: boolean
+  readonly?: boolean
   loading?: boolean
 
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  id?: string
+  name?: string
+
+  size?: SwitchSize
+  mode?: SwitchMode
 
   checkedIcon?: string
   uncheckedIcon?: string
 
-  ui?: Record<string, any>
+  checkedText?: string
+  uncheckedText?: string
+
+  activeColor?: string
+  inactiveColor?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: false,
-  size: 'md',
-  checkedIcon: 'i-lucide-check',
-  uncheckedIcon: 'i-lucide-x'
-})
+const props = withDefaults(
+  defineProps<Props>(),
+  {
+    modelValue: false,
+
+    disabled: false,
+    readonly: false,
+    loading: false,
+
+    size: 'md',
+    mode: 'default',
+
+    activeColor: 'var(--color-green)',
+    inactiveColor: 'var(--color-w-b-6)',
+
+    checkedIcon: 'ri-check-line',
+    uncheckedIcon: 'ri-close-line',
+
+    checkedText: 'ON',
+    uncheckedText: 'OFF'
+  }
+)
 
 const emit = defineEmits<{
   'update:modelValue': [boolean]
+  change: [boolean]
 }>()
 
-const model = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
-})
+function toggle() {
+  if (
+    props.disabled ||
+    props.readonly ||
+    props.loading
+  ) return
 
-const mergedUi = computed(() =>
-  defu(props.ui ?? {}, {
-    root: 'items-start',
-    base: `
-      data-[state=checked]:bg-[var(--c-accent)]
-      data-[state=unchecked]:bg-[var(--color-w-b-6)]
-      border
-      border-[var(--c-border)]
-      transition-all
-      duration-200
-    `,
-    thumb: `
-      bg-white
-      shadow-sm
-    `,
-    wrapper: 'gap-2',
-    label: `
-      text-[var(--c-text)]
-      font-medium
-    `,
-    description: `
-      text-[var(--c-muted)]
-      text-sm
-    `
-  })
-)
+  const value = !props.modelValue
+
+  emit('update:modelValue', value)
+  emit('change', value)
+}
+
+const sizes = computed(() => {
+  switch (props.size) {
+    case 'xs':
+      return {
+        track: '32px',
+        height: '18px',
+        thumb: '14px',
+        move: '14px'
+      }
+
+    case 'sm':
+      return {
+        track: '36px',
+        height: '20px',
+        thumb: '16px',
+        move: '16px'
+      }
+
+    case 'lg':
+      return {
+        track: '52px',
+        height: '28px',
+        thumb: '24px',
+        move: '24px'
+      }
+
+    default:
+      return {
+        track: '42px',
+        height: '24px',
+        thumb: '20px',
+        move: '18px'
+      }
+  }
+})
 </script>
 
 <template>
-  <USwitch
-    v-model="model"
-    :label="label"
-    :description="description"
+  <button
+    :id="id"
+    :name="name"
+    type="button"
+    role="switch"
+    :aria-checked="modelValue"
     :disabled="disabled"
-    :loading="loading"
-    :size="size"
-    :checked-icon="checkedIcon"
-    :unchecked-icon="uncheckedIcon"
-    :ui="mergedUi"
-  />
+    class="r-switch"
+    :class="{
+      'r-switch--checked': modelValue,
+      'r-switch--disabled': disabled
+    }"
+    :style="{
+      '--switch-width': sizes.track,
+      '--switch-height': sizes.height,
+      '--thumb-size': sizes.thumb,
+      '--thumb-move': sizes.move,
+      '--switch-active': activeColor,
+      '--switch-inactive': inactiveColor
+    }"
+    @click="toggle"
+  >
+    <span
+      class="r-switch__thumb"
+      :class="{
+        'r-switch__thumb--checked': modelValue
+      }"
+    >
+      <template v-if="loading">
+        <i class="ri-loader-4-line animate-spin" />
+      </template>
+
+      <template v-else-if="mode === 'icon'">
+        <i
+          :class="
+            modelValue
+              ? checkedIcon
+              : uncheckedIcon
+          "
+        />
+      </template>
+
+      <template v-else-if="mode === 'text'">
+        <span class="r-switch__text">
+          {{
+            modelValue
+              ? checkedText
+              : uncheckedText
+          }}
+        </span>
+      </template>
+
+      <template v-else-if="mode === 'icon-text'">
+        <div class="r-switch__content">
+          <i
+            :class="
+              modelValue
+                ? checkedIcon
+                : uncheckedIcon
+            "
+          />
+          <span>
+            {{
+              modelValue
+                ? checkedText
+                : uncheckedText
+            }}
+          </span>
+        </div>
+      </template>
+
+      <slot
+        name="thumb"
+        :checked="modelValue"
+      />
+    </span>
+  </button>
 </template>
+
+<style scoped>
+.r-switch {
+  position: relative;
+
+  width: var(--switch-width);
+  height: var(--switch-height);
+
+  border-radius: 9999px;
+
+  background: var(--switch-inactive);
+
+  transition: .25s;
+
+  cursor: pointer;
+}
+
+.r-switch--checked {
+  background: var(--switch-active);
+}
+
+.r-switch--disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.r-switch__thumb {
+  position: absolute;
+
+  left: 2px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+
+  border-radius: 9999px;
+
+  background: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: .25s;
+
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.2);
+}
+
+.r-switch__thumb--checked {
+  transform:
+    translateY(-50%)
+    translateX(var(--thumb-move));
+}
+
+.r-switch__text {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.r-switch__content {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  font-size: 9px;
+}
+</style>
