@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import type { CalendarDate } from '@internationalized/date'
+import { defu } from 'defu'
 import { computed } from 'vue'
 interface Props {
   modelValue?: CalendarDate | null
   minValue?: CalendarDate
   maxValue?: CalendarDate
   ui?: null | Record<string, unknown>
-  range: boolean
-  numberOfMonths: number
+  range?: boolean
+  numberOfMonths?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [CalendarDate | null]
+  'select':[CalendarDate | null]
 }>()
 
 const value = computed({
@@ -25,6 +27,10 @@ const value = computed({
   set: (v) => emit('update:modelValue', v)
 })
 
+function onUpdate(value: CalendarDate) {
+  emit('update:modelValue', value)
+  emit('select', value)
+}
 const defaultUI = {
   root: 'rcalendar rdp-calendar p-2 border-4 border-red-500 bg-transparent',
   header: 'rcalendar-header mb-4 bg-yellow-200',
@@ -55,10 +61,14 @@ const defaultUI = {
 // const ui  = {
 //   ...(props.ui) , ...defaultUI
 // }
-const mergedUi = computed(() => ({
-  ...defaultUI,
-  ...(props.ui ?? {}),
-}))
+// const mergedUi = computed(() => ({
+//   ...defaultUI,
+//   ...(props.ui ?? {}),
+// }))
+
+const mergedUi = computed(() =>
+  defu(props.ui ?? {}, defaultUI)
+)
 </script>
 
 <template>
@@ -69,7 +79,18 @@ const mergedUi = computed(() => ({
     :range="range"
     :number-of-months="numberOfMonths"
     :ui="mergedUi"
+     @update:model-value="onUpdate"
   />
+<!-- 
+  <UCalendar
+  :model-value="modelValue"
+  :min-value="minValue"
+  :max-value="maxValue"
+  :range="range"
+  :number-of-months="numberOfMonths"
+  :ui="mergedUi"
+  @update:model-value="onUpdate"
+/> -->
 </template>
 
 
@@ -79,10 +100,15 @@ const mergedUi = computed(() => ({
   // border-radius: 16px;
 }
 .rcalendar {
-  :deep(button[aria-label*="Previous"]),
-  :deep(button[aria-label*="Next"]) {
+  :deep([data-slot="prev-button"]),
+  :deep([data-slot="next-button"]) {
     width: 22px !important;
     height: 22px !important;
+  // }
+  // :deep(button[aria-label*="Previous"]),
+  // :deep(button[aria-label*="Next"]) {
+    // width: 22px !important;
+    // height: 22px !important;
     min-width: 22px !important;
     padding: 0 !important;
     display:flex;

@@ -53,7 +53,7 @@ const emit = defineEmits<{
 }>()
 
 const { locale } = useI18n()
-
+const isOpen = ref(false)
 // ── Internal state ────────────────────────────────────────────────────────
 // shallowRef = no deep proxy on CalendarDate instances
 const EMPTY = today(getLocalTimeZone()) // stable fallback placeholder
@@ -138,7 +138,11 @@ const sizeClasses = computed(() => ({
 const inputHeight = computed(() => {
   return sizeClasses.value[props.size] || '44px'
 })
-
+watch(selected, (newVal, oldVal) => {
+  if (newVal && newVal !== oldVal) {
+    isOpen.value = false
+  }
+})
 const defaultUI = {
   base: [
     'rdp-input', // bind with scss global
@@ -272,7 +276,7 @@ const mergedUi = computed(() =>
             </Transition>
 
             <!-- Calendar popover -->
-            <UPopover :ui="{ content: 'rdp-pop' }" :reference="inputDate?.inputsRef[3]?.$el">
+            <UPopover v-model:open="isOpen" :ui="{ content: 'rdp-pop' }" :reference="inputDate?.inputsRef[3]?.$el">
               <button
                 type="button"
                 :disabled="disabled || readonly"
@@ -319,6 +323,8 @@ const mergedUi = computed(() =>
                    v-model="selected"
                    :min-value="rawMin"
                    :max-value="rawMax"
+                   @update:model-value="onCalendarUpdate"
+                   @select="isOpen = false"
                    />
                   <!-- Footer -->
                   <div class="rdp-pop__footer">
