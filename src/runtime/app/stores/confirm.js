@@ -1,25 +1,61 @@
-import { defineStore, acceptHMRUpdate } from "#imports";
-export const useConfirmStore = defineStore("ConfirmStore", {
-  state: () => ({
-    confirm: null,
-    loading: false
-  }),
-  getters: {
-    data: (state) => state.confirm,
-  },
-  actions: {
-    setLoading(loading) {
-      this.loading = loading
+import { defineStore, acceptHMRUpdate } from '#imports'
+
+export const useConfirmStore = defineStore(
+  'ConfirmStore',
+  {
+    state: () => ({
+      confirm: null,
+      loading: false
+    }),
+
+    getters: {
+      data: state => state.confirm
     },
-    hide() {
-      this.confirm = null;
-    },
-    show(props) {
-      this.confirm = props;
-    },
-  },
-});
+
+    actions: {
+      setLoading(loading) {
+        this.loading = loading
+      },
+
+      hide() {
+        this.confirm = null
+        this.loading = false
+      },
+
+      show(props) {
+        this.confirm = {
+          color: 'primary',
+          confirmText: 'Confirm',
+          cancelText: 'Cancel',
+          persistent: false,
+          ...props
+        }
+      },
+
+      async confirmAction() {
+        if (!this.confirm?.onConfirm)
+          return this.hide()
+
+        try {
+          this.loading = true
+
+          await this.confirm.onConfirm()
+
+          this.hide()
+        } catch (error) {
+          this.loading = false
+          throw error
+        }
+      }
+    }
+  }
+)
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useConfirmStore, import.meta.hot));
+  import.meta.hot.accept(
+    acceptHMRUpdate(
+      useConfirmStore,
+      import.meta.hot
+    )
+  )
 }

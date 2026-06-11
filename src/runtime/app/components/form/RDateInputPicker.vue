@@ -139,7 +139,6 @@ const inputHeight = computed(() => {
   return sizeClasses.value[props.size] || '38px'
 })
 
-console.log("Input height ========================> ", inputHeight.value)
 watch(selected, (newVal, oldVal) => {
   if (newVal && newVal !== oldVal) {
     isOpen.value = false

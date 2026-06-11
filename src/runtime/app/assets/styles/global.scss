@@ -95,6 +95,90 @@
   --ck-todo-list-checkmark-size: 16px;
 }
 
+
+
+// core styles || can be used at WebApp project not in module if WebApp have this style
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 6px 16px;
+  font-size: 16px;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease-in-out;
+
+  &:focus {
+    border-color: var(--primary-color);
+    // box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+  }
+
+  &:disabled {
+    background-color: var(--bg-color); // Overrides with CSS variable
+    // background-color: lighten(var(--bg-color), 10%);
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    font-family: var(--font-400);
+    color: var(--placeholder-color);
+  }
+}
+
+input::placeholder {
+  color: rgba(153, 153, 153, 0.7);
+  font-size: 12px;
+}
+
+input:focus::placeholder {
+  color: #333;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+// /* Custom Select */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 24 24' fill='%23999' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  padding-right: 34px;
+}
+
+input::placeholder {
+  color: rgba(153, 153, 153, 0.7);
+  font-size: 12px;
+}
+
+input:focus::placeholder {
+  color: #333;
+}
+
+// Utility
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+
+
+
+
+
+
 /* @ckeditor/ckeditor5-table/theme/tablecolumnresize.css */
 .ck-content .table .ck-table-resized {
   table-layout: fixed;

@@ -12,6 +12,9 @@
     <template #trailing v-if="$slots.trailing">
       <slot name="trailing" class="right-[10px]" />
     </template>
+    <label v-if="floatingLabel" class="pointer-events-none absolute left-0 -top-2.5 text-highlighted text-xs font-medium px-1.5 transition-all peer-focus:-top-2.5 peer-focus:text-highlighted peer-focus:text-xs peer-focus:font-medium peer-placeholder-shown:text-sm peer-placeholder-shown:text-dimmed peer-placeholder-shown:top-1.5 peer-placeholder-shown:font-normal">
+      <span class="inline-flex bg-default px-1">{{ floatingLabel }}</span>
+    </label>
   </UInput>
 </template>
 
@@ -37,7 +40,8 @@ const props = defineProps([
   "min",
   "max",
   "score",
-  "isRight"
+  "isRight",
+  "floatingLabel"
 ]);
 
 const loading = computed(() => props.loading);
@@ -57,6 +61,7 @@ const min = computed(() => props.min);
 const max = computed(() => props.max);
 const score = computed(() => props.score);
 const isRight = computed(() => props.isRight ?? false)
+const floatingLabel = computed(() => props.floatingLabel)
 
 watch(value, (newValue) => {
   if (type.value === "number") {
@@ -79,6 +84,7 @@ const emits = defineEmits(["onFocus", "onBlur", "onInput"]);
 
 const ui = computed(() => {
   const defaultUI = {
+    base:'peer',
     wrapper: 'relative oc-input-wrapper',
     placeholder: "placeholder:text-[12px]",
     rounded: "",
