@@ -578,14 +578,14 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   display:         flex;
   align-items:     baseline;
   justify-content: space-between;
-  gap:             var(--space-2);
+  gap:             var(--space-1);
 }
 .rtip__label {
   font-size:   0.82rem;
   font-weight: 500;
   color:       var(--c-text);
   display:     flex;
-  gap:         4px;
+  gap:         2px;
 }
 .rtip__req  { color: var(--c-danger); font-size: 0.9em; }
 .rtip__hint { font-size: 0.72rem; color: var(--c-muted); }
@@ -602,6 +602,8 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
 .rtip__lead-icon {
   position:  absolute;
   left:      10px;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   color:     var(--c-muted);
   font-size: 0.95rem;
   pointer-events: none;
@@ -614,6 +616,10 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
 .rtip__input {
   width:         100%;
   height:        38px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
   padding:       0 80px 0 34px;    // room for lead icon + trail
   font-family:   var(--font-fallback);
   font-size:     inherit;

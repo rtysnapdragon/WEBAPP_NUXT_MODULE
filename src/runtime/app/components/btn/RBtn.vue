@@ -318,7 +318,7 @@ function actionClick() {
     width: 14px;
     height: 14px;
     border: 2px solid #ffffff4b;
-    border-bottom-color: var(--bg-content);
+    border-bottom-color: var(--bg-bg);
     border-radius: 50%;
     display: inline-block;
     box-sizing: border-box;

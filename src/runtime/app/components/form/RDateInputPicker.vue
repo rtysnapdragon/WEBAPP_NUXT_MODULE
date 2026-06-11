@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<{
   maxValue?:      CalendarDate
   ui?:            Record<string, unknown>
 }>(), {
-  size:      'md',
+  size:      'sm',
   clearable: true,
 })
 
@@ -129,15 +129,17 @@ const rawMin = computed(() => props.minValue ? toRaw(props.minValue) : undefined
 const rawMax = computed(() => props.maxValue ? toRaw(props.maxValue) : undefined)
 const sizeClasses = computed(() => ({
   xs: '32px',
-  sm: '36px',
+  sm: '38px',
   md: '44px',
   lg: '48px',
   xl: '56px'
 }))
 
 const inputHeight = computed(() => {
-  return sizeClasses.value[props.size] || '44px'
+  return sizeClasses.value[props.size] || '38px'
 })
+
+console.log("Input height ========================> ", inputHeight.value)
 watch(selected, (newVal, oldVal) => {
   if (newVal && newVal !== oldVal) {
     isOpen.value = false
@@ -158,13 +160,13 @@ const defaultUI = {
     'focus-within:ring-[var(--c-accent)]/20',
     // 'border-4 border-red-500 bg-yellow-100'
   ],
-  size: {
-    md: {
-      base: [
-        'px-2.5 py-1.5 text-base/5'
-      ]
-    }
-  },
+  // size: {
+  //   md: {
+  //     base: [
+  //       'px-2.5 py-1.5 text-base/5'
+  //     ]
+  //   }
+  // },
   segment: [
     'rounded',
     'text-center',
@@ -491,6 +493,7 @@ const mergedUi = computed(() =>
 
 // can override the NuxtUI style but need css class to base of ui of NuxtUI but need as global without scoped
 .rdp-input {
+  // min-height: 22px !important ; //base
   min-height: v-bind(inputHeight) !important ; //base
   padding: 0 12px;
   background: var(--c-surface);
