@@ -12,14 +12,24 @@
       variant: 'outline',
       class: 'rounded-full'
     }"
-    :ui="mergedUi"
+    :ui="ui"
     class="r-modal"
   >
 
     <!-- HEADER -->
     <template #header>
       <div class="r-modal__header">
-        <slot name="header" />
+        <slot name="header">
+          <div class="r-modal__header__custom">
+            <h2 class="text-lg font-bold">{{ title }}</h2>
+            <i
+              class="ri-close-large-fill cursor-pointer"
+               @click="() => {
+                    open = false
+                  }"
+            />
+          </div>
+        </slot>
       </div>
     </template>
 
@@ -33,22 +43,24 @@
     <!-- FOOTER -->
     <template #footer="{ close }">
       <div class="r-modal__footer">
-        <slot name="footer" :close="close">
+        <slot v-if="$slots.footer" name="footer" :close="close">
           <div class="r-modal__actions">
-            <UButton
+            <RBtn
               v-if="showCancel"
-              label="Cancel"
+              :label="$t('Cancel')"
               color="neutral"
               variant="outline"
               class="r-modal__btn"
+              icon="ri-close-large-fill"
               @click="close"
             />
 
-            <UButton
+            <RBtn
               v-if="showSubmit"
               :label="submitLabel"
               color="primary"
               class="r-modal__btn"
+              icon="ri-save-line"
               @click="$emit('submit', close)"
             />
           </div>
@@ -97,24 +109,16 @@ defineEmits(["submit"])
 
 const mergedUi = computed(() => ({
   base: "r-modal__base",
-  content: "r-modal__content",
-  header: "r-modal__header",
-  body: "r-modal__body-ui",
-  footer: "r-modal__footer-ui",
-  overlay: "r-modal__overlay",
+  content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
+  header: "r-modal__header flex items-center gap-1.5 p-4 sm:px-6 min-h-(--ui-header-height)" ,
+  body: "r-modal__body-ui flex-1 p-4 sm:p-6",
+  footer: "r-modal__footer-ui flex items-center gap-1.5 p-4 sm:px-6",
+  overlay: "r-modal__overlay fixed inset-0",
   rounded: "r-modal__rounded",
   shadow: "r-modal__shadow",
-  slots: {
-    overlay: 'fixed inset-0',
-    content: 'bg-default divide-y divide-default flex flex-col focus:outline-none',
-    header: 'flex items-center gap-1.5 p-4 sm:px-6 min-h-(--ui-header-height)',
-    wrapper: '',
-    body: 'flex-1 p-4 sm:p-6',
-    footer: 'flex items-center gap-1.5 p-4 sm:px-6',
-    title: 'text-highlighted font-semibold',
-    description: 'mt-1 text-muted text-sm',
-    close: 'absolute top-4 end-4'
-  },
+  description: 'mt-1 text-muted text-sm',
+  title: 'text-highlighted font-semibold',
+  close: 'absolute top-4 end-4',
   variants: {
     transition: {
       true: {
@@ -162,11 +166,14 @@ const mergedUi = computed(() => ({
       }
     }
   ],
-  ...props.ui
+}))
+
+const ui = computed(() => ({
+  ...(props.ui ?? {}), ...mergedUi.value
 }))
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .r-modal{
   background-color: var(--c-bg) !important;
   z-index: 9999;
@@ -208,6 +215,17 @@ const mergedUi = computed(() => ({
 .r-modal__header{
     padding: 5px 15px;
     width: 100%;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    
+    &__custom {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 }
 
 /* ===== Body ===== */
