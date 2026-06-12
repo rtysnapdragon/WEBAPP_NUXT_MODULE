@@ -79,7 +79,7 @@ const mergedUi = computed(() =>
     :range="range"
     :number-of-months="numberOfMonths"
     :ui="mergedUi"
-     @update:model-value="onUpdate"
+    @update:model-value="onUpdate"
   />
 <!-- 
   <UCalendar

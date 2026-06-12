@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from '#imports'
 
-export const useConfirmStore = defineStore(
+export const useConfirmStore_11 = defineStore(
   'ConfirmStore',
   {
     state: () => ({
