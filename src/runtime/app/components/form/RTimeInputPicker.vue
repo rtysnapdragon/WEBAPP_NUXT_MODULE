@@ -1,524 +1,535 @@
 <script setup lang="ts">
-// RTimeInput — SARIKA
-// NuxtUI v4 UInputTime + custom clock-face popover picker
-// Modes: single (default) | range (prop)
-// Picker: click-only clock grid — no scroll drums, no text select
-// v-model: Time | { start: Time; end: Time }
+// RTimeInputPicker — SARIKA
+// Native-feel time picker: text input + popover drum scroll picker
+// Supports: v-model (HH:MM or HH:MM:SS string), 12/24h, step, am/pm, size, disabled, clearable
+// Keyboard: ↑↓ on drum columns, Tab between columns, Enter/Escape on popover
 
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { Time } from '@internationalized/date'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // ── Types ──────────────────────────────────────────────────────────────────
-export interface RangeTime { start: Time; end: Time }
-// import type { TimeRange } from '@internationalized/date'
-export type TimeVal = Time | RangeTime | null
+export interface TimeValue {
+  hours:   number   // 0-23 (always 24h internally)
+  minutes: number
+  seconds: number
+}
 
 // ── Props ──────────────────────────────────────────────────────────────────
 const props = withDefaults(defineProps<{
-  modelValue?:   TimeVal
-  range?:        boolean
-  granularity?:  'hour' | 'minute' | 'second'
-  hourCycle?:    12 | 24
-  label?:        string
-  labelKm?:      string
-  hint?:         string
-  error?:        string
-  required?:     boolean
-  disabled?:     boolean
-  readonly?:     boolean
-  clearable?:    boolean
-  size?:         'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  ui?:           Record<string, unknown>
+  modelValue?:  string | null   // "HH:MM" or "HH:MM:SS"
+  label?:       string
+  labelKm?:     string
+  hint?:        string
+  error?:       string
+  placeholder?: string
+  size?:        'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  disabled?:    boolean
+  readonly?:    boolean
+  clearable?:   boolean
+  required?:    boolean
+  use12h?:      boolean          // AM/PM mode
+  showSeconds?: boolean
+  minuteStep?:  number           // 1, 5, 10, 15, 30
+  secondStep?:  number
+  minTime?:     string           // "HH:MM" — optional boundary
+  maxTime?:     string
+  // NuxtUI ui passthrough (for UInput wrapper)
+  ui?:          Record<string, unknown>
 }>(), {
-  granularity: 'minute',
   size:        'md',
   clearable:   true,
+  use12h:      false,
+  showSeconds: false,
+  minuteStep:  1,
+  secondStep:  1,
 })
 
+// ── Emits ──────────────────────────────────────────────────────────────────
 const emit = defineEmits<{
-  'update:modelValue': [v: TimeVal]
-  change:              [v: TimeVal]
+  'update:modelValue': [val: string | null]
+  change:              [val: string | null]
   clear:               []
   blur:                []
 }>()
 
 const { locale } = useI18n()
 
-// ── Internal model ─────────────────────────────────────────────────────────
-const internal = ref<TimeVal>(props.modelValue ?? null)
-// watch(() => props.modelValue, v => { internal.value = v ?? null })
-watch(internal, v => { emit('update:modelValue', v); emit('change', v) })
+// ── Parse / Format helpers ─────────────────────────────────────────────────
+function parseTime(str?: string | null): TimeValue {
+  if (!str) return { hours: 0, minutes: 0, seconds: 0 }
+  const parts = str.split(':').map(Number)
+  return {
+    hours:   Math.max(0, Math.min(23, parts[0] ?? 0)),
+    minutes: Math.max(0, Math.min(59, parts[1] ?? 0)),
+    seconds: Math.max(0, Math.min(59, parts[2] ?? 0)),
+  }
+}
 
-watch(
-  () => props.modelValue,
-  (v) => {
-    console.log('modelValue', v)
-    console.log('instanceof Time', v instanceof Time)
-  },
-  { immediate: true }
-)
-watch(
-  () => props.modelValue,
-  (v) => {
-    if (!v) {
-      internal.value = null
-      return
-    }
+function formatTime(t: TimeValue): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return props.showSeconds
+    ? `${pad(t.hours)}:${pad(t.minutes)}:${pad(t.seconds)}`
+    : `${pad(t.hours)}:${pad(t.minutes)}`
+}
 
-    if (props.range) {
-      const r = v as any
+function to12h(h: number) {
+  if (h === 0)  return 12
+  if (h > 12)   return h - 12
+  return h
+}
 
-      internal.value = {
-        start:
-          r.start instanceof Time
-            ? r.start
-            : new Time(r.start.hour, r.start.minute, r.start.second ?? 0),
+function fromAmPm(h12: number, pm: boolean): number {
+  if (pm  && h12 !== 12) return h12 + 12
+  if (!pm && h12 === 12) return 0
+  return h12
+}
 
-        end:
-          r.end instanceof Time
-            ? r.end
-            : new Time(r.end.hour, r.end.minute, r.end.second ?? 0),
-      }
-    } else {
-      internal.value =
-        v instanceof Time
-          ? v
-          : new Time(
-              (v as any).hour,
-              (v as any).minute,
-              (v as any).second ?? 0
-            )
-    }
-  },
-  { immediate: true }
-)
-// ── Popover state ──────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
 const open      = ref(false)
-// const popRef    = ref<HTMLElement | null>(null)
-// const triggerRef = ref<HTMLElement | null>(null)
-
 const inputRef  = ref<HTMLInputElement | null>(null)
 const popRef    = ref<HTMLDivElement | null>(null)
 const triggerRef = ref<HTMLButtonElement | null>(null)
-// Range picking step: 'start' → pick start, 'end' → pick end
-const rangeStep = ref<'start' | 'end'>('start')
 
+const time = ref<TimeValue>(parseTime(props.modelValue))
+const ampm = ref<'AM' | 'PM'>(time.value.hours >= 12 ? 'PM' : 'AM')
+
+// Drum scroll refs
+const hourDrum   = ref<HTMLDivElement | null>(null)
+const minuteDrum = ref<HTMLDivElement | null>(null)
+const secondDrum = ref<HTMLDivElement | null>(null)
+
+// Raw text input state
+const rawInput   = ref(props.modelValue ?? '')
+const inputError = ref(false)
+
+// ── Sync prop → internal ───────────────────────────────────────────────────
+watch(() => props.modelValue, v => {
+  const parsed = parseTime(v)
+  time.value   = parsed
+  ampm.value   = parsed.hours >= 12 ? 'PM' : 'AM'
+  rawInput.value = v ?? ''
+})
+
+// ── Emit on change ─────────────────────────────────────────────────────────
+function emitChange() {
+  const str = formatTime(time.value)
+  rawInput.value = str
+  emit('update:modelValue', str)
+  emit('change', str)
+}
+
+// ── Drum item lists ────────────────────────────────────────────────────────
+const hourItems = computed(() => {
+  if (props.use12h) return Array.from({ length: 12 }, (_, i) => i + 1)   // 1-12
+  return Array.from({ length: 24 }, (_, i) => i)                          // 0-23
+})
+
+const minuteItems = computed(() =>
+  Array.from({ length: Math.ceil(60 / props.minuteStep) }, (_, i) => i * props.minuteStep)
+)
+
+const secondItems = computed(() =>
+  Array.from({ length: Math.ceil(60 / props.secondStep) }, (_, i) => i * props.secondStep)
+)
+
+// Current displayed hour (12h or 24h)
+const displayHour = computed(() =>
+  props.use12h ? to12h(time.value.hours) : time.value.hours
+)
+
+// ── Drum scroll logic ──────────────────────────────────────────────────────
+const ITEM_H = 40  // px per drum item — must match CSS
+
+function scrollDrumTo(el: HTMLDivElement | null, idx: number) {
+  if (!el) return
+  el.scrollTo({ top: idx * ITEM_H, behavior: 'smooth' })
+}
+
+function scrollAllDrums() {
+  nextTick(() => {
+    const hIdx = props.use12h
+      ? hourItems.value.indexOf(displayHour.value)
+      : time.value.hours
+    scrollDrumTo(hourDrum.value,   hIdx)
+    scrollDrumTo(minuteDrum.value, minuteItems.value.indexOf(
+      roundToStep(time.value.minutes, props.minuteStep)
+    ))
+    if (props.showSeconds) {
+      scrollDrumTo(secondDrum.value, secondItems.value.indexOf(
+        roundToStep(time.value.seconds, props.secondStep)
+      ))
+    }
+  })
+}
+
+function roundToStep(val: number, step: number) {
+  const nearest = Math.round(val / step) * step
+  const list = Array.from({ length: Math.ceil(60 / step) }, (_, i) => i * step)
+  return list.includes(nearest) ? nearest : list[0]
+}
+
+// ── Popover open/close ─────────────────────────────────────────────────────
 function openPicker() {
   if (props.disabled || props.readonly) return
-  if (props.range) rangeStep.value = 'start'
-  open.value = !open.value
+  open.value = true
+  scrollAllDrums()
 }
-function closePicker() { open.value = false; emit('blur') }
 
-function onOutside(e: MouseEvent) {
-  const t = e.target as Node
-  if (popRef.value?.contains(t) || triggerRef.value?.contains(t)) return
+function closePicker() {
+  open.value = false
+  emit('blur')
+}
+
+// Click-outside
+function onOutsideClick(e: MouseEvent) {
+  if (
+    popRef.value?.contains(e.target as Node) ||
+    triggerRef.value?.contains(e.target as Node) ||
+    inputRef.value?.contains(e.target as Node)
+  ) return
   closePicker()
 }
-onMounted(() => document.addEventListener('mousedown', onOutside))
-onBeforeUnmount(() => document.removeEventListener('mousedown', onOutside))
+
+onMounted(() => document.addEventListener('mousedown', onOutsideClick))
+onBeforeUnmount(() => document.removeEventListener('mousedown', onOutsideClick))
+
+// ── Set hour ───────────────────────────────────────────────────────────────
+function setHour(h: number) {
+  if (props.use12h) {
+    time.value = { ...time.value, hours: fromAmPm(h, ampm.value === 'PM') }
+  } else {
+    time.value = { ...time.value, hours: h }
+  }
+  emitChange()
+}
+
+function setMinute(m: number) {
+  time.value = { ...time.value, minutes: m }
+  emitChange()
+}
+
+function setSecond(s: number) {
+  time.value = { ...time.value, seconds: s }
+  emitChange()
+}
+
+function toggleAmPm(val: 'AM' | 'PM') {
+  ampm.value = val
+  time.value = { ...time.value, hours: fromAmPm(to12h(time.value.hours), val === 'PM') }
+  emitChange()
+}
+
+// ── Keyboard on drum ──────────────────────────────────────────────────────
+function onDrumKey(e: KeyboardEvent, col: 'h' | 'm' | 's') {
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault()
+    const dir = e.key === 'ArrowUp' ? -1 : 1
+
+    if (col === 'h') {
+      const list = hourItems.value
+      const cur  = list.indexOf(displayHour.value)
+      const next = (cur + dir + list.length) % list.length
+      setHour(list[next])
+      scrollDrumTo(hourDrum.value, next)
+    } else if (col === 'm') {
+      const list = minuteItems.value
+      const cur  = list.indexOf(roundToStep(time.value.minutes, props.minuteStep))
+      const next = (cur + dir + list.length) % list.length
+      setMinute(list[next])
+      scrollDrumTo(minuteDrum.value, next)
+    } else {
+      const list = secondItems.value
+      const cur  = list.indexOf(roundToStep(time.value.seconds, props.secondStep))
+      const next = (cur + dir + list.length) % list.length
+      setSecond(list[next])
+      scrollDrumTo(secondDrum.value, next)
+    }
+  }
+  if (e.key === 'Escape') closePicker()
+}
+
+// ── Raw text input ─────────────────────────────────────────────────────────
+function onInputChange(e: Event) {
+  const val = (e.target as HTMLInputElement).value
+  rawInput.value = val
+  // Accept HH:MM or HH:MM:SS
+  const match = val.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  if (match) {
+    const h = Number(match[1])
+    const m = Number(match[2])
+    const s = Number(match[3] ?? 0)
+    if (h <= 23 && m <= 59 && s <= 59) {
+      inputError.value = false
+      time.value = { hours: h, minutes: m, seconds: s }
+      ampm.value = h >= 12 ? 'PM' : 'AM'
+      emit('update:modelValue', val)
+      emit('change', val)
+      return
+    }
+  }
+  inputError.value = val.length > 0
+}
+
+function onInputFocus() {
+  openPicker()
+}
 
 // ── Clear ──────────────────────────────────────────────────────────────────
 function clearValue() {
-  internal.value = null
+  time.value     = { hours: 0, minutes: 0, seconds: 0 }
+  ampm.value     = 'AM'
+  rawInput.value = ''
+  inputError.value = false
+  emit('update:modelValue', null)
   emit('clear')
-  closePicker()
 }
 
-// ── Has value ─────────────────────────────────────────────────────────────
-const hasValue = computed(() => {
-  if (!internal.value) return false
-  return true
+// ── Display string ─────────────────────────────────────────────────────────
+const displayValue = computed(() => {
+  if (!props.modelValue && !rawInput.value) return ''
+  if (props.use12h) {
+    const h = to12h(time.value.hours)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return props.showSeconds
+      ? `${pad(h)}:${pad(time.value.minutes)}:${pad(time.value.seconds)} ${ampm.value}`
+      : `${pad(h)}:${pad(time.value.minutes)} ${ampm.value}`
+  }
+  return formatTime(time.value)
 })
 
-// ── Clock grid data ───────────────────────────────────────────────────────
-// Hours 0-23, minutes 0-59 in steps of 5, or seconds
-const HOUR_ITEMS = Array.from({ length: 24 }, (_, i) => i)        // 0-23
-const MIN_ITEMS  = Array.from({ length: 12 }, (_, i) => i * 5)   // 0,5,10...55
-const SEC_ITEMS  = Array.from({ length: 12 }, (_, i) => i * 5)
-
-type Col = 'h' | 'm' | 's'
-const activeCol = ref<Col>('h')
-
-// ── Current editing time (extracted from model) ────────────────────────────
-const editingTime = computed<Time>(() => {
-  if (!internal.value) return new Time(0, 0, 0)
-  if (props.range) {
-    const r = internal.value as RangeTime
-    return rangeStep.value === 'start' ? (r.start ?? new Time(0, 0, 0)) : (r.end ?? new Time(0, 0, 0))
-  }
-  return (internal.value as Time) ?? new Time(0, 0, 0)
-})
-
-// ── Click on clock value ───────────────────────────────────────────────────
-function pickValue(val: number) {
-  let t = editingTime.value
-  if (activeCol.value === 'h') t = new Time(val, t.minute, t.second)
-  if (activeCol.value === 'm') t = new Time(t.hour, val,   t.second)
-  if (activeCol.value === 's') t = new Time(t.hour, t.minute, val)
-
-  if (!props.range) {
-    internal.value = t
-    // Auto advance column
-    if (activeCol.value === 'h') activeCol.value = 'm'
-    else if (activeCol.value === 'm' && props.granularity === 'second') activeCol.value = 's'
-    else if (activeCol.value === 'm') closePicker()
-    else closePicker()
-    return
-  }
-
-  // Range mode
-  const prev = (internal.value as RangeTime) ?? { start: new Time(0, 0, 0), end: new Time(0, 0, 0) }
-  if (rangeStep.value === 'start') {
-    internal.value = { start: t, end: prev.end ?? t }
-    // Auto-advance col within start picking
-    if (activeCol.value === 'h') activeCol.value = 'm'
-    else if (activeCol.value === 'm' && props.granularity === 'second') activeCol.value = 's'
-    else {
-      // Done with start → move to end
-      rangeStep.value = 'end'
-      activeCol.value = 'h'
-    }
-  } else {
-    internal.value = { start: prev.start, end: t }
-    if (activeCol.value === 'h') activeCol.value = 'm'
-    else if (activeCol.value === 'm' && props.granularity === 'second') activeCol.value = 's'
-    else closePicker()
-  }
+// ── Now shortcut ──────────────────────────────────────────────────────────
+function setNow() {
+  const n = new Date()
+  time.value = { hours: n.getHours(), minutes: n.getMinutes(), seconds: n.getSeconds() }
+  ampm.value = time.value.hours >= 12 ? 'PM' : 'AM'
+  emitChange()
+  scrollAllDrums()
 }
 
-// ── Active check helpers ───────────────────────────────────────────────────
-function isActive(val: number): boolean {
-  const t = editingTime.value
-  if (activeCol.value === 'h') return t.hour === val
-  if (activeCol.value === 'm') return t.minute === val
-  return t.second === val
-}
-
-// ── Summary ────────────────────────────────────────────────────────────────
+// ── Pad helper for template ───────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0')
-
-function fmtTime(t: Time | null | undefined) {
-  if (!t) return '—'
-  if (props.granularity === 'second') return `${pad(t.hour)}:${pad(t.minute)}:${pad(t.second)}`
-  if (props.granularity === 'hour')   return `${pad(t.hour)}:00`
-  return `${pad(t.hour)}:${pad(t.minute)}`
-}
-
-const summaryText = computed(() => {
-  if (!internal.value) return null
-  if (props.range) {
-    const r = internal.value as RangeTime
-    return `${fmtTime(r.start)}  →  ${fmtTime(r.end)}`
-  }
-  return fmtTime(internal.value as Time)
-})
-
-const duration = computed(() => {
-  if (!props.range || !internal.value) return null
-  const r = internal.value as RangeTime
-  if (!r.start || !r.end) return null
-  const diff = (r.end.hour * 60 + r.end.minute) - (r.start.hour * 60 + r.start.minute)
-  if (diff <= 0) return null
-  const h = Math.floor(diff / 60), m = diff % 60
-  return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`
-})
-
-// ── NuxtUI ui merge ────────────────────────────────────────────────────────
-const mergedUi = computed(() => ({
-  root: 'rti__ui-root',
-  base: 'rti__ui-base',
-  ...(props.ui ?? {}),
-}))
-
-// ── Label ─────────────────────────────────────────────────────────────────
-const displayLabel = computed(() =>
-  locale.value === 'km' && props.labelKm ? props.labelKm : props.label
-)
-
-// ── Column labels ──────────────────────────────────────────────────────────
-const colLabel = computed(() => {
-  const labels = {
-    en: { h: 'Hour', m: 'Min', s: 'Sec' },
-    km: { h: 'ម៉ោង', m: 'នាទី', s: 'វិ' },
-  }
-  return locale.value === 'km' ? labels.km : labels.en
-})
-
-// ── Active items list ──────────────────────────────────────────────────────
-const activeItems = computed(() => {
-  if (activeCol.value === 'h') return HOUR_ITEMS
-  if (activeCol.value === 'm') return MIN_ITEMS
-  return SEC_ITEMS
-})
-
-// ── Range step label ───────────────────────────────────────────────────────
-const stepLabel = computed(() => {
-  if (!props.range) return null
-  if (rangeStep.value === 'start')
-    return locale.value === 'km' ? 'ជ្រើស ✦ ចាប់ផ្ដើម' : 'Pick start time'
-  return locale.value === 'km' ? 'ជ្រើស ✦ បញ្ចប់' : 'Pick end time'
-})
-type SingleValue = InstanceType<typeof Time>
-type RangeValue = { start: InstanceType<typeof Time>; end: InstanceType<typeof Time> }
-  // ─── Model ───────────────────────────────────────────────────────────────────
-const modelValue = defineModel<SingleValue | RangeValue>()
-  const singleValue = computed({
-  get: () => (props.range ? new Time(0, 0, 0) : (modelValue.value as SingleValue)),
-  set: (v: SingleValue) => {
-    if (!props.range) modelValue.value = v
-  },
-})
-const rangeValue = computed({
-  get: () =>
-    props.range
-      ? (modelValue.value as RangeValue)
-      : { start: new Time(0, 0, 0), end: new Time(23, 59, 0) },
-  set: (v: RangeValue) => {
-    if (props.range) modelValue.value = v
-  },
-})
-
-// Individual range bindings
-const startValue = computed({
-  get: () => rangeValue.value?.start,
-  set: (v: SingleValue) => {
-    rangeValue.value = { ...rangeValue.value, start: v }
-  },
-})
-// Individual range bindings
-const endValue = computed({
-  get: () => rangeValue.value.end,
-  set: (v: SingleValue) => {
-    rangeValue.value = { ...rangeValue.value, end: v }
-  },
-})
-
-
-const startTime = ref(new Time(12, 30))
 </script>
 
 <template>
   <div
     :class="[
-      'rti',
-      `rti--${size}`,
+      'rtip',
+      `rtip--${size}`,
       {
-        'rti--range':    range,
-        'rti--disabled': disabled,
-        'rti--readonly': readonly,
-        'rti--error':    !!error,
-        'rti--filled':   hasValue,
-        'rti--open':     open,
+        'rtip--disabled': disabled,
+        'rtip--readonly': readonly,
+        'rtip--error':    !!error || inputError,
+        'rtip--open':     open,
       },
     ]"
   >
     <!-- ── Label ──────────────────────────────────────────── -->
-    <div v-if="displayLabel || hint" class="rti__label-row">
-      <label class="rti__label">
-        {{ displayLabel }}
-        <span v-if="required" class="rti__req">*</span>
+    <div v-if="label || labelKm" class="rtip__label-row">
+      <label class="rtip__label">
+        {{ locale === 'km' && labelKm ? labelKm : label }}
+        <span v-if="required" class="rtip__req" aria-hidden="true">*</span>
       </label>
-      <span v-if="hint && !error" class="rti__hint">{{ hint }}</span>
+      <span v-if="hint && !error" class="rtip__hint">{{ hint }}</span>
     </div>
 
-    <!-- ── Field ──────────────────────────────────────────── -->
-    <div class="rti__field">
+    <!-- ── Input field ────────────────────────────────────── -->
+    <div class="rtip__field">
+      <!-- Clock icon -->
+      <span class="rtip__lead-icon" aria-hidden="true">
+        <UIcon name="i-lucide-clock" />
+      </span>
 
-      <!-- NuxtUI UInputTime (single) -->
-      <UInputTime
-        v-if="!range"
-        v-model="singleValue"
-        :granularity="granularity"
-        :hour-cycle="hourCycle"
+      <!-- Text input -->
+      <input
+        ref="inputRef"
+        :value="displayValue"
+        type="text"
+        :placeholder="placeholder ?? (use12h ? '12:00 AM' : '00:00')"
         :disabled="disabled"
         :readonly="readonly"
-        :ui="mergedUi"
-        class="rti__input"
-        @blur="emit('blur')"
-      />
-        <!-- v-model="(internal as Time)" -->
-
-      <!-- NuxtUI UInputTime (range) -->
-      <UInputTime
-        v-else
-        v-model="startTime"
-        range
-        :granularity="granularity"
-        :hour-cycle="hourCycle"
-        :disabled="disabled"
-        :readonly="readonly"
-        :ui="mergedUi"
-        class="rti__input"
-        @blur="emit('blur')"
+        :class="['rtip__input', { 'rtip__input--has-value': !!modelValue }]"
+        autocomplete="off"
+        spellcheck="false"
+        @input="onInputChange"
+        @focus="onInputFocus"
+        @keydown.escape="closePicker"
       />
 
-      <!-- Trailing: clear + clock trigger -->
-      <div class="rti__trail">
-        <Transition name="rti-fade">
+      <!-- Trailing actions -->
+      <div class="rtip__trail">
+        <!-- Clear -->
+        <Transition name="rtip-fade">
           <button
-            v-if="clearable && hasValue && !disabled && !readonly"
+            v-if="clearable && modelValue"
             type="button"
-            class="rti__clear"
+            class="rtip__clear"
             tabindex="-1"
-            aria-label="Clear"
+            aria-label="Clear time"
             @click.stop="clearValue"
           >
             <UIcon name="i-lucide-x" />
           </button>
         </Transition>
 
+        <!-- Trigger -->
         <button
           ref="triggerRef"
           type="button"
           :disabled="disabled || readonly"
-          :class="['rti__trigger', { 'rti__trigger--active': open }]"
-          aria-label="Open clock picker"
-          @click.stop="openPicker"
+          :class="['rtip__trigger', { 'rtip__trigger--active': open }]"
+          aria-label="Open time picker"
+          @click.stop="open ? closePicker() : openPicker()"
         >
-          <UIcon name="i-lucide-clock" />
+          <UIcon name="i-lucide-clock-3" />
         </button>
       </div>
     </div>
 
-    <!-- ── Error ──────────────────────────────────────────── -->
-    <Transition name="rti-fade">
-      <p v-if="error" class="rti__error" role="alert">
-        <UIcon name="i-lucide-alert-circle" />{{ error }}
+    <!-- ── Error message ──────────────────────────────────── -->
+    <Transition name="rtip-fade">
+      <p v-if="error || inputError" class="rtip__error" role="alert">
+        <UIcon name="i-lucide-alert-circle" />
+        {{ error ?? (locale === 'km' ? 'ទម្រង់ម៉ោងមិនត្រឹមត្រូវ' : 'Invalid time format (HH:MM)') }}
       </p>
     </Transition>
 
-    <!-- ── Summary chip ───────────────────────────────────── -->
-    <Transition name="rti-fade">
-      <div v-if="summaryText && !error" class="rti__summary">
-        <UIcon name="i-lucide-clock-check" />
-        <span class="rti__summary-val">{{ summaryText }}</span>
-        <span v-if="duration" class="rti__summary-dur">· {{ duration }}</span>
-      </div>
-    </Transition>
-
-    <!-- ════════════════════════════════════════════════════
-         CLOCK PICKER POPOVER
-    ════════════════════════════════════════════════════ -->
-    
-    <Transition name="rti-pop">
-      <div v-if="open" ref="popRef" class="rti__pop">
-
+    <!-- ── Popover drum picker ────────────────────────────── -->
+    <Transition name="rtip-pop">
+      <div
+        v-if="open"
+        ref="popRef"
+        class="rtip__pop"
+        role="dialog"
+        aria-label="Time picker"
+        @keydown.escape="closePicker"
+      >
         <!-- Header -->
-        <div class="rti__pop-head">
-          <!-- Range step badge -->
-          <div class="rti__pop-step" v-if="range">
-            <span :class="['rti__step-dot', rangeStep === 'start' ? 'rti__step-dot--start' : 'rti__step-dot--end']" />
-            {{ stepLabel }}
+        <div class="rtip__pop-head">
+          <div class="rtip__pop-display">
+            <span class="rtip__pop-time">
+              {{ use12h ? `${pad(to12h(time.hours))}:${pad(time.minutes)}${showSeconds ? `:${pad(time.seconds)}` : ''} ${ampm}` : formatTime(time) }}
+            </span>
+            <RBadge v-if="modelValue" variant="default" size="sm" dot>
+              {{ locale === 'km' ? 'បានជ្រើស' : 'set' }}
+            </RBadge>
           </div>
-
-          <!-- Current time display -->
-          <div class="rti__pop-clock-display">
-            <button
-              :class="['rti__col-tab', { 'rti__col-tab--active': activeCol === 'h' }]"
-              type="button"
-              @click="activeCol = 'h'"
-            >
-              {{ pad(editingTime.hour) }}
-            </button>
-            <span class="rti__colon">:</span>
-            <button
-              :class="['rti__col-tab', { 'rti__col-tab--active': activeCol === 'm' }]"
-              type="button"
-              @click="activeCol = 'm'"
-            >
-              {{ pad(editingTime.minute) }}
-            </button>
-            <template v-if="granularity === 'second'">
-              <span class="rti__colon">:</span>
-              <button
-                :class="['rti__col-tab', { 'rti__col-tab--active': activeCol === 's' }]"
-                type="button"
-                @click="activeCol = 's'"
-              >
-                {{ pad(editingTime.second) }}
-              </button>
-            </template>
-          </div>
-
-          <!-- Column label pill -->
-          <div class="rti__col-label-pill">
-            {{ activeCol === 'h' ? colLabel.h : activeCol === 'm' ? colLabel.m : colLabel.s }}
-          </div>
-        </div>
-
-        <!-- Column tabs strip -->
-        <div class="rti__col-strip">
-          <button
-            :class="['rti__strip-btn', { 'rti__strip-btn--active': activeCol === 'h' }]"
-            type="button"
-            @click="activeCol = 'h'"
-          >
+          <button type="button" class="rtip__now-btn" @click="setNow">
             <UIcon name="i-lucide-timer" />
-            {{ colLabel.h }}
+            {{ locale === 'km' ? 'ឥឡូវ' : 'Now' }}
           </button>
-          <span class="rti__strip-sep" />
-          <button
-            :class="['rti__strip-btn', { 'rti__strip-btn--active': activeCol === 'm' }]"
-            type="button"
-            @click="activeCol = 'm'"
+        </div>
+
+        <!-- Column labels -->
+        <div :class="['rtip__col-labels', { 'rtip__col-labels--secs': showSeconds, 'rtip__col-labels--ampm': use12h }]">
+          <span>{{ locale === 'km' ? 'ម៉ោង' : 'HH' }}</span>
+          <span>{{ locale === 'km' ? 'នាទី' : 'MM' }}</span>
+          <span v-if="showSeconds">{{ locale === 'km' ? 'វិ' : 'SS' }}</span>
+          <span v-if="use12h">AM/PM</span>
+        </div>
+
+        <!-- Drums -->
+        <div :class="['rtip__drums', { 'rtip__drums--secs': showSeconds, 'rtip__drums--ampm': use12h }]">
+
+          <!-- Selection highlight bar -->
+          <div class="rtip__selector" aria-hidden="true" />
+
+          <!-- ── Hour drum ── -->
+          <div
+            ref="hourDrum"
+            class="rtip__drum"
+            tabindex="0"
+            role="listbox"
+            :aria-label="locale === 'km' ? 'ម៉ោង' : 'Hours'"
+            @keydown="onDrumKey($event, 'h')"
           >
-            <UIcon name="i-lucide-clock-2" />
-            {{ colLabel.m }}
-          </button>
-          <template v-if="granularity === 'second'">
-            <span class="rti__strip-sep" />
-            <button
-              :class="['rti__strip-btn', { 'rti__strip-btn--active': activeCol === 's' }]"
-              type="button"
-              @click="activeCol = 's'"
+            <div class="rtip__drum-pad" />
+            <div
+              v-for="h in hourItems"
+              :key="h"
+              :class="['rtip__drum-item', { 'rtip__drum-item--active': h === displayHour }]"
+              role="option"
+              :aria-selected="h === displayHour"
+              @click="setHour(h); scrollDrumTo(hourDrum, hourItems.indexOf(h))"
             >
-              <UIcon name="i-lucide-clock-4" />
-              {{ colLabel.s }}
-            </button>
-          </template>
-        </div>
+              {{ pad(h) }}
+            </div>
+            <div class="rtip__drum-pad" />
+          </div>
 
-        <!-- Grid of clickable values -->
-        <div class="rti__grid" :class="activeCol === 'h' ? 'rti__grid--6' : 'rti__grid--4'">
-          <button
-            v-for="val in activeItems"
-            :key="val"
-            type="button"
-            :class="['rti__grid-item', { 'rti__grid-item--active': isActive(val) }]"
-            @click="pickValue(val)"
+          <!-- Colon -->
+          <div class="rtip__colon" aria-hidden="true">:</div>
+
+          <!-- ── Minute drum ── -->
+          <div
+            ref="minuteDrum"
+            class="rtip__drum"
+            tabindex="0"
+            role="listbox"
+            :aria-label="locale === 'km' ? 'នាទី' : 'Minutes'"
+            @keydown="onDrumKey($event, 'm')"
           >
-            {{ pad(val) }}
-          </button>
-        </div>
+            <div class="rtip__drum-pad" />
+            <div
+              v-for="m in minuteItems"
+              :key="m"
+              :class="['rtip__drum-item', { 'rtip__drum-item--active': m === roundToStep(time.minutes, minuteStep) }]"
+              role="option"
+              :aria-selected="m === time.minutes"
+              @click="setMinute(m); scrollDrumTo(minuteDrum, minuteItems.indexOf(m))"
+            >
+              {{ pad(m) }}
+            </div>
+            <div class="rtip__drum-pad" />
+          </div>
 
-        <!-- Range progress bar -->
-        <div v-if="range" class="rti__range-bar">
-          <div :class="['rti__range-seg', { 'rti__range-seg--done': !!(internal as RangeTime)?.start }]">
-            <UIcon :name="(internal as RangeTime)?.start ? 'i-lucide-check-circle-2' : 'i-lucide-circle'" />
-            <span>{{ locale === 'km' ? 'ចាប់ផ្ដើម' : 'Start' }}</span>
-            <code v-if="(internal as RangeTime)?.start">{{ fmtTime((internal as RangeTime).start) }}</code>
+          <!-- Colon (seconds) -->
+          <div v-if="showSeconds" class="rtip__colon" aria-hidden="true">:</div>
+
+          <!-- ── Second drum ── -->
+          <div
+            v-if="showSeconds"
+            ref="secondDrum"
+            class="rtip__drum"
+            tabindex="0"
+            role="listbox"
+            :aria-label="locale === 'km' ? 'វិនាទី' : 'Seconds'"
+            @keydown="onDrumKey($event, 's')"
+          >
+            <div class="rtip__drum-pad" />
+            <div
+              v-for="s in secondItems"
+              :key="s"
+              :class="['rtip__drum-item', { 'rtip__drum-item--active': s === roundToStep(time.seconds, secondStep) }]"
+              role="option"
+              :aria-selected="s === time.seconds"
+              @click="setSecond(s); scrollDrumTo(secondDrum, secondItems.indexOf(s))"
+            >
+              {{ pad(s) }}
+            </div>
+            <div class="rtip__drum-pad" />
           </div>
-          <div class="rti__range-arrow">→</div>
-          <div :class="['rti__range-seg', { 'rti__range-seg--done': !!(internal as RangeTime)?.end }]">
-            <UIcon :name="(internal as RangeTime)?.end ? 'i-lucide-check-circle-2' : 'i-lucide-circle'" />
-            <span>{{ locale === 'km' ? 'បញ្ចប់' : 'End' }}</span>
-            <code v-if="(internal as RangeTime)?.end">{{ fmtTime((internal as RangeTime).end) }}</code>
+
+          <!-- ── AM/PM column ── -->
+          <div v-if="use12h" class="rtip__ampm-col">
+            <button
+              v-for="p in ['AM', 'PM'] as const"
+              :key="p"
+              type="button"
+              :class="['rtip__ampm-btn', { 'rtip__ampm-btn--active': ampm === p }]"
+              @click="toggleAmPm(p)"
+            >
+              {{ p }}
+            </button>
           </div>
-        </div>
+
+        </div><!-- /drums -->
 
         <!-- Footer -->
-        <div class="rti__pop-footer">
-          <button type="button" class="rti__foot-ghost" @click="closePicker">
+        <div class="rtip__pop-footer">
+          <button type="button" class="rtip__footer-btn rtip__footer-btn--ghost" @click="closePicker">
             {{ locale === 'km' ? 'បិទ' : 'Close' }}
           </button>
-          <button
-            v-if="range && rangeStep === 'end'"
-            type="button"
-            class="rti__foot-solid"
-            @click="closePicker"
-          >
+          <button type="button" class="rtip__footer-btn rtip__footer-btn--solid" @click="closePicker">
             <UIcon name="i-lucide-check" />
             {{ locale === 'km' ? 'យល់ព្រម' : 'Done' }}
           </button>
@@ -532,15 +543,18 @@ const startTime = ref(new Time(12, 30))
 
 <style lang="scss" scoped>
 
+$item-h: 40px;   // must match ITEM_H in <script>
+$vis:    3;       // visible items in drum viewport = 3 (scroll window)
+
 // ─────────────────────────────────────────────
 // HOST
 // ─────────────────────────────────────────────
-.rti {
+.rtip {
+  position:       relative;
   display:        flex;
   flex-direction: column;
   gap:            var(--space-2);
   font-family:    var(--font-fallback);
-  position:       relative;
 
   &--xs  { font-size: 0.72rem; }
   &--sm  { font-size: 0.8rem;  }
@@ -549,433 +563,446 @@ const startTime = ref(new Time(12, 30))
   &--xl  { font-size: 1rem;    }
 
   &--disabled { opacity: 0.5; pointer-events: none; }
-  &--readonly { pointer-events: none; }
+  &--readonly { cursor: default; }
 
-  &--error .rti__input :deep([role="group"]) {
+  &--error .rtip__input {
     border-color: var(--c-danger) !important;
+    &:focus { box-shadow: 0 0 0 3px rgba(248,113,113,0.12) !important; }
   }
 }
 
 // ─────────────────────────────────────────────
 // LABEL
 // ─────────────────────────────────────────────
-.rti__label-row {
+.rtip__label-row {
   display:         flex;
   align-items:     baseline;
   justify-content: space-between;
-  gap:             var(--space-2);
+  gap:             var(--space-1);
 }
-.rti__label  { font-size: 0.82rem; font-weight: 500; color: var(--c-text); display: flex; gap: 4px; }
-.rti__req    { color: var(--c-danger); font-size: 0.9em; }
-.rti__hint   { font-size: 0.72rem; color: var(--c-muted); }
-.rti__error  { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--c-danger); margin: 0; }
-
-// ─────────────────────────────────────────────
-// FIELD + NUXTUI OVERRIDE
-// ─────────────────────────────────────────────
-.rti__field {
-  position:    relative;
+.rtip__label {
+  font-size:   0.82rem;
+  font-weight: 500;
+  color:       var(--c-text);
   display:     flex;
+  gap:         2px;
+}
+.rtip__req  { color: var(--c-danger); font-size: 0.9em; }
+.rtip__hint { font-size: 0.72rem; color: var(--c-muted); }
+
+// ─────────────────────────────────────────────
+// FIELD ROW
+// ─────────────────────────────────────────────
+.rtip__field {
+  position:  relative;
+  display:   flex;
   align-items: center;
-  gap:         var(--space-2);
 }
 
-.rti__input {
-  flex: 1;
+.rtip__lead-icon {
+  position:  absolute;
+  left:      10px;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  color:     var(--c-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 1;
+  @include transition(fast);
 
-  :deep([role="group"]) {
-    width:         100%;
-    font-family:   var(--font-fallback) !important;
-    background:    var(--c-surface) !important;
-    border:        1px solid var(--c-border) !important;
-    border-radius: var(--radius-md) !important;
-    @include transition(fast);
+  .rtip--open & { color: var(--c-accent); }
+}
 
-    &:focus-within {
-      border-color: var(--c-accent) !important;
-      box-shadow:   0 0 0 3px rgba(255, 140, 66, 0.12) !important;
-    }
+.rtip__input {
+  width:         100%;
+  height:        38px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding:       0 80px 0 34px;    // room for lead icon + trail
+  font-family:   var(--font-fallback);
+  font-size:     inherit;
+  color:         var(--c-text);
+  background:    var(--c-surface);
+  border:        1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  outline:       none;
+  cursor:        pointer;
+  @include transition(fast);
+
+  &::placeholder { color: var(--c-muted); }
+
+  &:focus, .rtip--open & {
+    border-color: var(--c-accent);
+    box-shadow:   0 0 0 3px rgba(255,140,66,0.12);
   }
 
-  :deep([data-type]:not([data-type="literal"])) {
-    font-family:           var(--font-fallback) !important;
-    font-variant-numeric:  tabular-nums;
-    color:                 var(--c-muted) !important;
-    border-radius:         var(--radius-sm) !important;
-    @include transition(fast);
+  &--has-value { font-weight: 500; }
 
-    &[data-focused], &:focus {
-      background: rgba(255, 140, 66, 0.12) !important;
-      color:      var(--c-accent) !important;
-      outline:    none !important;
-    }
-  }
+  .rtip--readonly & { cursor: default; background: var(--bg-tertiary); }
 
-  .rti--filled & :deep([data-type]:not([data-type="literal"])) {
-    color: var(--c-text) !important;
-  }
-
-  :deep([data-type="literal"]) {
-    color:       var(--c-muted) !important;
-    user-select: none;
-  }
-
-  // Height by size
-  .rti--xs & :deep([role="group"]) { min-height: 30px; padding: 0 8px; }
-  .rti--sm & :deep([role="group"]) { min-height: 34px; padding: 0 10px; }
-  .rti--md & :deep([role="group"]) { min-height: 38px; padding: 0 12px; }
-  .rti--lg & :deep([role="group"]) { min-height: 42px; padding: 0 14px; }
-  .rti--xl & :deep([role="group"]) { min-height: 46px; padding: 0 16px; }
+  .rtip--lg &,
+  .rtip--xl & { height: 42px; }
+  .rtip--xs & { height: 30px; font-size: 0.72rem; }
+  .rtip--sm & { height: 34px; }
 }
 
 // ─────────────────────────────────────────────
 // TRAILING
 // ─────────────────────────────────────────────
-.rti__trail {
-  display:     flex;
+.rtip__trail {
+  position: absolute;
+  right:    6px;
+  display:  flex;
   align-items: center;
-  gap:         4px;
-  flex-shrink: 0;
+  gap:      2px;
 }
 
-.rti__clear {
-  width:         24px; height: 24px;
-  border:        none; border-radius: 50%;
+.rtip__clear {
+  width:         22px;
+  height:        22px;
+  border:        none;
+  border-radius: 50%;
   background:    rgba(248,113,113,0.1);
   color:         var(--c-danger);
   cursor:        pointer;
-  @include flex-center; @include transition(fast);
-  font-size:     0.72rem; padding: 0;
+  @include flex-center;
+  @include transition(fast);
+  font-size:     0.7rem;
+  padding:       0;
   &:hover { background: rgba(248,113,113,0.22); }
 }
 
-.rti__trigger {
-  width:         32px; height: 32px;
+.rtip__trigger {
+  width:         30px;
+  height:        30px;
   border:        1px solid var(--c-border);
   border-radius: var(--radius-md);
   background:    transparent;
   color:         var(--c-muted);
   cursor:        pointer;
-  @include flex-center; @include transition(fast);
-  padding:       0; font-size: 0.95rem;
+  @include flex-center;
+  @include transition(fast);
+  padding:       0;
+  font-size:     0.95rem;
 
   &:hover, &--active {
     border-color: var(--c-accent);
     color:        var(--c-accent);
     background:   rgba(255,140,66,0.07);
-    box-shadow:   var(--glow-accent-sm);
   }
+
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 // ─────────────────────────────────────────────
-// SUMMARY CHIP
+// ERROR
 // ─────────────────────────────────────────────
-.rti__summary {
-  display:       inline-flex;
-  align-items:   center;
-  gap:           var(--space-2);
-  padding:       3px 10px;
-  background:    rgba(255,140,66,0.07);
-  border:        1px solid rgba(255,140,66,0.18);
-  border-radius: var(--radius-full);
-  width:         fit-content;
-  font-size:     0.75rem;
-
-  svg           { color: var(--c-accent); font-size: 0.82rem; flex-shrink: 0; }
-  &-val         { font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; letter-spacing: 0.03em; }
-  &-dur         { color: var(--c-muted); }
+.rtip__error {
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+  font-size:   0.75rem;
+  color:       var(--c-danger);
+  margin:      0;
 }
 
 // ─────────────────────────────────────────────
 // POPOVER
 // ─────────────────────────────────────────────
-.rti__pop {
+.rtip__pop {
   position:      absolute;
-  top:           calc(100% + 8px);
+  top:           calc(100% + 6px);
   left:          0;
-  z-index:       300;
+  z-index:       200;
   background:    var(--c-surface);
   border:        1px solid var(--c-border);
   border-radius: var(--radius-xl);
   box-shadow:    var(--glass-shadow);
   overflow:      hidden;
-  width:         288px;
+  min-width:     240px;
+  width:         max-content;
+
+  // Flip up if near bottom of viewport
+  @media (max-height: 500px) {
+    top:    auto;
+    bottom: calc(100% + 6px);
+  }
 
   @include mobile-only {
-    width:     calc(100vw - 2rem);
     left:      50%;
     transform: translateX(-50%);
+    min-width: 92vw;
   }
 }
 
-// ── Header ────────────────────────────────────
-.rti__pop-head {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
-  gap:            var(--space-2);
-  padding:        var(--space-4) var(--space-4) var(--space-2);
-  background:     var(--bg-tertiary);
-  border-bottom:  1px solid var(--c-border);
+// ── Pop header ──
+.rtip__pop-head {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         var(--space-3) var(--space-4);
+  background:      var(--bg-tertiary);
+  border-bottom:   1px solid var(--c-border);
+  gap:             var(--space-3);
 }
 
-.rti__pop-step {
+.rtip__pop-display {
   display:     flex;
   align-items: center;
   gap:         var(--space-2);
-  font-size:   0.72rem;
-  font-weight: 600;
-  color:       var(--c-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  align-self:  flex-start;
 }
 
-.rti__step-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  &--start { background: var(--c-accent); box-shadow: var(--glow-accent-sm); }
-  &--end   { background: var(--c-info); }
-}
-
-// Big time display — clickable segments to switch col
-.rti__pop-clock-display {
-  display:     flex;
-  align-items: center;
-  gap:         2px;
-}
-
-.rti__col-tab {
-  font-size:   2rem;
-  font-weight: 800;
+.rtip__pop-time {
+  font-size:   1.1rem;
+  font-weight: 700;
+  color:       var(--c-accent);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
-  color:       var(--c-muted);
-  background:  transparent;
-  border:      2px solid transparent;
-  border-radius: var(--radius-md);
-  padding:     2px 8px;
-  cursor:      pointer;
-  @include transition(fast);
-  line-height: 1;
+  text-shadow: var(--glow-text);
+}
 
-  &--active {
+.rtip__now-btn {
+  display:       flex;
+  align-items:   center;
+  gap:           var(--space-1);
+  padding:       var(--space-1) var(--space-3);
+  border:        1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  background:    var(--c-surface);
+  color:         var(--c-muted);
+  font-size:     0.75rem;
+  font-family:   var(--font-fallback);
+  cursor:        pointer;
+  @include transition(fast);
+  white-space:   nowrap;
+
+  svg { color: var(--c-accent); font-size: 0.85rem; }
+
+  &:hover {
+    border-color: var(--c-accent);
     color:        var(--c-accent);
-    border-color: rgba(255,140,66,0.3);
-    background:   rgba(255,140,66,0.08);
-    text-shadow:  var(--glow-text);
+    background:   rgba(255,140,66,0.06);
   }
+}
+
+// ── Column labels ──
+.rtip__col-labels {
+  display:         grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items:     center;
+  padding:         var(--space-2) var(--space-4) 0;
+  font-size:       0.65rem;
+  font-weight:     700;
+  color:           var(--c-muted);
+  text-transform:  uppercase;
+  letter-spacing:  0.07em;
+
+  &--secs  { grid-template-columns: 1fr auto 1fr auto 1fr; }
+  &--ampm  { grid-template-columns: 1fr auto 1fr 1fr; }
+
+  span:nth-child(2) { text-align: center; }  // colon spacer
+}
+
+// ── Drums container ──
+.rtip__drums {
+  position: relative;
+  display:  grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding:  0 var(--space-4);
+  gap:      0;
+  height:   ($item-h * $vis + 2px);  // 3 items visible + border
+
+  &--secs  { grid-template-columns: 1fr auto 1fr auto 1fr; }
+  &--ampm  { grid-template-columns: 1fr auto 1fr 1fr; }
+}
+
+// Selection highlight (middle row)
+.rtip__selector {
+  position:      absolute;
+  left:          var(--space-4);
+  right:         var(--space-4);
+  top:           50%;
+  transform:     translateY(-50%);
+  height:        $item-h;
+  background:    rgba(255,140,66,0.1);
+  border:        1px solid rgba(255,140,66,0.25);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  z-index:       0;
+}
+
+// ── Individual drum ──
+.rtip__drum {
+  height:     ($item-h * $vis);
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  position:   relative;
+  z-index:    1;
+  outline:    none;
+
+  &::-webkit-scrollbar { display: none; }
+
+  &:focus .rtip__drum-item--active {
+    outline: none;
+  }
+
+  // Fade top/bottom
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black #{$item-h},
+      black #{$item-h * ($vis - 1)},
+      transparent 100%
+    );
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black #{$item-h},
+      black #{$item-h * ($vis - 1)},
+      transparent 100%
+    );
+}
+
+.rtip__drum-pad {
+  height:     $item-h;
+  flex-shrink: 0;
+}
+
+.rtip__drum-item {
+  height:          $item-h;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       1rem;
+  font-weight:     500;
+  font-variant-numeric: tabular-nums;
+  color:           var(--c-muted);
+  cursor:          pointer;
+  scroll-snap-align: start;
+  border-radius:   var(--radius-md);
+  @include transition(fast);
+  user-select:     none;
+  letter-spacing:  0.04em;
 
   &:hover:not(&--active) {
     color:      var(--c-text);
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,140,66,0.06);
   }
-}
-
-.rti__colon {
-  font-size:   1.8rem;
-  font-weight: 700;
-  color:       var(--c-accent);
-  opacity:     0.6;
-  line-height: 1;
-  margin:      0 1px;
-}
-
-.rti__col-label-pill {
-  font-size:     0.65rem;
-  font-weight:   700;
-  color:         var(--c-accent);
-  background:    rgba(255,140,66,0.1);
-  border-radius: var(--radius-full);
-  padding:       2px 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-// ── Column strip ────────────────────────────
-.rti__col-strip {
-  display:         flex;
-  align-items:     stretch;
-  background:      var(--bg-tertiary);
-  border-bottom:   1px solid var(--c-border);
-}
-
-.rti__strip-btn {
-  flex:            1;
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  gap:             var(--space-1);
-  padding:         var(--space-2) 0;
-  border:          none;
-  background:      transparent;
-  color:           var(--c-muted);
-  font-size:       0.75rem;
-  font-weight:     500;
-  font-family:     var(--font-fallback);
-  cursor:          pointer;
-  @include transition(fast);
-  border-bottom:   2px solid transparent;
-
-  svg { font-size: 0.85rem; }
-
-  &:hover { color: var(--c-text); background: rgba(255,255,255,0.04); }
 
   &--active {
-    color:         var(--c-accent);
-    border-color:  var(--c-accent);
-    background:    rgba(255,140,66,0.05);
+    color:       var(--c-accent);
+    font-weight: 700;
+    font-size:   1.05rem;
   }
 }
 
-.rti__strip-sep {
-  width: 1px;
-  background: var(--c-border);
-  margin: var(--space-2) 0;
+// Colon separator
+.rtip__colon {
+  font-size:   1.2rem;
+  font-weight: 700;
+  color:       var(--c-accent);
+  padding:     0 4px;
+  user-select: none;
+  z-index:     2;
+  position:    relative;
+  opacity:     0.7;
 }
 
-// ── Click grid ──────────────────────────────
-.rti__grid {
-  display: grid;
-  gap:     var(--space-1);
-  padding: var(--space-3) var(--space-3) var(--space-2);
-
-  &--6 { grid-template-columns: repeat(6, 1fr); }  // hours: 0-23 → 6 cols × 4 rows
-  &--4 { grid-template-columns: repeat(4, 1fr); }  // mins/secs: 12 items → 4 cols × 3 rows
-}
-
-.rti__grid-item {
-  aspect-ratio:    1;
-  display:         flex;
-  align-items:     center;
+// ── AM/PM column ──
+.rtip__ampm-col {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--space-2);
+  align-items:    center;
   justify-content: center;
-  border:          1px solid transparent;
-  border-radius:   var(--radius-md);
-  background:      transparent;
-  color:           var(--c-text);
-  font-size:       0.8rem;
-  font-weight:     500;
-  font-variant-numeric: tabular-nums;
-  font-family:     var(--font-fallback);
-  cursor:          pointer;
+  height:         100%;
+  padding-left:   var(--space-2);
+  z-index:        2;
+  position:       relative;
+}
+
+.rtip__ampm-btn {
+  padding:       6px 12px;
+  border:        1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  background:    transparent;
+  color:         var(--c-muted);
+  font-size:     0.78rem;
+  font-weight:   600;
+  font-family:   var(--font-fallback);
+  cursor:        pointer;
   @include transition(fast);
+  letter-spacing: 0.04em;
 
   &:hover:not(&--active) {
-    background:   rgba(255,140,66,0.08);
-    border-color: rgba(255,140,66,0.2);
+    border-color: var(--c-accent);
     color:        var(--c-accent);
+    background:   rgba(255,140,66,0.06);
   }
 
   &--active {
     background:   var(--c-accent);
     border-color: var(--c-accent);
     color:        #fff;
-    font-weight:  700;
     box-shadow:   var(--glow-accent-sm);
   }
 }
 
-// ── Range progress bar ───────────────────────
-.rti__range-bar {
-  display:       flex;
-  align-items:   center;
-  gap:           var(--space-2);
-  padding:       var(--space-2) var(--space-3);
-  background:    var(--bg-tertiary);
-  border-top:    1px solid var(--c-border);
-  font-size:     0.75rem;
-}
-
-.rti__range-seg {
-  display:     flex;
-  align-items: center;
-  gap:         var(--space-1);
-  flex:        1;
-  color:       var(--c-muted);
-  @include transition(fast);
-
-  svg  { font-size: 0.85rem; }
-  code {
-    font-size:     0.7rem;
-    padding:       1px 6px;
-    background:    rgba(255,140,66,0.1);
-    border-radius: var(--radius-sm);
-    color:         var(--c-accent);
-  }
-
-  &--done {
-    color: var(--c-accent);
-    svg { filter: drop-shadow(0 0 4px rgba(255,140,66,0.4)); }
-  }
-}
-
-.rti__range-arrow {
-  color:       var(--c-accent);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-// ── Footer ──────────────────────────────────
-.rti__pop-footer {
+// ── Pop footer ──
+.rtip__pop-footer {
   display:         flex;
   align-items:     center;
   justify-content: flex-end;
   gap:             var(--space-2);
-  padding:         var(--space-2) var(--space-3);
+  padding:         var(--space-3) var(--space-4);
   border-top:      1px solid var(--c-border);
   background:      var(--bg-tertiary);
 }
 
-.rti__foot-ghost {
-  padding:       5px 14px;
-  border:        1px solid var(--c-border);
-  border-radius: var(--radius-md);
-  background:    transparent;
-  color:         var(--c-muted);
-  font-size:     0.78rem;
-  font-family:   var(--font-fallback);
-  cursor:        pointer;
-  @include transition(fast);
-  &:hover { border-color: var(--c-accent); color: var(--c-accent); }
-}
-
-.rti__foot-solid {
+.rtip__footer-btn {
   display:       flex;
   align-items:   center;
   gap:           var(--space-1);
-  padding:       5px 14px;
-  border:        1px solid var(--c-accent);
+  padding:       6px 16px;
   border-radius: var(--radius-md);
-  background:    var(--c-accent);
-  color:         #fff;
-  font-size:     0.78rem;
+  font-size:     0.82rem;
   font-family:   var(--font-fallback);
-  font-weight:   600;
+  font-weight:   500;
   cursor:        pointer;
   @include transition(fast);
-  box-shadow:    var(--glow-accent-sm);
-  &:hover { background: var(--c-accent-2); border-color: var(--c-accent-2); }
+
+  &--ghost {
+    border:     1px solid var(--c-border);
+    background: transparent;
+    color:      var(--c-muted);
+    &:hover { border-color: var(--c-accent); color: var(--c-accent); }
+  }
+
+  &--solid {
+    border:     1px solid var(--c-accent);
+    background: var(--c-accent);
+    color:      #fff;
+    box-shadow: var(--glow-accent-sm);
+    &:hover { background: var(--c-accent-2); border-color: var(--c-accent-2); }
+  }
 }
 
 // ─────────────────────────────────────────────
 // TRANSITIONS
 // ─────────────────────────────────────────────
-.rti-fade-enter-active, .rti-fade-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
-.rti-fade-enter-from,   .rti-fade-leave-to     { opacity: 0; transform: translateY(-2px); }
+.rtip-fade-enter-active,
+.rtip-fade-leave-active { transition: opacity 0.15s ease; }
+.rtip-fade-enter-from,
+.rtip-fade-leave-to     { opacity: 0; }
 
-.rti-pop-enter-active { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.rti-pop-leave-active { transition: all 0.15s ease; }
-.rti-pop-enter-from   { opacity: 0; transform: translateY(-8px) scale(0.96); }
-.rti-pop-leave-to     { opacity: 0; transform: translateY(-4px) scale(0.98); }
-</style>
-
-<!-- Global dark mode -->
-<style lang="scss">
-.dark .rti__input :deep([role="group"]) {
-  background: rgba(19, 19, 26, 0.8) !important;
-}
-.dark .rti__pop {
-  background: rgba(19, 19, 26, 0.97);
-}
+.rtip-pop-enter-active { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.rtip-pop-leave-active { transition: all 0.15s ease; }
+.rtip-pop-enter-from   { opacity: 0; transform: translateY(-6px) scale(0.97); }
+.rtip-pop-leave-to     { opacity: 0; transform: translateY(-4px) scale(0.98); }
 </style>

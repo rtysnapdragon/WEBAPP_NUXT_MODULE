@@ -23,6 +23,7 @@ export const useConfirmStore_11 = defineStore(
       },
 
       show(props) {
+        // this.confirm = props,
         this.confirm = {
           color: 'primary',
           confirmText: 'Confirm',
@@ -54,7 +55,7 @@ export const useConfirmStore_11 = defineStore(
 if (import.meta.hot) {
   import.meta.hot.accept(
     acceptHMRUpdate(
-      useConfirmStore,
+      useConfirmStore_11,
       import.meta.hot
     )
   )
