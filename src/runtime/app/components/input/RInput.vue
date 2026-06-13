@@ -2,15 +2,18 @@
   <UInput ref="refOCInput" v-model="value" v-model.nullable="value" :size="props.size ?? ' text-[12px]'" :name="props.name" :ui="ui" :type="type"
     :placeholder="placeholder" :loading="loading" :leading="leading" :loading-icon="loadingIcon" :trailing="trailing"
     :padded="padded" :icon="icon" :autofocus="autofocus" :autofocus-delay="autofocusDelay" :autocomplete="autocomplete"
-    :leading-icon="leadingIcon" :trailing-icon="trailingIcon" class=""
+    :leading-icon="leadingIcon" :trailing-icon="trailingIcon" :disabled="disabled" class="w-full"
     :inputClass="score ? 'ocs-input-score' : 'ocs-input'" @focus="(v) => emits('onFocus', v)"
     @blur="(v) => emits('onBlur', v)" @input="(v) => emits('onInput', v)" :min="min" :max="max">
     <template #leading v-if="$slots.leading">
       <slot name="leading" />
     </template>
 
-    <template #trailing v-if="$slots.trailing">
+    <!-- <template #trailing v-if="$slots.trailing">
       <slot name="trailing" class="right-[10px]" />
+    </template> -->
+    <template #trailing v-if="!$slots.trailing">
+      <slot v-if="value?.length > 0" name="trailing" class="right-[10px]" />
     </template>
     <label v-if="floatingLabel" class="pointer-events-none absolute left-0 -top-2.5 text-highlighted text-xs font-medium px-1.5 transition-all peer-focus:-top-2.5 peer-focus:text-highlighted peer-focus:text-xs peer-focus:font-medium peer-placeholder-shown:text-sm peer-placeholder-shown:text-dimmed peer-placeholder-shown:top-1.5 peer-placeholder-shown:font-normal">
       <span class="inline-flex bg-default px-1">{{ floatingLabel }}</span>
@@ -37,6 +40,7 @@ const props = defineProps([
   "leadingIcon",
   "trailingIcon",
   "autocomplete",
+  "disabled",
   "min",
   "max",
   "score",
@@ -62,6 +66,7 @@ const max = computed(() => props.max);
 const score = computed(() => props.score);
 const isRight = computed(() => props.isRight ?? false)
 const floatingLabel = computed(() => props.floatingLabel)
+const disabled = computed(() => props.disabled)
 
 watch(value, (newValue) => {
   if (type.value === "number") {
@@ -84,6 +89,7 @@ const emits = defineEmits(["onFocus", "onBlur", "onInput"]);
 
 const ui = computed(() => {
   const defaultUI = {
+    root: 'w-full relative inline-flex items-center',
     base:'peer',
     wrapper: 'relative oc-input-wrapper',
     placeholder: "placeholder:text-[12px]",
@@ -227,6 +233,7 @@ defineExpose({ ocInput });
   font-size: 14px;
   color: var(--color-w-b-1);
   height: 38px;
+  width: 100%;
   background-color: transparent !important;
 
   &:focus {
@@ -258,6 +265,7 @@ defineExpose({ ocInput });
   font-size: 14px;
   color: var(color-w-b-1);
   background-color: transparent !important;
+  width: 100%;
 
   &:focus {
     border: 1px solid var(--color-primary) !important;
