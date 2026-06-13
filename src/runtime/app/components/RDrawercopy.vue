@@ -60,7 +60,7 @@
         name="footer"
           :close="handleClose"
       >
-        <div class="r-footer">
+        <div class="r-footer py-[10px] flex justify-end gap-2 w-full">
           <RBtn
             color="neutral"
             :label="cancelLabel"
@@ -246,20 +246,8 @@ function onOpenChange(value: boolean) {
 }
 
 .r-footer {
-  display: flex;
-  flex-direction: row;
-  justify-content: end;
-  gap: 8px;
-  width: 100%;
   padding: 10px 15px;
-    border-top:    1px solid var(--c-border);
-    background:    var(--c-surface);
-
-    @include mobile-only {
-      padding:      var(--space-4);
-      flex-direction: column;
-      > * { width: 100%; }
-    }
+  color: var(--c-text);
 }
 
 .r-footer :deep(button) {
@@ -343,10 +331,10 @@ function onOpenChange(value: boolean) {
   }
 
   &__footer {
-    display: flex;
+    display:       flex;
+    align-items:   center;
     justify-content: flex-end;
-    gap: 8px;
-    width: 100%;
+    gap:           var(--space-3);
     padding:       var(--space-4) var(--space-6);
     border-top:    1px solid var(--c-border);
     background:    var(--c-surface);

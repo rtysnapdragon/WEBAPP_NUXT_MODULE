@@ -553,7 +553,7 @@ function actionClick() {
   &.save,
   &.save-update {
     border: 1px solid var(--r-c-green);
-    color: var(--r-c-green);
+    color: var(--c-text);
 
     .loader {
       border: 2px solid var(--color-w-b-6);
