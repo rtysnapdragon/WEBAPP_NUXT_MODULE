@@ -409,11 +409,11 @@ function actionClick() {
   &.scan,
   &.cancel,
   &.back {
-    background: var(--color-w-b-4) !important;
-    color: var(--color-w-b-1) !important;
+    background: var(--color-w-b-3) !important;
+    color: var(--color-w-b-4) !important;
 
     i {
-      color: var(--color-w-b-1) !important;
+      color: var(--color-w-b-4) !important;
     }
   }
 
