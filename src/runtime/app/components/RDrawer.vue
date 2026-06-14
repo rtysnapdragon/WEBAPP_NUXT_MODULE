@@ -27,12 +27,15 @@
       <slot name="header">
         <div class="r-header flex items-center justify-between w-full">
           <div>
-            <h3
-              v-if="title"
-              class="text-base font-semibold"
-            >
-              {{ title }}
-            </h3>
+            <div class="flex items-center gap-2">
+              <i :class="`${icon} text-[16px] cursor-pointer`"></i>
+              <h3
+                v-if="title"
+                class="text-base font-semibold"
+              >
+                {{ title }}
+              </h3>
+            </div>
 
             <p
               v-if="description"
@@ -56,11 +59,12 @@
     <!-- Footer -->`
 
     <template #footer>
+      <div class="r-footer">
       <slot
         name="footer"
           :close="handleClose"
       >
-        <div class="r-footer">
+        <!-- <div class="r-footer">
           <RBtn
             color="neutral"
             :label="cancelLabel"
@@ -72,14 +76,49 @@
             :label="submitLabel"
             @click="handleSubmit"
           />
-        </div>
+        </div> -->
       </slot>
+      </div>
     </template>
   </USlideover>
+
+  <!-- <template #content>
+  <div class="flex flex-col h-full">
+    <div class="r-header">
+      ...
+    </div>
+
+    <div class="flex-1 overflow-auto">
+      <slot />
+    </div>
+
+    <div class="r-footer">
+      <slot name="footer" :close="handleClose">
+        ...
+      </slot>
+    </div>
+  </div>
+</template> -->
+<!-- 
+usage ovorride footer by parent
+<RDrawer v-model:open="open">
+  <template #footer="{ close }">
+    <div class="flex justify-end gap-2 w-full">
+      <RBtn
+        label="Cancel"
+        @click="close(false)"
+      />
+      <RBtn
+        label="Save"
+        color="primary"
+        @click="save"
+      />
+    </div>
+  </template>
+</RDrawer> -->
 </template>
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { FormSchema } from '../types/form'
 import { useUIStore } from '../stores/ui'
 import { useI18n } from 'vue-i18n'
 const open = defineModel<boolean>()
@@ -89,6 +128,7 @@ const props = withDefaults(
     title?: string
     description?: string
     subtitle?: string
+    icon?:string
 
     side?: 'left' | 'right' | 'top' | 'bottom'
 
@@ -159,7 +199,7 @@ const mergedUi = computed(() => ({
      body: [
        'flex-1',
        'overflow-y-auto',
-       'p-5'
+       'p-0'
      ],
  
      footer: [
@@ -180,32 +220,7 @@ const mergedUi = computed(() => ({
      title: 'font-semibold',
      description: 'text-sm text-muted'   
   },
-    variants: {
-        side: {
-          top: {
-            content: ''
-          },
-          right: {
-            content: 'max-w-md'
-          },
-          bottom: {
-            content: ''
-          },
-          left: {
-            content: 'max-w-md'
-          }
-        },
-        inset: {
-          true: {
-            content: 'rounded-lg'
-          }
-        },
-        transition: {
-          true: {
-            overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]'
-          }
-        }
-      },
+   
   footer: 'justify-end',
   ...props.ui
 }))
@@ -243,12 +258,15 @@ function onOpenChange(value: boolean) {
   color: var(--c-text);
   overflow-y:scroll !important;
   overflow-x: hidden !important;
+  // min-height: calc(100vh - 80px);
+  height: 100% !important;
 }
 
 .r-footer {
   display: flex;
   flex-direction: row;
   justify-content: end;
+  align-items: center;
   gap: 8px;
   width: 100%;
   padding: 10px 15px;
