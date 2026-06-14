@@ -124,7 +124,7 @@ function updateModelValue(v) {
   color: var(--color-w-b-1) !important;
   box-shadow: none !important;
   background-color: unset !important;
-  border: 1px solid var(--color-w-b-4) !important;
+  border: 1px solid var(--color-w-b-3) !important;
   border-radius: 8px !important;
   font-size: 14px !important;
   width: 100% !important;
