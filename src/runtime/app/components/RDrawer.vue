@@ -264,20 +264,19 @@ function onOpenChange(value: boolean) {
 
 .r-footer {
   display: flex;
-  flex-direction: row;
-  justify-content: end;
+  flex-direction: flex-end;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  // width: 100%;
   padding: 10px 15px;
-    border-top:    1px solid var(--c-border);
-    background:    var(--c-surface);
+  border-top:    1px solid var(--c-border);
+  background:    var(--c-surface);
 
-    @include mobile-only {
-      padding:      var(--space-4);
-      flex-direction: column;
-      > * { width: 100%; }
-    }
+  @include mobile-only {
+    padding:      var(--space-4);
+    flex-direction: column;
+    > * { width: 100%; }
+  }
 }
 
 .r-footer :deep(button) {
