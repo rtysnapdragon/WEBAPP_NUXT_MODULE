@@ -20,6 +20,7 @@
       @focus="(v) => emits('onFocus', v)"
       @input="(v) => emits('onInput', v)"
       @update:modelValue="updateModelValue"
+      class="w-full"
     />
     <!-- variant="none" -->
     <div v-if="absolute" class="absolute">
@@ -76,8 +77,8 @@ const absolute = computed(() => props.absolute ?? false);
 const resize = computed(() => props.resize);
 const ui = computed(() => {
   const defaultUI = {
-    wrapper: "relative",
-    base: "ocs-input-area",
+    wrapper: "relative w-full",
+    base: "ocs-input-area w-full",
     form: "form-textarea",
     rounded: "",
     placeholder: "",
@@ -126,6 +127,7 @@ function updateModelValue(v) {
   border: 1px solid var(--color-w-b-4) !important;
   border-radius: 8px !important;
   font-size: 14px !important;
+  width: 100% !important;
 
   &:focus {
     border: 1px solid var(--color-primary) !important;
