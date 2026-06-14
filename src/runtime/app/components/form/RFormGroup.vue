@@ -10,6 +10,7 @@
     :description="description"
     :help="help"
     :eager-validation="eagerValidation"
+    class="form-field"
   >
     <template
       #label="{ error, label, name, hint, description, help }"
@@ -144,5 +145,9 @@ const eagerValidation = computed(() => props.eagerValidation);
 
 .no-relative {
   position: unset !important;
+}
+
+.form-field label{
+  font-family: var(--font-400) !important;
 }
 </style>

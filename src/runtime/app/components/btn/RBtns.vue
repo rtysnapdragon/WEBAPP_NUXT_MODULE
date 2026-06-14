@@ -10,7 +10,7 @@
         <slot :name="`${list.type}icon`" />
       </template>
     </RBtn>
-
+    
     <fwb-dropdown ref="refDropdown" placement="left" class="r-popup-action-btn"
       v-if="isNotEmpty(lists) && screen.isMobile" close-inside>
       <template #trigger>
@@ -34,6 +34,7 @@
 
 <script setup>
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
+import {useScreenStore } from '../../stores/screen'
 const screen = useScreenStore();
 const props = defineProps(["data"]);
 const emit = defineEmits(["click"]);

@@ -600,6 +600,27 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
 }
 
 .rtip__lead-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--c-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 1;
+
+  @include transition(fast);
+
+  .rtip--open & {
+    color: var(--c-accent);
+  }
+}
+.rtip__lead-icon1111 {
   position:  absolute;
   left:      10px;
   margin-top: 0 !important;
