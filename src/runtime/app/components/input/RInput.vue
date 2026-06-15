@@ -7,12 +7,17 @@
     @blur="(v) => emits('onBlur', v)" @input="(v) => emits('onInput', v)" :min="min" :max="max">
     <!-- :inputClass="score ? 'ocs-input-score' : 'ocs-input'" @focus="(v) => emits('onFocus', v)" -->
     <template #leading v-if="$slots.leading">
-      <slot name="leading" />
+      <div class="leading-side right-[10px]">
+        <slot name="leading" />
+      </div>
     </template>
 
     <template #trailing v-if="$slots.trailing">
-      <slot name="trailing" class="right-[10px]" />
+      <div class="trailing-side right-[10px]">
+        <slot name="trailing" />
+      </div>
     </template>
+
     <!-- <template #trailing v-if="!$slots.trailing">
       <slot v-if="value?.length > 0" name="trailing" class="right-[10px]" />
     </template> -->
@@ -47,6 +52,7 @@ const props = defineProps([
   "max",
   "score",
   "isRight",
+  "isLeft",
   "floatingLabel"
 ]);
 
@@ -67,6 +73,7 @@ const min = computed(() => props.min);
 const max = computed(() => props.max);
 const score = computed(() => props.score);
 const isRight = computed(() => props.isRight ?? false)
+const isLeft = computed(() => props.isLeft ?? false)
 const floatingLabel = computed(() => props.floatingLabel)
 const disabled = computed(() => props.disabled)
 
@@ -96,8 +103,8 @@ const ui = computed(() => {
     wrapper: 'relative oc-input-wrapper',
     placeholder: "placeholder:text-[12px]",
     rounded: "",
-    leadingIcon: 'text-[12px] text-gray-400',
-    trailingIcon: 'text-[12px] text-gray-400',
+    leadingIcon: 'leadingIcon text-[12px] text-gray-400',
+    trailingIcon: 'trailingIcon text-[12px] text-gray-400',
     file: {
       base: "file:hidden",
     },
@@ -122,8 +129,7 @@ const ui = computed(() => {
       base: "flex justify-center items-center",
       size: {},
       leading: {
-        wrapper: 'absolute inset-y-0 start-0 flex items-center position-right-custom text-[18px]',
-
+        wrapper: 'absolute inset-y-0 start-0 flex items-center position-right-custom icon-size text-[18px]',
       },
       trailing: {
         wrapper: `absolute inset-y-0 end-0 flex items-center position-right-custom position-${isRight.value ? `right` : ''} text-[18px]`,
@@ -199,7 +205,7 @@ defineExpose({ ocInput });
     right: 12px;
   }
   .position-right {
-    right: 5px !important;
+    right: 500px !important;
   }
 }
 
@@ -242,16 +248,21 @@ defineExpose({ ocInput });
 //work for rinput
 //make space for leading icon
 [data-slot="base"] {
-  padding-left: 30px !important;
+  padding-left: v-bind('isRight ? "30px" : "12px"');
+  padding-right: v-bind('isLeft ? "30px" : "12px"');
+  // padding-left: v-bind('ui.leading ? "30px" : "12px"') !important;
+  // padding-right: v-bind('ui.trailingIcon ? "30px" : "12px"') !important;
+  font-size: 16px;
 }
 
-// .leading-padding{
-//   padding-left: 12px !important;
-// }
+[data-size="md"] {
+  --icon-size: 16px;
+  --icon-padding: 36px;
+}
 
-// .trailing-padding{
-//   padding-right: 40px !important;
-// }
+.icon-size{
+  font-size: 300px !important;
+}
 
 .ocs-input {
   box-shadow: none !important;
@@ -310,5 +321,11 @@ defineExpose({ ocInput });
     -webkit-appearance: none !important;
     margin: 0 !important;
   }
+}
+
+
+.trailingIcon,
+.leadingIcon{
+  font-size: 15px !important;
 }
 </style>

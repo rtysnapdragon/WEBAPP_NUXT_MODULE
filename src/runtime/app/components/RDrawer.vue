@@ -60,24 +60,24 @@
 
     <template #footer>
       <div class="r-footer">
-      <slot
-        name="footer"
-          :close="handleClose"
-      >
-        <!-- <div class="r-footer">
-          <RBtn
-            color="neutral"
-            :label="cancelLabel"
-            @click="handleClose(false)"
-          />
+        <slot
+          name="footer"
+            :close="handleClose"
+        >
+          <div class="r-footer">
+            <RBtn
+              color="neutral"
+              :label="cancelLabel"
+              @click="handleClose(false)"
+            />
 
-          <RBtn
-            color="primary"
-            :label="submitLabel"
-            @click="handleSubmit"
-          />
-        </div> -->
-      </slot>
+            <RBtn
+              color="primary"
+              :label="submitLabel"
+              @click="handleSubmit"
+            />
+          </div>
+        </slot>
       </div>
     </template>
   </USlideover>
