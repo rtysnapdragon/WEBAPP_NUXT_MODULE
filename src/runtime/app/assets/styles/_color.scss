@@ -52,92 +52,14 @@
   --r-c-orange: #f97316;
   --r-c-rose: #f43f5e;
   --r-c-violet: #8b5cf6;
-  
-  /* ── TYPOGRAPHY ── */
-  --font-fallback: 'Inter', 'Battambang', 'NotoSansKhmer', system-ui, sans-serif;
-
-  /* ── RADIUS ── */
-  --radius-sm:   6px;
-  --radius-md:   10px;
-  --radius-lg:   16px;
-  --radius-xl:   24px;
-  --radius-full: 9999px;
-
-  /* ── SPACING ── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  /* ── GLASS ── */
-  --glass-bg:      rgba(255, 255, 255, 0.72);
-  --glass-blur:    blur(24px) saturate(180%);
-  --glass-blur-sm: blur(12px) saturate(150%);
-  --glass-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.8) inset;
-  --glass-border:  rgba(255, 140, 66, 0.16);
-
-  /* ── GLOW ── */
-  --glow-accent-sm: 0 0 16px rgba(255, 140, 66, 0.18);
-  --glow-text:      0 0 12px rgba(255, 140, 66, 0.25);
-  --glow-accent:
-    0 0 40px rgba(255, 140, 66, 0.08),
-    0 0 80px rgba(255, 140, 66, 0.03);
-
-  /* ── TRANSITION ── */
-  --transition-fast:   all 0.15s ease;
-  --transition-base:   all 0.2s ease;
-  --transition-slow:   all 0.35s ease;
-}
-
-/* ── SYSTEM DARK ── */
-.dark {
-  --c-bg:        #0a0a0b;
-  --c-surface:   rgba(19, 19, 26, 0.72);
-  --c-border:    rgba(255, 140, 66, 0.12);
-  --c-text:      #f0ece4;
-  --c-muted:     #7a7585;
-  --c-hover:     #1d1c1b;
-  --c-active:    #8aa70b;
-  --c-accent:    #ff8c42;
-  --c-accent-2:  #ffb347;
-  --c-success:   #4ade80;
-  --c-danger:    #f87171;
-  --c-info:      #60a5fa;
-
-  --color-w-b-1: #c1bcbc;
-  --color-w-b-2: #797272;
-  --color-w-b-3: #9e7575;
-  --color-w-b-4: #e8e2d9;
-  --color-w-b-5: #f8f5f0;
-  --color-w-b-6: #9e7575;
-
-  --glass-bg:      rgba(19, 19, 26, 0.72);
-  --glass-blur:    blur(24px) saturate(180%);
-  --glass-blur-sm: blur(12px) saturate(150%);
-  --glass-shadow:  0 8px 32px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
-  --glass-border:  rgba(255, 140, 66, 0.12);
-
-  --glow-accent-sm: 0 0 16px rgba(255, 140, 66, 0.3);
-  --glow-text:      0 0 20px rgba(255, 140, 66, 0.5);
-  --glow-accent:    0 0 40px rgba(255, 140, 66, 0.12), 0 0 80px rgba(255, 140, 66, 0.04);
-}
 
 
-:root {
-  --color-primary: rgb(var(--color-primary-400));
-  --color-accent: rgb(var(--color-accent-400));
   --bg-wrapper: #f9f9f9;
   --bg-content: #fff;
   --bg-hover: #f2f2f2;
   --bg-wrapper-50: rgba(249, 249, 249, 0.5);
   --bg-content-50: rgba(255, 255, 255, 0.5);
   --bg-overlay: rgba(0, 0, 0, 0.4);
-  --bg-w-b-50: #ffffff80;
   --bg-wrapper-50: #f9f9f980;
   --color-w-b-1: #1a1a1a;
   --color-w-b-2: #666666;
@@ -179,10 +101,58 @@
   --bg-friday: #F3F6F9;
   --bg-saturday: #F5F5F7;
   --bg-sunday: #F9F4F4;
+  
+
+    --color-success: #5ec47a;
+  --color-success-bg: rgba(94, 196, 122, 0.12);
+
+  --color-warning: #e8a83e;
+  --color-warning-bg: rgba(232, 168, 62, 0.12);
+
+  --color-danger: #e05a5a;
+  --color-danger-bg: rgba(224, 90, 90, 0.12);
+
+  --color-info: #7ab0f0;
+  --color-info-bg: rgba(122, 176, 240, 0.12);
 }
 
+/* ── SYSTEM DARK ── */
 .dark {
-  --color-primary: rgb(var(--color-dark-primary-400));
+  --bg-tertiary: #080707;
+
+  --c-bg:        #0a0a0b;
+  // --c-surface:   #0c0a0ab8;
+  // --c-surface:   rgba(0, 0, 0, 0.72);
+  --c-border:    rgba(255, 140, 66, 0.12);
+  --c-text:      #f0ece4;
+  --c-muted:     #7a7585;
+  --c-hover:     #1d1c1b;
+  --c-active:    #8aa70b;
+  --c-accent:    #ff8c42;
+  --c-accent-2:  #ffb347;
+  --c-success:   #4ade80;
+  --c-danger:    #f87171;
+  --c-info:      #60a5fa;
+
+  --color-w-b-1: #c1bcbc;
+  --color-w-b-2: #797272;
+  --color-w-b-3: #9e7575;
+  --color-w-b-4: #e8e2d9;
+  --color-w-b-5: #f8f5f0;
+  --color-w-b-6: #9e7575;
+
+  --glass-bg:      rgba(19, 19, 26, 0.72);
+  --glass-blur:    blur(24px) saturate(180%);
+  --glass-blur-sm: blur(12px) saturate(150%);
+  --glass-shadow:  0 8px 32px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+  --glass-border:  rgba(255, 140, 66, 0.12);
+
+  --glow-accent-sm: 0 0 16px rgba(255, 140, 66, 0.3);
+  --glow-text:      0 0 20px rgba(255, 140, 66, 0.5);
+  --glow-accent:    0 0 40px rgba(255, 140, 66, 0.12), 0 0 80px rgba(255, 140, 66, 0.04);
+
+
+
   --bg-wrapper: #1a1a1a;
   --bg-content: #242424;
   --bg-hover: #262626;
@@ -218,94 +188,4 @@
   --bg-friday: #333a3b;
   --bg-saturday: #353338;
   --bg-sunday: #332c2c;
-}
-
-
-
-// ─────────────────────────────────────────
-// assets/scss/base/_tokens.scss
-// Runtime CSS Custom Properties
-// Independent from SCSS variables
-// ─────────────────────────────────────────
-
-:root {
-      // Backgrounds
-  --bg-0: #0b0b0b;
-  --bg-1: #0f0f0f;
-  --bg-2: #161616;
-  --bg-3: #1e1e1e;
-  --bg-4: #252525;
-  --bg-5: #2e2e2e;
-
-  // Glass
-  --glass: rgba(255, 255, 255, 0.04);
-  --glass-2: rgba(255, 255, 255, 0.07);
-  --glass-3: rgba(255, 255, 255, 0.10);
-
-  // Borders
-  --border: rgba(255, 255, 255, 0.08);
-  --border-2: rgba(255, 255, 255, 0.13);
-  --border-3: rgba(255, 255, 255, 0.20);
-
-  // Text
-  --text-1: #f0ede8;
-  --text-2: #b8b4ae;
-  --text-3: #7a766f;
-  --text-4: #4a4640;
-
-  // Glass
-  --glass: rgba(0, 0, 0, 0.025);
-  --glass-2: rgba(0, 0, 0, 0.045);
-  --glass-3: rgba(0, 0, 0, 0.07);
-
-  // Borders
-  --border: rgba(0, 0, 0, 0.08);
-  --border-2: rgba(0, 0, 0, 0.13);
-  --border-3: rgba(0, 0, 0, 0.20);
-
-  // Text
-  --text-1: #1a1714;
-  --text-2: #5a5650;
-  --text-3: #9a9690;
-  --text-4: #c0bcb8;
-
-  // Light gold glow
-  --gold-glow: rgba(201, 134, 42, 0.10);
-  --gold-glow-sm: rgba(201, 134, 42, 0.06);
-
-  // ── Gold palette
-  --gold-1: #f5c96a;
-  --gold-2: #e8a83e;
-  --gold-3: #c9862a;
-  --gold-4: #a06820;
-  --gold-5: #7c4a14;
-
-  --gold-glow: rgba(201, 134, 42, 0.18);
-  --gold-glow-sm: rgba(201, 134, 42, 0.10);
-
-  // ── Semantic Colors
-  --color-success: #5ec47a;
-  --color-success-bg: rgba(94, 196, 122, 0.12);
-
-  --color-warning: #e8a83e;
-  --color-warning-bg: rgba(232, 168, 62, 0.12);
-
-  --color-danger: #e05a5a;
-  --color-danger-bg: rgba(224, 90, 90, 0.12);
-
-  --color-info: #7ab0f0;
-  --color-info-bg: rgba(122, 176, 240, 0.12);
-
-  // ── Layout
-  --sidebar-width: 240px;
-  --topbar-height: 58px;
-  --mobile-nav-height: 64px;
-
-  // ── Radius
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
 }

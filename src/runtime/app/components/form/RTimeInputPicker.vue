@@ -534,7 +534,6 @@ const pad = (n: number) => String(n).padStart(2, '0')
             {{ locale === 'km' ? 'យល់ព្រម' : 'Done' }}
           </button>
         </div>
-
       </div>
     </Transition>
 
@@ -554,7 +553,7 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   display:        flex;
   flex-direction: column;
   gap:            var(--space-2);
-  font-family:    var(--font-fallback);
+  font-family:    var(--font-400);
 
   &--xs  { font-size: 0.72rem; }
   &--sm  { font-size: 0.8rem;  }
@@ -642,10 +641,10 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   justify-content: center;
   align-items: center;
   padding:       0 80px 0 34px;    // room for lead icon + trail
-  font-family:   var(--font-fallback);
+  font-family:   var(--font-400);
   font-size:     inherit;
   color:         var(--c-text);
-  background:    var(--c-surface);
+  // background:    var(--c-surface);
   border:        1px solid var(--c-border);
   border-radius: var(--radius-md);
   outline:       none;
@@ -738,6 +737,7 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   left:          0;
   z-index:       200;
   background:    var(--c-surface);
+  // background:    white;
   border:        1px solid var(--c-border);
   border-radius: var(--radius-xl);
   box-shadow:    var(--glass-shadow);
@@ -794,7 +794,7 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   background:    var(--c-surface);
   color:         var(--c-muted);
   font-size:     0.75rem;
-  font-family:   var(--font-fallback);
+  font-family:   var(--font-400);
   cursor:        pointer;
   @include transition(fast);
   white-space:   nowrap;
@@ -956,7 +956,7 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   color:         var(--c-muted);
   font-size:     0.78rem;
   font-weight:   600;
-  font-family:   var(--font-fallback);
+  font-family:   var(--font-400);
   cursor:        pointer;
   @include transition(fast);
   letter-spacing: 0.04em;
@@ -993,7 +993,7 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   padding:       6px 16px;
   border-radius: var(--radius-md);
   font-size:     0.82rem;
-  font-family:   var(--font-fallback);
+  font-family:   var(--font-400);
   font-weight:   500;
   cursor:        pointer;
   @include transition(fast);
@@ -1001,6 +1001,9 @@ $vis:    3;       // visible items in drum viewport = 3 (scroll window)
   &--ghost {
     border:     1px solid var(--c-border);
     background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color:      var(--c-muted);
     &:hover { border-color: var(--c-accent); color: var(--c-accent); }
   }
