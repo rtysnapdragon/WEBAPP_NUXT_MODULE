@@ -172,8 +172,6 @@ const orientation = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
-
 // ── Host ──────────────────────────────────────────────────
 .rtl {
   font-family: var(--font-fallback);

@@ -5,16 +5,18 @@
     :leading-icon="leadingIcon" :trailing-icon="trailingIcon" :disabled="disabled" class="w-full"
     :inputClass="score ? 'ocs-input-score' : 'ocs-input'" @focus="(v) => emits('onFocus', v)"
     @blur="(v) => emits('onBlur', v)" @input="(v) => emits('onInput', v)" :min="min" :max="max">
+    <!-- :inputClass="score ? 'ocs-input-score' : 'ocs-input'" @focus="(v) => emits('onFocus', v)" -->
     <template #leading v-if="$slots.leading">
       <slot name="leading" />
     </template>
 
-    <!-- <template #trailing v-if="$slots.trailing">
+    <template #trailing v-if="$slots.trailing">
       <slot name="trailing" class="right-[10px]" />
-    </template> -->
-    <template #trailing v-if="!$slots.trailing">
-      <slot v-if="value?.length > 0" name="trailing" class="right-[10px]" />
     </template>
+    <!-- <template #trailing v-if="!$slots.trailing">
+      <slot v-if="value?.length > 0" name="trailing" class="right-[10px]" />
+    </template> -->
+
     <label v-if="floatingLabel" class="pointer-events-none absolute left-0 -top-2.5 text-highlighted text-xs font-medium px-1.5 transition-all peer-focus:-top-2.5 peer-focus:text-highlighted peer-focus:text-xs peer-focus:font-medium peer-placeholder-shown:text-sm peer-placeholder-shown:text-dimmed peer-placeholder-shown:top-1.5 peer-placeholder-shown:font-normal">
       <span class="inline-flex bg-default px-1">{{ floatingLabel }}</span>
     </label>
@@ -90,10 +92,12 @@ const emits = defineEmits(["onFocus", "onBlur", "onInput"]);
 const ui = computed(() => {
   const defaultUI = {
     root: 'w-full relative inline-flex items-center',
-    base:'peer',
+    base:['trailing-padding leading-padding pr-12 pl-14.5 peer rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75','transition-colors'],
     wrapper: 'relative oc-input-wrapper',
     placeholder: "placeholder:text-[12px]",
     rounded: "",
+    leadingIcon: 'text-[12px] text-gray-400',
+    trailingIcon: 'text-[12px] text-gray-400',
     file: {
       base: "file:hidden",
     },
@@ -106,12 +110,12 @@ const ui = computed(() => {
     },
     leading: {
       padding: {
-        xs: "ps-10",
+        xs: "ps-10 leading-padding",
       },
     },
     trailing: {
       padding: {
-        xs: "pe-20",
+        xs: "pe-20 trailing-padding",
       },
     },
     icon: {
@@ -226,6 +230,29 @@ defineExpose({ ocInput });
   }
 }
 
+// work for trailing and leading icon of UInput
+[data-slot="leading"] {
+  padding-left: 12px !important;
+}
+
+[data-slot="trailing"] {
+  padding-right: 12px !important;
+}
+
+//work for rinput
+//make space for leading icon
+[data-slot="base"] {
+  padding-left: 30px !important;
+}
+
+// .leading-padding{
+//   padding-left: 12px !important;
+// }
+
+// .trailing-padding{
+//   padding-right: 40px !important;
+// }
+
 .ocs-input {
   box-shadow: none !important;
   border: 1px solid var(--color-w-b-4) !important;
@@ -234,6 +261,7 @@ defineExpose({ ocInput });
   color: var(--color-w-b-1);
   height: 38px;
   width: 100%;
+  padding-right: 42px !important;
   background-color: transparent !important;
 
   &:focus {
@@ -260,8 +288,6 @@ defineExpose({ ocInput });
   border: 1px solid var(--color-w-b-4) !important;
   border-radius: 8px !important;
   text-align: end !important;
-  padding-left: 46px !important;
-  padding-right: 45px !important;
   font-size: 14px;
   color: var(color-w-b-1);
   background-color: transparent !important;
