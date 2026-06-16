@@ -32,7 +32,7 @@
     }" :popper="{ placement: placement ? placement : 'top'  }" :ui="ui">
       <slot />
       <template #content>
-        <span class="block px-2 py-1 text-xs">
+        <span class="default-text-toolip block px-2 py-1 text-xs whitespace-nowrap">
           {{ text }}
         </span>
       </template>
@@ -77,7 +77,7 @@ const isVisible = computed(() => !!(useSlots().text || props.text));
 const ui = {
   wrapper: "relative inline-flex w-full",
   // base: '[@media(pointer:coarse)]:hidden h-full px-2 py-1 text-xs font-normal relative',
-  base:'py-2 px-4',
+  base:'default-text-toolip  py-2 px-4',
   // color: "text-gray-900 dark:text-white",
   // shadow: "shadow",
   // rounded: "rounded",
@@ -196,6 +196,10 @@ function onMouseLeave() {
   overflow: unset;
   text-overflow: unset;
   white-space: unset;
+}
+
+.default-text-toolip{
+  white-space: nowrap;
 }
 </style>
 

@@ -45,7 +45,6 @@
     <template #footer="{ close }">
       <div class="r-modal__footer">
         <slot v-if="$slots.footer" name="footer" :close="close">
-          <div class="r-modal__actions">
             <RBtn
               :label="$t('Cancel')"
               color="cancel"
@@ -62,7 +61,6 @@
               icon="ri-save-line"
               @click="$emit('submit', close)"
             />
-          </div>
         </slot>
       </div>
     </template>
@@ -93,7 +91,7 @@ const mergedUi = computed(() => ({
   content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
   header: "r-modal__header flex items-center gap-1.5 p-4 sm:px-6 min-h-(--ui-header-height)" ,
   body: "r-modal__body-ui flex-1 p-4 sm:p-6",
-  footer: "r-modal__footer-ui flex items-center gap-1.5 p-4 sm:px-6",
+  footer: "flex items-center gap-1.5 p-4 sm:px-6",
   overlay: "r-modal__overlay fixed inset-0",
   rounded: "r-modal__rounded",
   shadow: "r-modal__shadow",
@@ -211,7 +209,7 @@ const defaultUI = computed(() => ({
 
 /* ===== Body ===== */
 .r-modal__body {
-  padding: 15px 15px;
+  padding: 5px 15px;
   font-size: 13px;
   color: var(--c-text);
   /* max-height: 70vh; */
@@ -219,22 +217,18 @@ const defaultUI = computed(() => ({
 }
 
 /* ===== Footer ===== */
+// .r-modal__footer {
+//   width: 100%;
+//   display: flex;
+//   justify-content: flex-end;
+//   align-items: center;
+// }
 .r-modal__footer {
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: end;
-  min-height: 56px;
-  padding: 5px 15px !important;
-  grid-gap: 6px;
-  /* border-top: 1px solid rgba(0, 0, 0, 0.08); */
-}
-
-/* footer actions */
-.r-modal__actions {
-  display: flex;
-  align-items: center;
-  justify-content: end;
-  grid-gap: 6px;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 15px 15px 15px 15px;
 }
 
 /* buttons */
