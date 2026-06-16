@@ -13,8 +13,9 @@
     :ui="mergedUi"
     :close="{
       icon: 'ri-close-line',
-      color: 'neutral',
-      variant: 'ghost',
+      color: 'primary',
+      variant: 'outline',
+      class: 'rounded-full',
       square: true,
       onClick: () => handleClose(false)
     }"
@@ -27,12 +28,15 @@
       <slot name="header">
         <div class="r-header flex items-center justify-between w-full">
           <div>
-            <h3
-              v-if="title"
-              class="text-base font-semibold"
-            >
-              {{ title }}
-            </h3>
+            <div class="flex items-center gap-2">
+              <i :class="`${icon} text-[16px] cursor-pointer`"></i>
+              <h3
+                v-if="title"
+                class="text-base font-semibold"
+              >
+                {{ title }}
+              </h3>
+            </div>
 
             <p
               v-if="description"
@@ -56,91 +60,78 @@
     <!-- Footer -->`
 
     <template #footer>
-      <slot
-        name="footer"
-          :close="handleClose"
-      >
-        <div class="r-footer py-[10px] flex justify-end gap-2 w-full">
-          <RBtn
-            color="neutral"
-            :label="cancelLabel"
-            @click="handleClose(false)"
-          />
+      <div class="r-footer">
+        <slot
+          name="footer"
+            :close="handleClose"
+        >
+          <!-- <div class="r-footer">
+            <RBtn
+              color="neutral"
+              :label="cancelLabel"
+              @click="handleClose(false)"
+            />
 
-          <RBtn
-            color="primary"
-            :label="submitLabel"
-            @click="handleSubmit"
-          />
-        </div>
-      </slot>
+            <RBtn
+              color="primary"
+              :label="submitLabel"
+              @click="handleSubmit"
+            />
+          </div> -->
+        </slot>
+      </div>
     </template>
   </USlideover>
+
+<!-- 
+usage ovorride footer by parent
+<RDrawer v-model:open="open">
+  <template #footer="{ close }">
+    <div class="flex justify-end gap-2 w-full">
+      <RBtn
+        label="Cancel"
+        @click="close(false)"
+      />
+      <RBtn
+        label="Save"
+        color="primary"
+        @click="save"
+      />
+    </div>
+  </template>
+</RDrawer> -->
 </template>
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch } from 'vue'
-import type { FormSchema } from '../types/form'
-import { useUIStore } from '../stores/ui'
-import { useI18n } from 'vue-i18n'
-const open = defineModel<boolean>()
+import { useScreenStore } from '../stores/screen'
 
-const props = withDefaults(
-  defineProps<{
-    title?: string
-    description?: string
-    subtitle?: string
+const screen = useScreenStore()
+const open = defineModel()
 
-    side?: 'left' | 'right' | 'top' | 'bottom'
+const props = defineProps({
+    title: String,
+    description: String,
+    subtitle: String,
+    icon:String,
+    side: { type: String, default:'right' }, // 'left' | 'right' | 'top' | 'bottom'
+    ui: Object,
+    dismissible: { type: Boolean, default: true },
+    noClose: { type: Boolean, default: true }
+  })
 
-    ui?: Record<string, any>
-
-    showCancel?: boolean
-    showSubmit?: boolean
-
-    submitLabel?: string
-    cancelLabel?: string
-
-    dismissible?: boolean
-
-    noClose?: boolean
-  }>(),
-  {
-    side: 'right', //right/left/top/bottom
-    dismissible: true,
-    subtitle: '',
-
-    showCancel: true,
-    showSubmit: false,
-
-    submitLabel: 'save',
-    cancelLabel: 'cancel',
-
-    noClose: true,
-
-    ui: () => ({})
-  }
-)
-const ui = useUIStore()
-
-const emit = defineEmits<{
-  close: [boolean]
-  submit: []
-}>()
+const emit = defineEmits(['close'])
 
 function handleClose(result = false) {
   open.value = false
   emit('close', result)
 }
 
-function handleSubmit() {
-  emit('submit')
-}
 /* -----------------------------
    UI Helpers
 ----------------------------- */
 const slideoverSide = computed(() => {
-  console.log("ui.isMobile ====================> : ", ui.isMobile)
-  return ui.isMobile ? 'bottom' : props.side
+  console.log("screen.isMobile ====================> : ", screen.isMobile)
+  return screen.isMobile ? 'bottom' : props.side
 })
 
 const mergedUi = computed(() => ({
@@ -159,7 +150,7 @@ const mergedUi = computed(() => ({
      body: [
        'flex-1',
        'overflow-y-auto',
-       'p-5'
+       'p-0'
      ],
  
      footer: [
@@ -180,37 +171,12 @@ const mergedUi = computed(() => ({
      title: 'font-semibold',
      description: 'text-sm text-muted'   
   },
-    variants: {
-        side: {
-          top: {
-            content: ''
-          },
-          right: {
-            content: 'max-w-md'
-          },
-          bottom: {
-            content: ''
-          },
-          left: {
-            content: 'max-w-md'
-          }
-        },
-        inset: {
-          true: {
-            content: 'rounded-lg'
-          }
-        },
-        transition: {
-          true: {
-            overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]'
-          }
-        }
-      },
+   
   footer: 'justify-end',
   ...props.ui
 }))
 
-function onOpenChange(value: boolean) {
+function onOpenChange(value) {
   open.value = value
 
   if (!value) {
@@ -243,11 +209,25 @@ function onOpenChange(value: boolean) {
   color: var(--c-text);
   overflow-y:scroll !important;
   overflow-x: hidden !important;
+  // min-height: calc(100vh - 80px);
+  height: 100% !important;
 }
 
 .r-footer {
+  display: flex;
+  flex-direction: flex-end;
+  align-items: center;
+  gap: 8px;
+  // width: 100%;
   padding: 10px 15px;
-  color: var(--c-text);
+  border-top:    1px solid var(--c-border);
+  background:    var(--c-surface);
+
+  @include mobile-only {
+    padding:      var(--space-4);
+    flex-direction: column;
+    > * { width: 100%; }
+  }
 }
 
 .r-footer :deep(button) {
@@ -331,10 +311,10 @@ function onOpenChange(value: boolean) {
   }
 
   &__footer {
-    display:       flex;
-    align-items:   center;
+    display: flex;
     justify-content: flex-end;
-    gap:           var(--space-3);
+    gap: 8px;
+    width: 100%;
     padding:       var(--space-4) var(--space-6);
     border-top:    1px solid var(--c-border);
     background:    var(--c-surface);

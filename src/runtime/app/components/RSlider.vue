@@ -1,48 +1,66 @@
 <template>
-  <USlideover v-model:open="isOpen" :side="side" :ui="ui" :transition="transition" :overlay="overlay"
-    :dismissible="dismissible" :prevent-close="preventClose" :appear="appear" 
+  <USlideover v-model:open="isOpen" :side="sliderScreenMode" :ui="ui" :transition="transition" :overlay="overlay"
+    :dismissible="dismissible" :prevent-close="preventClose" :appear="appear"
     :close="{
       icon: 'ri-close-line',
       color: 'neutral',
       variant: 'ghost'
     }"
+    :class="['r-slider-container', `r-slider-${sliderScreenMode}-mobile`]"
     >
       <template #header>
-        <div class="oc-drawer-header">
-          <slot name="header" />
-          <i class="ri-close-fill text-[16px] cursor-pointer" @click="closed"></i>
+        <div class="r-slider-header flex items-center justify-between w-full">
+          <slot name="header">
+            <div>
+              <div class="flex items-center gap-2">
+                <div v-if="icon" v-html="`<i class='${icon} text-[16px]'></i>`"></div>
+                <h3 v-if="title" class="text-base font-semibold" > {{ title }} </h3>
+              </div>
+              <p v-if="description" class="text-sm text-muted" > {{ description }} </p>
+            </div>
+            <i class="ri-close-line text-[16px] cursor-pointer" @click="closed"></i>
+          </slot>
         </div>
       </template>
       
       <template #body>
-        <div ref="refOCDrawerBody" class="oc-drawer-body "
-        :class="hasScroll ? 'drawer-has-scroll isScroll ocs-scroll' : ''">
-        <slot />
+        <div ref="refOCDrawerBody" class="r-slider-body "
+          :class="hasScroll ? 'slider-has-scroll isScroll r-scroll' : ''">
+          <slot />
         </div>
       </template>
 
       <template #footer>
-        <div class="oc-drawer-footer r-footer py-[10px] flex justify-end gap-2 w-full">
-          <RBtn
-            color="neutral"
-            variant="outline"
-            :label="cancelLabel"
-            @click="handleClose(false)"
-          />
+        <div class="r-slider-footer r-footer py-[10px] flex justify-end gap-2 w-full">
+          <slot name="footer">
+            <!-- <RBtn
+              color="neutral"
+              variant="outline"
+              :label="cancelLabel"
+              @click="handleClose(false)"
+            />
 
-          <RBtn
-            color="primary"
-            :label="submitLabel"
-            @click="handleSubmit"
-          />
+            <RBtn
+              color="primary"
+              :label="submitLabel"
+              @click="handleSubmit"
+            /> -->
+          </slot>
         </div>
       </template>
   </USlideover>
 </template>
 
 <script setup>
+import { useScreenStore } from '../stores/screen'
+
+const screen = useScreenStore()
 const isOpen = defineModel();
 const props = defineProps([
+  "title",
+  "description",
+  "subtitle",
+  "icon",
   "ui",
   "transition",
   "overlay",
@@ -57,7 +75,10 @@ const props = defineProps([
 ]);
 const emit = defineEmits(["closed"]);
 
-
+const title = computed(() => props.title)
+const description = computed(() => props.description)
+const subtitle = computed(() => props.subtitle)
+const icon = computed(() => props.icon)
 const transition = computed(() => props.transition);
 const overlay = computed(() => props.overlay);
 const preventClose = computed(() => props.preventClose);
@@ -69,6 +90,16 @@ const refWrapperOCDrawer = ref();
 
 const refOCDrawerBody = ref();
 const hasScroll = ref(false);
+
+/* -----------------------------
+   UI Helpers
+----------------------------- */
+const sliderScreenMode = computed(() => {
+  return screen.isMobile ? 'bottom' : side.value
+})
+
+watch(() => screen.isMobile, (n) => {
+})
 
 const ui = computed(() => {
   const defaultUI = {
@@ -165,6 +196,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', checkScroll);
 });
 
+
 watch(() => isOpen.value, (n) => {
   // console.log('====>>> watch', n)
   if (n) {
@@ -190,8 +222,8 @@ function checkScroll() {
 
   if (!wrapper || !body) return;
 
-  const header = wrapper.querySelector('.oc-drawer-header');
-  const footer = wrapper.querySelector('.oc-drawer-footer');
+  const header = wrapper.querySelector('.r-drawer-header');
+  const footer = wrapper.querySelector('.r-drawer-footer');
 
   const headerHeight = header?.getBoundingClientRect().height || 0;
   const footerHeight = footer?.getBoundingClientRect().height || 0;
@@ -210,37 +242,39 @@ function closed() {
 </script>
 
 <style lang="scss">
-.oc-drawer-overlay {
-  background: var(--bg-wrapper-50) !important;
-}
+.r-slider-container {
+  background-color: var(--bg-wrapper);
+  padding: 15px;
+  color: var(--c-text);
+  width: 100%;
+  min-width: v-bind("width ? `${width}px` : '500px'");
+  max-width: 500px !important;
+  --ui-radius: var(--r-xl);
 
-.oc-drawer-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  // height: 100vh;
-  height: 100%;
+  --ui-backdrop-filter: blur(8px);
 
-  .oc-drawer-header {
+  .r-slider-header {
     position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 4px;
-    min-height: 50px;
-    padding: 0 20px;
+    min-height: 40px;
+    padding: 5px 0;
     font-size: 14px;
     font-family: var(--font-500);
   }
 
-  .oc-drawer-body {
+  .r-slider-body {
+    overflow-y:scroll !important;
+    overflow-x: hidden !important;
+    // min-height: calc(100vh - 80px);
+    height: 100% !important;
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 2px 20px !important; // 11px 20px 11px 20px
     max-height: 100%;
-    padding: 0 20px;
-    overflow-y: auto;
+    padding: 5px 0 !important;
 
     &.isScroll {
       // this class add auto
@@ -259,19 +293,30 @@ function closed() {
       }
     }
 
-    &.drawer-has-scroll {
+    &.r-slider-has-scroll {
       padding: 0 11px 0px 20px;
       overflow-y: auto;
     }
   }
-
-  .oc-drawer-footer {
+  
+  .r-slider-footer {
     display: flex;
     align-items: center;
     justify-content: end;
     min-height: 71px;
-    padding: 0px 20px;
+    padding: 5px 0;
     grid-gap: 6px;
   }
+}
+
+.r-drawer-overlay {
+  background: var(--bg-wrapper-50) !important;
+}
+
+.r-slider-bottom-mobile {
+  max-width: 100% !important;
+  padding: 7px !important;
+  border-radius: 20px 20px 0px 0px !important;
+  min-height: 500px;
 }
 </style>
