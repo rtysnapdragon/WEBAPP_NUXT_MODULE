@@ -12,7 +12,7 @@
       variant: 'outline',
       class: 'rounded-full'
     }"
-    :ui="ui"
+    :ui="defaultUI"
     class="r-modal"
   >
 
@@ -21,13 +21,14 @@
       <div class="r-modal__header">
         <slot name="header">
           <div class="r-modal__header__custom">
-            <h2 class="text-lg font-bold">{{ title }}</h2>
-            <i
-              class="ri-close-large-fill cursor-pointer"
-               @click="() => {
-                    open = false
-                  }"
-            />
+            <div class="flex gap-2 items-center">
+              <div v-if="icon" v-html="`<i class='${icon} text-[16px]'></i>`"></div>
+              <div class="flex flex-col">
+                <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
+                <span v-if="description" v-html="description" class="text-[var(--c-muted])]"></span>
+              </div>
+            </div>
+            <i class="ri-close-large-fill cursor-pointer" @click="() => { open = false }" />
           </div>
         </slot>
       </div>
@@ -35,9 +36,9 @@
 
     <!-- BODY (IMPORTANT FIX) -->
     <template #body>
-        <div class="r-modal__body">
-            <slot />
-        </div>
+      <div class="r-modal__body">
+        <slot />
+      </div>
     </template>
 
     <!-- FOOTER -->
@@ -46,9 +47,8 @@
         <slot v-if="$slots.footer" name="footer" :close="close">
           <div class="r-modal__actions">
             <RBtn
-              v-if="showCancel"
               :label="$t('Cancel')"
-              color="neutral"
+              color="cancel"
               variant="outline"
               class="r-modal__btn"
               icon="ri-close-large-fill"
@@ -56,9 +56,8 @@
             />
 
             <RBtn
-              v-if="showSubmit"
               :label="submitLabel"
-              color="primary"
+              color="submit"
               class="r-modal__btn"
               icon="ri-save-line"
               @click="$emit('submit', close)"
@@ -73,39 +72,21 @@
 <script setup>
 const open = defineModel()
 
-const props = defineProps({
-  title: String,
-  description: String,
-  isFullScreen: {
-    type: Boolean,
-    default: false
-  },
-  noClose: {
-    type: Boolean,
-    default: true
-  },
-  ui: {
-    type: Object,
-    default: () => ({})
-  },
-
-  showCancel: {
-    type: Boolean,
-    default: true
-  },
-
-  showSubmit: {
-    type: Boolean,
-    default: true
-  },
-
-  submitLabel: {
-    type: String,
-    default: "Submit"
-  }
-})
+const props = defineProps([
+  'title',
+  'description',
+  'isFullScreen',
+  'noClose',
+  'ui'
+])
+  
 
 defineEmits(["submit"])
+
+const title = computed(() => props.title)
+const description = computed(() => props.description)
+const isFullScreen = computed(() => props.isFullScreen)
+const noClose = computed(() => props.noClose)
 
 const mergedUi = computed(() => ({
   base: "r-modal__base",
@@ -168,7 +149,7 @@ const mergedUi = computed(() => ({
   ],
 }))
 
-const ui = computed(() => ({
+const defaultUI = computed(() => ({
   ...(props.ui ?? {}), ...mergedUi.value
 }))
 </script>
@@ -239,17 +220,21 @@ const ui = computed(() => ({
 
 /* ===== Footer ===== */
 .r-modal__footer {
-  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  min-height: 56px;
+  padding: 5px 15px !important;
+  grid-gap: 6px;
   /* border-top: 1px solid rgba(0, 0, 0, 0.08); */
 }
 
 /* footer actions */
 .r-modal__actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  width: 100%;
   align-items: center;
+  justify-content: end;
+  grid-gap: 6px;
 }
 
 /* buttons */

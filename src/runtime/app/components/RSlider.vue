@@ -244,7 +244,6 @@ function closed() {
 <style lang="scss">
 .r-slider-container {
   background-color: var(--bg-wrapper);
-  padding: 15px;
   color: var(--c-text);
   width: 100%;
   min-width: v-bind("width ? `${width}px` : '500px'");
@@ -260,7 +259,7 @@ function closed() {
     align-items: center;
     gap: 4px;
     min-height: 40px;
-    padding: 5px 0;
+    padding: 5px 15px;
     font-size: 14px;
     font-family: var(--font-500);
   }
@@ -274,7 +273,7 @@ function closed() {
     flex-direction: column;
     height: 100%;
     max-height: 100%;
-    padding: 5px 0 !important;
+    padding: 5px 15px !important;
 
     &.isScroll {
       // this class add auto
@@ -304,7 +303,7 @@ function closed() {
     align-items: center;
     justify-content: end;
     min-height: 71px;
-    padding: 5px 0;
+    padding: 5px 15px !important;
     grid-gap: 6px;
   }
 }

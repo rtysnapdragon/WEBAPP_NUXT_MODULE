@@ -1,5 +1,5 @@
 <template>
-  <RDrawer
+  <RSlider
     v-model="show"
     :ui="{
       base: isNotEmpty(inForm?.width)
@@ -71,7 +71,7 @@
         :disabled="disabledUpdate"
       />
     </template>
-  </RDrawer>
+  </RSlider>
 </template>
 
 <script setup>

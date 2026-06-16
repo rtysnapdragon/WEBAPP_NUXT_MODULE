@@ -27,7 +27,12 @@ export default defineNuxtConfig({
 
     // }
   },
- 
+ app: {
+    rootAttrs: {
+      'data-vaul-drawer-wrapper': '',
+      'class': 'bg-default'
+    }
+  },
   // ── Global SCSS ──
   css: ['./runtime/app/assets/styles/global.scss','./runtime/app/assets/styles/tailwind.css'],
 
