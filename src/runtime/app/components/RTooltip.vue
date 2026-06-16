@@ -43,6 +43,7 @@
 <script setup>
 import { ref, computed, useSlots } from "vue";
 // import { usePopper } from "@vueuse/popper";
+import { usePopper } from '../composables/usePopper'
 const props = defineProps([
   "text",
   "placement",

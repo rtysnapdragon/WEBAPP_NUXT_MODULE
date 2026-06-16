@@ -10,8 +10,26 @@
         <slot :name="`${list.type}icon`" />
       </template>
     </RBtn>
-    
-    <fwb-dropdown ref="refDropdown" placement="left" class="r-popup-action-btn"
+        
+    <!-- Mobile popover -->
+    <RPopover v-else-if="isNotEmpty(lists) && screen.isMobile" use="headless" :content="{side:'left-start'}">
+      <template #trigger>
+        <div class="r-group-action-more" @click="clickShow">
+          <i class="ri-more-2-fill"></i>
+        </div>
+      </template>
+      <div class="popup">
+        <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
+          :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="fnClick(list.type, list)"
+          :permission="list.permission" :showIfAllowed="list.showIfAllowed">
+
+          <template v-if="$slots[`${list.type}icon`]" #[`${list.type}icon`]>
+            <slot :name="`${list.type}icon`" />
+          </template>
+        </RBtnList>
+      </div>
+    </RPopover>
+    <!-- <fwb-dropdown ref="refDropdown" placement="left" class="r-popup-action-btn"
       v-if="isNotEmpty(lists) && screen.isMobile" close-inside>
       <template #trigger>
         <div class="r-group-action-more" @click="clickShow">
@@ -28,12 +46,12 @@
           </template>
         </RBtnList>
       </FwbListGroup>
-    </fwb-dropdown>
+    </fwb-dropdown> -->
   </div>
 </template>
 
 <script setup>
-import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
+// import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
 import {useScreenStore } from '../../stores/screen'
 const screen = useScreenStore();
 const props = defineProps(["data"]);

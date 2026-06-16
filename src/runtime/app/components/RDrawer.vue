@@ -13,8 +13,9 @@
     :ui="mergedUi"
     :close="{
       icon: 'ri-close-line',
-      color: 'neutral',
-      variant: 'ghost',
+      color: 'primary',
+      variant: 'outline',
+      class: 'rounded-full',
       square: true,
       onClick: () => handleClose(false)
     }"
@@ -64,7 +65,7 @@
           name="footer"
             :close="handleClose"
         >
-          <div class="r-footer">
+          <!-- <div class="r-footer">
             <RBtn
               color="neutral"
               :label="cancelLabel"
@@ -76,29 +77,12 @@
               :label="submitLabel"
               @click="handleSubmit"
             />
-          </div>
+          </div> -->
         </slot>
       </div>
     </template>
   </USlideover>
 
-  <!-- <template #content>
-  <div class="flex flex-col h-full">
-    <div class="r-header">
-      ...
-    </div>
-
-    <div class="flex-1 overflow-auto">
-      <slot />
-    </div>
-
-    <div class="r-footer">
-      <slot name="footer" :close="handleClose">
-        ...
-      </slot>
-    </div>
-  </div>
-</template> -->
 <!-- 
 usage ovorride footer by parent
 <RDrawer v-model:open="open">
