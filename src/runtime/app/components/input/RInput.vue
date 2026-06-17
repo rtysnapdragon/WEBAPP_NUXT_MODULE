@@ -1,5 +1,14 @@
 <template>
-  <UInput ref="refOCInput" v-model="value" v-model.nullable="value" :size="props.size ?? ' text-[12px]'" :name="props.name" :ui="ui" :type="type"
+  <div v-if="type=='pininput'">
+    <UPinInput v-model="value" :length="length" :type="typePinInput" :mask="mask" :size="size" :disabled="disabled" :otp="totp" :placeholder="placeholderPinInput" :separator="separator" :color="color" :highlight="highlight" :error="error" :variant="variant" :ui="pinInputUI">
+      <template #separator v-if="$slots.separator">
+        <UIcon name="i-lucide-minus" class="size-4" />
+      </template>
+    </UPinInput>
+  </div>
+
+  <!-- default -->
+  <UInput v-else ref="refOCInput" v-model="value" v-model.nullable="value" :size="props.size ?? 'md text-[12px]'" :name="props.name" :ui="ui" :type="type" :color="color" :highlight="highlight" :error="error"
     :placeholder="placeholder" :loading="loading" :leading="leading" :loading-icon="loadingIcon" :trailing="trailing"
     :padded="padded" :icon="icon" :autofocus="autofocus" :autofocus-delay="autofocusDelay" :autocomplete="autocomplete"
     :leading-icon="leadingIcon" :trailing-icon="trailingIcon" :disabled="disabled" class="w-full"
@@ -27,16 +36,27 @@
     </label>
   </UInput>
 </template>
+<!-- <script setup lang="ts">
+import { useClipboard } from '@vueuse/core'
+
+const value = ref('npx nuxt module add ui')
+
+const { copy, copied } = useClipboard()
+// @click="copy(value)"
+</script> -->
 
 <script setup>
 const refOCInput = ref();
 const value = defineModel();
 const props = defineProps([
-  "size",
+  "size", // xs, sm, md, lg,xl
   "name",
   "type", //file/search/text/password/number/textarea/checkbox/radio/switch/select/time/date
   "ui",
   "icon",
+  'highlight', // for highlight border color -> true or false
+  'error', // for error border color -> true or false
+  'variant', // outline, solft, subtle, ghost, link,none -> solid or outline -> border color
   "placeholder",
   "autofocus",
   "autofocusDelay",
@@ -53,7 +73,19 @@ const props = defineProps([
   "score",
   "isRight",
   "isLeft",
-  "floatingLabel"
+  "floatingLabel",
+  'avatar', //{ src: String, loading: 'eager' | 'lazy', error: false,alt:String}
+  'color', // primary,secondary,success,info,warning,error,neutral,danger -> border color
+
+  // for UPinInput
+  'pininput', // pininput -= type : text & number only
+  'mask', // mask for UPinInput -> array of number 
+  'totp', // totp for UPinInput -> true or false
+  'placeholderPinInput', // placeholder for UPinInput
+  'length', // length for UPinInput
+  'separator', //:separator="[3, 4]"
+  'pinInputUI', // ui for UPinInput
+  'typePinInput', // type for UPinInput -> text & number only
 ]);
 
 const loading = computed(() => props.loading);
@@ -76,6 +108,17 @@ const isRight = computed(() => props.isRight ?? false)
 const isLeft = computed(() => props.isLeft ?? false)
 const floatingLabel = computed(() => props.floatingLabel)
 const disabled = computed(() => props.disabled)
+const color = computed(() => props.color)
+const highlight = computed(() => props.highlight ?? false)
+const error = computed(() => props.error ?? false)
+
+const mask = computed(() => props.mask ?? false)  
+const totp = computed(() => props.totp ?? false)
+const placeholderPinInput = computed(() => props.placeholderPinInput)
+const length = computed(() => props.length ?? 6)
+const separator = computed(() => props.separator ?? " ")
+const typePinInput = computed(() => props.typePinInput ?? "number")
+
 
 watch(value, (newValue) => {
   if (type.value === "number") {
@@ -93,13 +136,36 @@ watch(value, (newValue) => {
   }
 });
 
+const pinInputUI = computed(() => {
+  const defautUI = {
+    root: 'relative inline-flex items-center gap-1.5',
+    base: [
+      '!w-8 h-8 rounded-md border-0 p-0 placeholder:text-dimmed text-center disabled:cursor-not-allowed disabled:opacity-75',
+      'transition-colors',
+      'text-[12px]'
+    ],
+    separator: 'text-dimmed flex items-center justify-center'
+  }
+  return {...defautUI, ...props.pinInputUI}
+})
+
+const base = computed(() => {
+  return [
+    'peer text-[12px] transition-colors',
+    !floatingLabel.value && 'leading-4 trailing-padding leading-padding pr-12 pl-14.5 rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75'
+  ].filter(Boolean).join(' ')
+})
 // sinh
 const emits = defineEmits(["onFocus", "onBlur", "onInput"]);
-
+// size → controls padding + height preset
 const ui = computed(() => {
   const defaultUI = {
     root: 'w-full relative inline-flex items-center',
-    base:['trailing-padding leading-padding pr-12 pl-14.5 peer rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75','transition-colors'],
+    // base:base.value,
+  //   base: floatingLabel.value
+  // ? 'peer text-[12px] transition-colors'
+  // : 'peer leading-4 trailing-padding leading-padding pr-12 pl-14.5 rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75 text-[12px] transition-colors'
+    base:['peer', floatingLabel.value ? '' : 'leading-4 trailing-padding leading-padding pr-12 pl-14.5 peer rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75','text-[12px]','transition-colors'], //controls font-size, borders, color
     wrapper: 'relative oc-input-wrapper',
     placeholder: "placeholder:text-[12px]",
     rounded: "",
@@ -200,6 +266,9 @@ defineExpose({ ocInput });
 </script>
 
 <style lang="scss">
+.text-size-input{
+  font-size: 12px !important  ;
+}
 .oc-input-wrapper {
   .position-right-custom {
     right: 12px;
@@ -328,4 +397,38 @@ defineExpose({ ocInput });
 .leadingIcon{
   font-size: 15px !important;
 }
+
+/* Hide the password reveal button in Edge */
+::-ms-reveal {
+    display: none;
+}
+
 </style>
+
+<!-- 
+uage with lenght value input: 0/15
+<script setup lang="ts">
+const value = ref('')
+const maxLength = 15
+</script>
+
+<template>
+  <UInput
+    v-model="value"
+    :maxlength="maxLength"
+    aria-describedby="character-count"
+    :ui="{ trailing: 'pointer-events-none' }"
+  >
+    <template #trailing>
+      <div
+        id="character-count"
+        class="text-xs text-muted tabular-nums"
+        aria-live="polite"
+        role="status"
+      >
+        {{ value?.length }}/{{ maxLength }}
+      </div>
+    </template>
+  </UInput>
+</template>
+ -->

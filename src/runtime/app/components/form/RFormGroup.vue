@@ -10,6 +10,7 @@
     :description="description"
     :help="help"
     :eager-validation="eagerValidation"
+    :orientation="orientation"
     class="form-field"
   >
     <template
@@ -74,11 +75,12 @@ const props = defineProps([
   "required",
   "description",
   "ui",
-  "error",
+  "error", // undefined, String | false | true
   "help",
   "hint",
-  "eagerValidation",
-  "size",
+  "eagerValidation", //Boolean - default: false
+  "size", // xs, sm, md, lg, xl - default: md
+  "orientation", // vertical, horizontal - default: vertical
 ]);
 
 const ui = computed(() => {
@@ -135,6 +137,7 @@ const help = computed(() => props.help);
 const hint = computed(() => props.hint);
 const error = computed(() => props.error);
 const eagerValidation = computed(() => props.eagerValidation);
+const orientation = computed(() => props.orientation);
 </script>
 
 <style>

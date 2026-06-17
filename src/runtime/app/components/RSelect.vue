@@ -2,14 +2,14 @@
   <div ref="refOCSelect" class="ocs-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
     <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" :uiMenu="uiMenu"
-      :loading="isLoading" loadingIcon="ri-loader-4-line" :searchable-placeholder="$t('search')" :options="listData"
+      :loading="isLoading" loadingIcon="ri-loader-4-line" :searchable-placeholder="$t('search')" :options="listData" @update:open="onOpen"
       :searchable="isNotEmpty(props.api)
         ? props.searchable ?? true
           ? fnSearch
           : false
         : props.searchable ?? true
-        " :search-attributes="props.localData?.keySearch" :clear-search-on-close="true" trailing :required="true"
-      size="md" :disabled="props.disabled ?? false" :multiple="multiple" :by="pk" @update:modelValue="fnSelect">
+        " :search-attributes="props.localData?.keySearch" :clear-search-on-close="true" trailing :required="true" :leadingIcon="leadingIcon"
+      size="md" :disabled="props.disabled ?? false" :multiple="multiple" :by="pk" @update:modelValue="fnSelect" :class="fullWidth ? 'w-full' : 'w-[11/12]'">
       <template #label="{ selected }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(selected) && !selected.isDefault" name="leading" :data="selected" />
@@ -116,7 +116,6 @@
             </template>
           </RViewInfo>
         </div>
-
       </template>
     </USelectMenu>
   </div>
@@ -124,7 +123,8 @@
 
 <script setup>
 import _ from "lodash-es";
-
+import RProfileInfo from './RProfileInfo.vue'
+import RViewInfo from './RViewInfo.vue'
 function generateSelect(select) {
   if (isNotEmpty(select) || isNotEmpty(selected.value)) {
     const data = isNotEmpty(select) ? select : selected.value
@@ -159,9 +159,11 @@ const props = defineProps([
   'pk',
   'templateLeading',
   'templateOption',
-  'isNotAllowRemoteSelect'
+  'isNotAllowRemoteSelect',
+  'leadingIcon',
+  'fullWidth'
 ]);
-const emit = defineEmits("selected", "mapData", "onSearch");
+const emit = defineEmits("selected", "mapData", "onSearch",'onOpen');
 const localData = computed(() => props.localData);
 const selectType = computed(() => props.selectType || "");
 const required = computed(() => isNotEmpty(props.required));
@@ -170,6 +172,7 @@ const pk = computed(() => isNotEmpty(props.pk) ? props.pk : null);
 const variant = computed(() => props.variant ?? "outline"); // Ex: variant = solid,outline,none
 const placeholder = computed(() => props.placeholder ?? null);
 const colorPlaceholder = computed(() => props.colorPlaceholder ?? false);
+const fullWidth = computed(() => props.fullWidth ?? false);
 const recordCountPropotyName = computed(
   () => props.recordCountPropotyName ?? false
 );
@@ -308,7 +311,9 @@ mounted(async () => {
 // onUnmounted(()=>{
 //   selected.value = undefined
 // })
-
+function onOpen() {
+  emit('onOpen',selected.value)
+}
 function fnSetSelected(data) {
   refSelctMenu.value?.onUpdate(copyWith(data))
 }
@@ -670,6 +675,7 @@ const ui = computed(() => {
   const defaultUI = {
     container: "ocs-customer-select",
     base: `color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
+    content:'min-w-fit',
     ring: "",
     rounded: "",
     size: {},
@@ -680,6 +686,7 @@ const ui = computed(() => {
     selectedIcon: {
       base: "!text-red-700",
     },
+    leading: 'text-red-500',
     icon: {
       base: "",
       loading: "!h-4 !w-4 ri-loader-4-line",
