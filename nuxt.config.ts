@@ -31,12 +31,18 @@ export default defineNuxtConfig({
     rootAttrs: {
       'data-vaul-drawer-wrapper': '',
       'class': 'bg-default'
+    },
+    head:{
+      // script:[{ src:"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4",defer: true}]
     }
   },
   // ── Global SCSS ──
   css: ['./runtime/app/assets/styles/global.scss','./runtime/app/assets/styles/tailwind.css'],
 
   vite: {
+    plugins: [
+      require('@tailwindcss/vite')()
+    ],
     css: {
       preprocessorOptions: {
         scss: {

@@ -1,5 +1,7 @@
 <!-- components/RDrawer.vue -->
 <script setup>
+import { computed, useSlots } from 'vue'
+
 import { useScreenStore } from '../stores/screen'
 const open = defineModel()
 const props = defineProps([
@@ -17,7 +19,9 @@ const props = defineProps([
   'icon',
   'description',
   'class',
-  'handleOnly'
+  'handleOnly',
+  'shouldScaleBackground',
+  'nested'
 ])
 
 const dismissible = computed(() => props.dismissible ?? true)
@@ -29,28 +33,42 @@ const closeOnEscape = computed(() => props.closeOnEscape ?? true)
 const closeOnOutsideClick = computed(() => props.closeOnOutsideClick ?? true)
 const className = computed(() => props.class ?? '')
 const handleOnly = computed(() => props.handleOnly ?? false)
+const nested = computed(() => props.nested ?? false)
+const shouldScaleBackground = computed(() => props.shouldScaleBackground ?? false)
 
 
 const emit = defineEmits(['update:modelValue', 'open', 'close'])
 
 const screen = useScreenStore()
+/**
+ * Responsive defaults
+ */
+const defaultWidth = computed(() => {
+  if (screen.isMobile) return '85vw'
+  if (screen.isTablet) return '400px'
+  return '500px'
+})
+
 
 // Internal state
 const defaultUI = computed(() => {
   const base  = {
     overlay: 'r-drawer-overlay fixed inset-0 bg-elevated/75',
-        content: 'r-drawer-content fixed bg-default ring ring-default flex focus:outline-none flex-col w-[500px]',
-        handle: [
-          'shrink-0 !bg-accented',
-          'transition-opacity',
-          'r-drawer-handle'
-        ],
-        container: ' w-full flex flex-col gap-4 p-4 overflow-y-auto',
-        header: '',
-        title: 'text-highlighted font-semibold',
-        description: 'mt-1 text-muted text-sm',
-        body: 'r-drawer-body flex-1',
-        footer: 'flex flex-col gap-1.5'
+    content: [
+      'r-drawer-content r-drawer-content fixed bg-default ring ring-default flex focus:outline-none flex-col w-[500px] flex flex-col bg-default shadow-xl',
+      nested.value ? 'z-[60]' : 'z-[50]'
+    ],
+    handle: [
+      'shrink-0 !bg-accented',
+      'transition-opacity',
+      'r-drawer-handle'
+    ],
+    container: 'r-drawer-container w-full flex flex-col gap-4 p-4 overflow-y-auto',
+    header: '',
+    title: 'text-highlighted font-semibold',
+    description: 'mt-1 text-muted text-sm',
+    body: 'r-drawer-body flex-1',
+    footer: 'flex flex-col gap-1.5'
   }
   return { ...base, ...props.ui }
 })
@@ -69,6 +87,7 @@ const defaultUI = computed(() => {
       :trap-focus="trapFocus"
       :close-on-escape="closeOnEscape"
       :close-on-outside-click="closeOnOutsideClick"
+      :should-scale-background="shouldScaleBackground"
       :class="className"
       :ui="defaultUI"
       class="r-drawer-wrapper"
@@ -81,34 +100,49 @@ const defaultUI = computed(() => {
       </template> -->
 
       <template #content>
-          <!-- <div v-if="$slots.header">
-            <slot name="header">
-                
-            </slot>
-          </div> -->
-        <div class="r-drawer-wrapper">
-            <slot name="header">
-                <div class="flex items-center justify-between w-full">
-                    <div>
-                        <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
-                        <span v-if="description" v-html="description"></span>
-                    </div>
-
-                    <div @click="open = false" class="r-drawer-header cursor-pointer" ><i class="ri-close-line"></i></div>
-                </div>
-            </slot>
-            <slot />
+        <div
+        class="flex flex-col h-full"
+        :style="{
+          width: direction === 'left' || direction === 'right'
+            ? defaultWidth
+            : '100%'
+        }"
+      >
+        <div v-if="$slots.header || title || description" class="r-drawer-wrapper">
+          <slot name="header">
+            <div class="flex items-center justify-between w-full">
+              <div>
+                  <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
+                  <span v-if="description" v-html="description"></span>
+              </div>
+              <div @click="open = false" class="r-drawer-header cursor-pointer" ><i class="ri-close-line"></i></div>
+            </div>
+          </slot>
         </div>
-        <div v-if="$slots.footer">
+        
+        <!-- BODY -->
+        <div class="flex-1 overflow-y-auto">
+          <slot />
+        </div>
+
+        <div v-if="$slots.footer"  class="p-4 border-t">
           <slot name="footer">
 
           </slot>
+        </div>
         </div>
       </template>
     </UDrawer>
 </template>
 
 <style lang="scss" scoped>
+.r-drawer-handle {
+  height: 4px;
+  width: 40px;
+  border-radius: 999px;
+  background: var(--color-muted);
+  margin: 10px auto;
+}
 .r-drawer-wrapper {
   display: inline-block;
   z-index: 9999;

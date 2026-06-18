@@ -85,6 +85,8 @@ npm install v-calendar
 npm install vue-screen-utils
 npm install @easylogic/colorpicker
 npm install @popperjs/core
+npx nuxt upgrade
+
 </details>
 
 <!-- Badges -->
