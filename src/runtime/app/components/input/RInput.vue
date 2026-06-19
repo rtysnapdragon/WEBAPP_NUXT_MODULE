@@ -1,6 +1,6 @@
 <template>
   <div v-if="type=='pininput'">
-    <UPinInput v-model="value" :length="length" :type="typePinInput" :mask="mask" :size="size" :disabled="disabled" :otp="totp" :placeholder="placeholderPinInput" :separator="separator" :color="color" :highlight="highlight" :error="error" :variant="variant" :ui="pinInputUI">
+    <UPinInput v-model="value" :length="length" :type="typePinInput" :mask="mask" :size="size" :disabled="disabled" :otp="totp" :placeholder="placeholderPinInput" :separator="separator" :color="color" :highlight="highlight" :error="error" :variant="variant" :ui="pinDefaultInputUI">
       <template #separator v-if="$slots.separator">
         <UIcon name="i-lucide-minus" class="size-4" />
       </template>
@@ -136,11 +136,11 @@ watch(value, (newValue) => {
   }
 });
 
-const pinInputUI = computed(() => {
+const pinDefaultInputUI = computed(() => {
   const defautUI = {
     root: 'relative inline-flex items-center gap-1.5',
     base: [
-      '!w-8 h-8 rounded-md border-0 p-0 placeholder:text-dimmed text-center disabled:cursor-not-allowed disabled:opacity-75',
+      'pin-input-base!w-8 !h-8 rounded-md border-0 p-0 placeholder:text-dimmed text-center disabled:cursor-not-allowed disabled:opacity-75',
       'transition-colors',
       'text-[12px]'
     ],
@@ -331,6 +331,11 @@ defineExpose({ ocInput });
 
 .icon-size{
   font-size: 300px !important;
+}
+
+.pin-input-base{
+  width:24px !important;
+  height: 24px !important;
 }
 
 .ocs-input {

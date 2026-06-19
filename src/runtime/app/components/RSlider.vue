@@ -24,8 +24,8 @@
       </template>
       
       <template #body>
-        <div ref="refOCDrawerBody" class="r-slider-body "
-          :class="hasScroll ? 'slider-has-scroll isScroll r-scroll' : ''">
+        <div ref="refRDrawerBody" class="r-slider-body "
+          :class="hasScroll ? 'r-slider-has-scroll isScroll' : ''">
           <slot />
         </div>
       </template>
@@ -85,10 +85,11 @@ const preventClose = computed(() => props.preventClose);
 const side = computed(() => props.side);
 const appear = computed(() => props.appear);
 const dismissible = computed(() => props.dismissible);
+const isScroll = computed(() => props.isScroll);
 
 const refWrapperOCDrawer = ref();
 
-const refOCDrawerBody = ref();
+const refRDrawerBody = ref();
 const hasScroll = ref(false);
 
 /* -----------------------------
@@ -110,7 +111,8 @@ const ui = computed(() => {
       color: 'text-neutral-400 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-50',
       icon: 'i-ri-close-line',
       ring: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:focus-visible:ring-primary-400',
-      transition: 'transition-colors'
+      transition: 'transition-colors',
+      body:'bg-red-500'
     },
     slots: {
       close: `
@@ -210,7 +212,7 @@ watch(() => isOpen.value, (n) => {
 })
 
 function observeBody() {
-  if (!refOCDrawerBody.value) return;
+  if (!refRDrawerBody.value) return;
   checkScroll()
   window.addEventListener('resize', checkScroll);
 }
@@ -218,7 +220,7 @@ function observeBody() {
 
 function checkScroll() {
   const wrapper = refWrapperOCDrawer.value;
-  const body = refOCDrawerBody.value;
+  const body = refRDrawerBody.value;
 
   if (!wrapper || !body) return;
 
@@ -232,7 +234,7 @@ function checkScroll() {
   const availableHeight = window.innerHeight - headerHeight - footerHeight;
 
   hasScroll.value = bodyHeight > availableHeight || bodyHeight > 400;
-  // console.log('===>>>', hasScroll.value)
+  console.log('===>>>', hasScroll.value)
 }
 
 function closed() {
@@ -262,25 +264,26 @@ function closed() {
     padding: 5px 15px;
     font-size: 14px;
     font-family: var(--font-500);
+    width: 100%;
   }
 
   .r-slider-body {
-    overflow-y:scroll !important;
-    overflow-x: hidden !important;
-    // min-height: calc(100vh - 80px);
+    // overflow-y: auto !important;
+    // overflow-x: hidden !important;
+    // min-height: calc(100vh - 80px); // cause style padding body
     height: 100% !important;
     display: flex;
     flex-direction: column;
     height: 100%;
     max-height: 100%;
-    padding: 5px 15px !important;
+    padding:5px 15px ;
 
     &.isScroll {
       // this class add auto
       overflow-y: auto;
 
       &::-webkit-scrollbar-thumb {
-        border: 3px solid var(--bg-content);
+        border: 1px solid var(--bg-content);
       }
 
       &:hover::-webkit-scrollbar-thumb {
@@ -293,7 +296,7 @@ function closed() {
     }
 
     &.r-slider-has-scroll {
-      padding: 0 11px 0px 20px;
+      padding-right: 0 !important; // reduced from 15px
       overflow-y: auto;
     }
   }
@@ -317,5 +320,11 @@ function closed() {
   padding: 7px !important;
   border-radius: 20px 20px 0px 0px !important;
   min-height: 500px;
+}
+
+[data-slot="body"]{
+  .hasScroll{
+    padding:0 !important;
+  }
 }
 </style>

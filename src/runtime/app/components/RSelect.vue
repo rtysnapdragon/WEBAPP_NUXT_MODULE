@@ -13,20 +13,20 @@
       <template #label="{ selected }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(selected) && !selected.isDefault" name="leading" :data="selected" />
-        <RTruncateText :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
+        <RTruncated :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
         <RProfileInfo size="2xs" border="s" :src="selected[templateLeading.imagePath]"
           :errorType="templateLeading.imageType" :gender="selected[templateLeading?.gender]"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
           <template #title>
-            <RTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncated :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
         </RProfileInfo>
 
         <RViewInfo
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
           <template #title>
-            <RTruncateText :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncated :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
         </RViewInfo>
 
@@ -44,21 +44,21 @@
               <slot name="leading" :data="item"></slot>
             </span>
 
-            <RTruncateText :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
+            <RTruncated :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
               v-else-if="!$slots.leading && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
 
             <RProfileInfo size="2xs" border="s" :src="item[templateLeading.imagePath]"
               :errorType="templateLeading.imageType" :gender="item[templateLeading?.gender]"
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
               <template #title>
-                <RTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
+                <RTruncated :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
             </RProfileInfo>
 
             <RViewInfo
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
               <template #title>
-                <RTruncateText :text="fnGenerateTextLabel(item, templateLeading)" />
+                <RTruncated :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
             </RViewInfo>
 
@@ -674,7 +674,7 @@ const uiMenu = computed(() => {
 const ui = computed(() => {
   const defaultUI = {
     container: "ocs-customer-select",
-    base: `color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
+    base: `ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
     content:'min-w-fit',
     ring: "",
     rounded: "",
@@ -725,6 +725,10 @@ function fnGenerateTextSubLabel(data, template) {
 </script>
 
 <style lang="scss">
+.ui-select-base { // work
+  width: 100%;
+  min-width: fit-content !important;
+}
 .ocs-customer-select {
   &.have-selected-value {
     .height-btn-select-all {
