@@ -1,234 +1,399 @@
-<!-- components/RDrawer.vue -->
 <script setup>
-import { computed, useSlots } from 'vue'
+// RDrawer — SARIKA
+// Full UDrawer wrapper: all props, all slots, nested drawer, responsive sizing
+// No lang="ts" — plain <script setup>
+// Screen breakpoints via useScreenStore
 
+import { computed, ref, provide, inject } from 'vue'
 import { useScreenStore } from '../stores/screen'
-const open = defineModel()
-const props = defineProps([
-  'direction',
-  'modal',
-  'overlay',
-  'handle',
-  'dismissible',
-  'trapFocus',
-  'closeOnEscape',
-  'closeOnOutsideClick',
-  'className',
-  'ui',
-  'title',
-  'icon',
-  'description',
-  'class',
-  'handleOnly',
-  'shouldScaleBackground',
-  'nested'
-])
 
-const dismissible = computed(() => props.dismissible ?? true)
-const modal = computed(() => props.modal ?? true)
-const overlay = computed(() => props.overlay ?? true)
-const handle = computed(() => props.handle ?? true)
-const trapFocus = computed(() => props.trapFocus ?? true)
-const closeOnEscape = computed(() => props.closeOnEscape ?? true)
-const closeOnOutsideClick = computed(() => props.closeOnOutsideClick ?? true)
-const className = computed(() => props.class ?? '')
-const handleOnly = computed(() => props.handleOnly ?? false)
-const nested = computed(() => props.nested ?? false)
-const shouldScaleBackground = computed(() => props.shouldScaleBackground ?? false)
+// ── Props — mirrors every UDrawer prop exactly ─────────────────────────────
+const props = defineProps({
+  // UDrawer core
+  direction:            { type: String,  default: null    }, // 'top'|'bottom'|'left'|'right'
+  modal:                { type: Boolean, default: true    },
+  overlay:              { type: Boolean, default: true    },
+  handle:               { type: Boolean, default: true    },
+  handleOnly:           { type: Boolean, default: false   },
+  dismissible:          { type: Boolean, default: true    },
+  trapFocus:            { type: Boolean, default: true    },
+  closeOnEscape:        { type: Boolean, default: true    },
+  closeOnOutsideClick:  { type: Boolean, default: true    },
+  shouldScaleBackground:{ type: Boolean, default: false   },
+  // SARIKA extras
+  title:                { type: String,  default: ''      },
+  description:          { type: String,  default: ''      },
+  icon:                 { type: String,  default: ''      },  // RemixIcon class
+  // Size overrides per device (px or %)
+  widthDesktop:         { type: String,  default: '500px' },
+  widthTablet:          { type: String,  default: '400px' },
+  widthMobile:          { type: String,  default: '92vw'  },
+  heightDesktop:        { type: String,  default: '70vh'  },
+  heightTablet:         { type: String,  default: '75vh'  },
+  heightMobile:         { type: String,  default: '88vh'  },
+  // Nested drawer support
+  nested:               { type: Boolean, default: false   },
+  // ui passthrough (merged with SARIKA defaults)
+  ui:                   { type: Object,  default: () => ({}) },
+})
 
-
-const emit = defineEmits(['update:modelValue', 'open', 'close'])
+const open  = defineModel('open', { default: false })
+const emit  = defineEmits(['open', 'close', 'update:open'])
 
 const screen = useScreenStore()
-/**
- * Responsive defaults
- */
-const defaultWidth = computed(() => {
-  if (screen.isMobile) return '85vw'
-  if (screen.isTablet) return '400px'
-  return '500px'
+
+// ── Resolved direction: auto bottom on mobile, right on desk/tablet ────────
+const resolvedDirection = computed(() => {
+  if (props.direction) return props.direction
+  return screen.isMobile ? 'bottom' : 'right'
 })
 
+const isVertical = computed(() =>
+  resolvedDirection.value === 'top' || resolvedDirection.value === 'bottom'
+)
 
-// Internal state
-const defaultUI = computed(() => {
-  const base  = {
-    overlay: 'r-drawer-overlay fixed inset-0 bg-elevated/75',
-    content: [
-      'r-drawer-content r-drawer-content fixed bg-default ring ring-default flex focus:outline-none flex-col w-[500px] flex flex-col bg-default shadow-xl',
-      nested.value ? 'z-[60]' : 'z-[50]'
-    ],
-    handle: [
-      'shrink-0 !bg-accented',
-      'transition-opacity',
-      'r-drawer-handle'
-    ],
-    container: 'r-drawer-container w-full flex flex-col gap-4 p-4 overflow-y-auto',
-    header: '',
-    title: 'text-highlighted font-semibold',
-    description: 'mt-1 text-muted text-sm',
-    body: 'r-drawer-body flex-1',
-    footer: 'flex flex-col gap-1.5'
+// ── Responsive size vars ───────────────────────────────────────────────────
+const sizeVar = computed(() => {
+  if (isVertical.value) {
+    // top/bottom: control height
+    if (screen.isMobile)  return { '--rd-size': props.heightMobile  }
+    if (screen.isTablet)  return { '--rd-size': props.heightTablet  }
+    return                       { '--rd-size': props.heightDesktop }
   }
-  return { ...base, ...props.ui }
+  // left/right: control width
+  if (screen.isMobile)  return { '--rd-size': props.widthMobile  }
+  if (screen.isTablet)  return { '--rd-size': props.widthTablet  }
+  return                       { '--rd-size': props.widthDesktop }
 })
 
+// ── SARIKA default ui tokens — merged with consumer :ui ───────────────────
+const mergedUi = computed(() => ({
+  overlay:   'rd-overlay',
+  content:   'rd-content',
+  handle:    'rd-handle',
+  container: 'rd-container',
+  header:    'rd-header-slot',
+  title:     'rd-title',
+  description: 'rd-description',
+  body:      'rd-body',
+  footer:    'rd-footer',
+  ...props.ui,
+}))
+
+// ── Nested drawer support via provide/inject ───────────────────────────────
+// Parent provides 'rDrawerNested'; child reads it to set nested=true automatically
+const parentIsDrawer = inject('rDrawerNested', false)
+const isNested = computed(() => props.nested || parentIsDrawer)
+provide('rDrawerNested', true)
+
+// ── Close handler ──────────────────────────────────────────────────────────
+function close() {
+  open.value = false
+  emit('close')
+}
 </script>
 
 <template>
-    <UDrawer
-      v-model:open="open"
-      :direction="direction"
-      :modal="modal"
-      :overlay="overlay"
-      :handle="handle"
-      :handle-only="handleOnly"
-      :dismissible="dismissible"
-      :trap-focus="trapFocus"
-      :close-on-escape="closeOnEscape"
-      :close-on-outside-click="closeOnOutsideClick"
-      :should-scale-background="shouldScaleBackground"
-      :class="className"
-      :ui="defaultUI"
-      class="r-drawer-wrapper"
-      >
-      <!-- :style="sizeStyle" -->
+  <UDrawer
+    v-model:open="open"
+    :direction="resolvedDirection"
+    :modal="modal"
+    :overlay="overlay"
+    :handle="handle"
+    :handle-only="handleOnly"
+    :dismissible="dismissible"
+    :trap-focus="trapFocus"
+    :close-on-escape="closeOnEscape"
+    :close-on-outside-click="closeOnOutsideClick"
+    :should-scale-background="shouldScaleBackground"
+    :nested="isNested"
+    :ui="mergedUi"
+    :style="sizeVar"
+    class="rd"
+    @update:open="$emit('update:open', $event)"
+  >
 
-      <!-- Pass through all slots -->
-      <!-- <template v-for="(_, name) in $slots" #[name]="slotProps">
-        <slot :name="name" v-bind="slotProps" />
-      </template> -->
+    <!-- ── Default slot (trigger) ─────────────────────────
+         Passes through whatever the parent puts as trigger.
+         UDrawer uses its default slot as the trigger button.
+    ─────────────────────────────────────────────────────── -->
+    <slot />
 
-      <template #content>
+    <!-- ── #header slot ──────────────────────────────────── -->
+    <template v-if="$slots.header" #header>
+      <slot name="header" :close="close" />
+    </template>
+
+    <!-- ── #body slot ────────────────────────────────────── -->
+    <template v-if="$slots.body" #body>
+      <slot name="body" :close="close" />
+    </template>
+
+    <!-- ── #footer slot ──────────────────────────────────── -->
+    <template v-if="$slots.footer" #footer>
+      <slot name="footer" :close="close" />
+    </template>
+
+    <!-- ── #content slot (full override — no chrome) ──────
+         When #content is used we still inject the SARIKA
+         header chrome (icon + title + description + close).
+         Consumer can suppress it by not passing title/icon.
+    ─────────────────────────────────────────────────────── -->
+    <template #content>
+      <slot name="content" :close="close">
+
+        <!-- SARIKA chrome header ─────────────────────── -->
         <div
-        class="flex flex-col h-full"
-        :style="{
-          width: direction === 'left' || direction === 'right'
-            ? defaultWidth
-            : '100%'
-        }"
-      >
-        <div v-if="$slots.header || title || description" class="r-drawer-wrapper">
-          <slot name="header">
-            <div class="flex items-center justify-between w-full">
+          v-if="title || icon || $slots['drawer-header']"
+          class="rd__chrome-head"
+        >
+          <slot name="drawer-header" :close="close">
+            <div class="rd__title-wrap">
+              <!-- RemixIcon -->
+              <span v-if="icon" class="rd__icon-wrap">
+                <i :class="icon" aria-hidden="true" />
+              </span>
               <div>
-                  <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
-                  <span v-if="description" v-html="description"></span>
+                <h2 v-if="title" class="rd__title" v-html="title" />
+                <p v-if="description" class="rd__desc" v-html="description" />
               </div>
-              <div @click="open = false" class="r-drawer-header cursor-pointer" ><i class="ri-close-line"></i></div>
             </div>
+            <!-- Close button -->
+            <button type="button" class="rd__close" aria-label="Close drawer" @click="close">
+              <i class="ri-close-line" aria-hidden="true" />
+            </button>
           </slot>
         </div>
-        
-        <!-- BODY -->
-        <div class="flex-1 overflow-y-auto">
-          <slot />
+
+        <!-- Scrollable body ──────────────────────────── -->
+        <div class="rd__body">
+          <slot name="body" :close="close" />
         </div>
 
-        <div v-if="$slots.footer"  class="p-4 border-t">
-          <slot name="footer">
+        <!-- Footer ──────────────────────────────────── -->
+        <div v-if="$slots.footer" class="rd__footer">
+          <slot name="footer" :close="close" />
+        </div>
 
-          </slot>
-        </div>
-        </div>
-      </template>
-    </UDrawer>
+      </slot>
+    </template>
+
+  </UDrawer>
 </template>
 
 <style lang="scss" scoped>
-.r-drawer-handle {
-  height: 4px;
-  width: 40px;
-  border-radius: 999px;
-  background: var(--color-muted);
-  margin: 10px auto;
-}
-.r-drawer-wrapper {
-  display: inline-block;
-  z-index: 9999;
-  min-width: 500px;
-  padding: 20px;
-}
 
-:deep([data-vaul-drawer-direction='right']) {
-  width: 500px;
-}
+// ─────────────────────────────────────────────────────────
+// SARIKA chrome (scoped to this component's own elements)
+// ─────────────────────────────────────────────────────────
+.rd {
+  display: contents; // neutral host — UDrawer controls DOM
 
-/* Mobile */
-@media (max-width: 640px) {
-  :deep(.r-drawer-content) {
-    width: 85vw !important;
-    max-width: 85vw !important;
+  &__chrome-head {
+    display:         flex;
+    align-items:     flex-start;
+    justify-content: space-between;
+    gap:             var(--space-3);
+    padding:         var(--space-4) var(--space-5);
+    border-bottom:   1px solid var(--c-border);
+    flex-shrink:     0;
   }
 
-  :deep([data-vaul-drawer-direction="top"]),
-  :deep([data-vaul-drawer-direction="bottom"]) {
-    height: 85vh !important;
-    max-height: 85vh !important;
+  &__title-wrap {
+    display:     flex;
+    align-items: flex-start;
+    gap:         var(--space-3);
+    min-width:   0;
+  }
+
+  &__icon-wrap {
+    width:         38px;
+    height:        38px;
+    border-radius: var(--radius-md);
+    background:    rgba(255,140,66,0.1);
+    color:         var(--c-accent);
+    @include flex-center;
+    font-size:     1.1rem;
+    flex-shrink:   0;
+  }
+
+  &__title {
+    font-size:   0.95rem;
+    font-weight: 700;
+    color:       var(--c-text);
+    line-height: 1.3;
+    margin:      0;
+  }
+
+  &__desc {
+    font-size:  0.78rem;
+    color:      var(--c-muted);
+    margin:     3px 0 0;
+    line-height: 1.5;
+  }
+
+  &__close {
+    width:         32px;
+    height:        32px;
+    border:        1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background:    transparent;
+    color:         var(--c-muted);
+    cursor:        pointer;
+    @include flex-center;
+    @include transition(fast);
+    flex-shrink:   0;
+    font-size:     1rem;
+
+    &:hover {
+      border-color: var(--c-accent);
+      color:        var(--c-accent);
+      background:   rgba(255,140,66,0.06);
+    }
+  }
+
+  &__body {
+    flex:        1;
+    overflow-y:  auto;
+    padding:     var(--space-5);
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-accent) transparent;
+
+    &::-webkit-scrollbar       { width: 4px; }
+    &::-webkit-scrollbar-track { background: var(--bg-tertiary); }
+    &::-webkit-scrollbar-thumb { background: var(--c-accent); border-radius: 999px; }
+  }
+
+  &__footer {
+    flex-shrink:  0;
+    padding:      var(--space-4) var(--space-5);
+    border-top:   1px solid var(--c-border);
+    background:   var(--bg-tertiary);
   }
 }
+</style>
 
-/* Tablet */
-@media (min-width: 641px) and (max-width: 1024px) {
-  :deep([data-vaul-drawer-direction="left"]),
-  :deep([data-vaul-drawer-direction="right"]) {
-    width: 400px !important;
-    max-width: 400px !important;
-  }
+<!-- ─────────────────────────────────────────────────────────
+     GLOBAL — override UDrawer/vaul-vue portal styles
+     Using CSS custom property --rd-size set by :style binding
+────────────────────────────────────────────────────────── -->
+<style lang="scss">
+
+// ── Overlay ───────────────────────────────────────────────
+.rd-overlay {
+  background:      rgba(0,0,0,0.45) !important;
+  backdrop-filter: blur(6px) !important;
+  @include transition;
 }
 
-/* Desktop */
-@media (min-width: 1025px) {
-  :deep([data-vaul-drawer-direction="left"]),
-  :deep([data-vaul-drawer-direction="right"]) {
-    width: 500px !important;
-    max-width: 500px !important;
-  }
-}
+// ── Content panel ─────────────────────────────────────────
+.rd-content {
+  background:    var(--c-surface) !important;
+  font-family:   var(--font-fallback) !important;
+  display:       flex !important;
+  flex-direction: column !important;
+  overflow:      hidden !important;
 
-/* Handle */
-:deep([data-slot="handle"]) {
-  padding: 12px 16px;
-}
-
-:deep([data-slot="handle"]::before) {
-  width: 40px;
-  height: 4px;
-  border-radius: 999px;
-}
-
-/* Overlay */
-:deep([data-slot="overlay"]) {
-  backdrop-filter: blur(8px);
-}
-
-/* Content */
-:deep([data-slot="content"]) {
+  // Transition
   transition:
-    transform .3s cubic-bezier(.4,0,.2,1),
-    opacity .3s ease;
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity   0.3s ease !important;
+
+  // ── SIZE via CSS var (injected by :style) ──────────────
+  // left/right drawers → width
+  &[data-vaul-drawer-direction="left"],
+  &[data-vaul-drawer-direction="right"] {
+    width:     var(--rd-size, 500px) !important;
+    max-width: min(var(--rd-size, 500px), 95vw) !important;
+  }
+
+  // top/bottom drawers → height
+  &[data-vaul-drawer-direction="top"],
+  &[data-vaul-drawer-direction="bottom"] {
+    height:     var(--rd-size, 70vh) !important;
+    max-height: min(var(--rd-size, 70vh), 95dvh) !important;
+  }
+
+  // Bottom drawer: rounded top corners
+  &[data-vaul-drawer-direction="bottom"] {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+  }
+
+  // Top drawer: rounded bottom corners
+  &[data-vaul-drawer-direction="top"] {
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
+  }
+
+  // Right drawer: rounded left corners
+  &[data-vaul-drawer-direction="right"] {
+    border-radius: var(--radius-xl) 0 0 var(--radius-xl) !important;
+  }
+
+  // Left drawer: rounded right corners
+  &[data-vaul-drawer-direction="left"] {
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0 !important;
+  }
 }
 
-/* Scrollbar */
-:deep([data-slot="body"]) {
+// ── Handle ────────────────────────────────────────────────
+.rd-handle {
+  cursor:      grab !important;
+  @include transition(fast);
+
+  &::before {
+    content:       '' !important;
+    display:       block !important;
+    width:         40px !important;
+    height:        4px !important;
+    border-radius: 999px !important;
+    background:    var(--c-border) !important;
+    margin:        0 auto !important;
+    @include transition(fast);
+  }
+
+  &:hover::before { background: var(--c-accent) !important; }
+}
+
+// Handle padding offset
+[data-slot="handle"] {
+  padding: 12px 0 !important;
+}
+
+// ── Container ─────────────────────────────────────────────
+.rd-container {
+  display:        flex !important;
+  flex-direction: column !important;
+  height:         100% !important;
+  overflow:       hidden !important;
+}
+
+// ── Body ──────────────────────────────────────────────────
+.rd-body {
+  flex:       1 !important;
+  overflow-y: auto !important;
   scrollbar-width: thin;
+  scrollbar-color: var(--c-accent) transparent;
+
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--c-accent); border-radius: 999px; }
 }
 
-:deep([data-slot="body"]::-webkit-scrollbar) {
-  width: 4px;
+// ── Footer ────────────────────────────────────────────────
+.rd-footer {
+  flex-shrink: 0 !important;
 }
 
-:deep([data-slot="body"]::-webkit-scrollbar-track) {
-  background: var(--bg-tertiary);
+// ── Dark mode ─────────────────────────────────────────────
+.dark {
+  .rd-overlay { background: rgba(0,0,0,0.65) !important; }
+  .rd-content { background: rgba(19,19,26,0.97) !important; border-left: 1px solid var(--c-border); }
+  .rd-handle::before { background: var(--c-border) !important; }
 }
 
-:deep([data-slot="body"]::-webkit-scrollbar-thumb) {
-  background: var(--c-accent);
-  border-radius: 999px;
+// ── Mobile responsive (override if direction not manually set) ─────────────
+@media (max-width: 767px) {
+  .rd-content[data-vaul-drawer-direction="bottom"] {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+  }
 }
-
-// :deep(.r-drawer-content) {}
-// :deep(.r-drawer-overlay) {}
-// :deep(.r-drawer-handle) {}
-// :deep(.r-drawer-body) {}
 </style>

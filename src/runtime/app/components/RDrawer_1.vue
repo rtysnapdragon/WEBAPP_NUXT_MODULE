@@ -108,23 +108,52 @@ import { useScreenStore } from '../stores/screen'
 const screen = useScreenStore()
 const open = defineModel()
 
-const props = defineProps({
-    title: String,
-    description: String,
-    subtitle: String,
-    icon:String,
-    side: { type: String, default:'right' }, // 'left' | 'right' | 'top' | 'bottom'
-    ui: Object,
-    dismissible: { type: Boolean, default: true },
-    noClose: { type: Boolean, default: true }
-  })
+import { useScreenStore } from '../stores/screen'
+const open = defineModel()
+const props = defineProps([
+  'direction',
+  'modal',
+  'overlay',
+  'handle',
+  'dismissible',
+  'trapFocus',
+  'closeOnEscape',
+  'closeOnOutsideClick',
+  'className',
+  'ui',
+  'title',
+  'icon',
+  'description',
+  'class',
+  'handleOnly',
+  'shouldScaleBackground',
+  'nested'
+])
 
-const emit = defineEmits(['close'])
+const dismissible = computed(() => props.dismissible ?? true)
+const modal = computed(() => props.modal ?? true)
+const overlay = computed(() => props.overlay ?? true)
+const handle = computed(() => props.handle ?? true)
+const trapFocus = computed(() => props.trapFocus ?? true)
+const closeOnEscape = computed(() => props.closeOnEscape ?? true)
+const closeOnOutsideClick = computed(() => props.closeOnOutsideClick ?? true)
+const className = computed(() => props.class ?? '')
+const handleOnly = computed(() => props.handleOnly ?? false)
+const nested = computed(() => props.nested ?? false)
+const shouldScaleBackground = computed(() => props.shouldScaleBackground ?? false)
 
-function handleClose(result = false) {
-  open.value = false
-  emit('close', result)
-}
+
+const emit = defineEmits(['update:modelValue', 'open', 'close'])
+
+const screen = useScreenStore()
+/**
+ * Responsive defaults
+ */
+const defaultWidth = computed(() => {
+  if (screen.isMobile) return '85vw'
+  if (screen.isTablet) return '400px'
+  return '500px'
+})
 
 /* -----------------------------
    UI Helpers
@@ -134,8 +163,25 @@ const slideoverSide = computed(() => {
   return screen.isMobile ? 'bottom' : props.side
 })
 
-const mergedUi = computed(() => ({
-  slots: {
+const mergedUi = computed(() => {
+  const base =  {
+       overlay: 'r-drawer-overlay fixed inset-0 bg-elevated/75',
+    content: [
+      'r-drawer-content r-drawer-content fixed bg-default ring ring-default flex focus:outline-none flex-col w-[500px] flex flex-col bg-default shadow-xl',
+      nested.value ? 'z-[60]' : 'z-[50]'
+    ],
+    handle: [
+      'shrink-0 !bg-accented',
+      'transition-opacity',
+      'r-drawer-handle'
+    ],
+    container: 'r-drawer-container w-full flex flex-col gap-4 p-4 overflow-y-auto',
+    header: '',
+    title: 'text-highlighted font-semibold',
+    description: 'mt-1 text-muted text-sm',
+    body: 'r-drawer-body flex-1',
+    footer: 'flex flex-col gap-1.5',
+
     content: [
       'bg-[var(--c-surface)]',
       'border-[var(--c-border)]',
@@ -169,12 +215,12 @@ const mergedUi = computed(() => ({
       'cursor-pointer',
     ],
      title: 'font-semibold',
-     description: 'text-sm text-muted'   
-  },
+     description: 'text-sm text-muted',
+     footer: 'justify-end',
+  }
    
-  footer: 'justify-end',
-  ...props.ui
-}))
+  return {...base, ...props.ui}
+})
 
 function onOpenChange(value) {
   open.value = value
