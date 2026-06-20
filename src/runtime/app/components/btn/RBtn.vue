@@ -115,6 +115,11 @@ const icon = computed(() => {
   )
     return "ri-hand";
   else if (
+    props.type?.toLowerCase() == "close" ||
+    props.icon?.toLowerCase() == "close"
+  )
+    return "ri-close-line";
+  else if (
     props.type?.toLowerCase() == "share" ||
     props.icon?.toLowerCase() == "share"
   )

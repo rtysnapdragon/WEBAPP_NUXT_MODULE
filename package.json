@@ -44,13 +44,14 @@
   "dependencies": {
     "@easylogic/colorpicker": "^1.10.11",
     "@nuxt/content": "^3.14.0",
-    "@nuxt/ui": "^4.9.0",
+    "@nuxt/ui": "^4.8.2",
     "@popperjs/core": "^2.11.8",
     "axios": "^1.17.0",
     "better-sqlite3": "^12.10.0",
     "flowbite-vue": "^0.2.3",
     "fs-extra": "^11.3.5",
     "nuxt-swiper": "^2.0.2",
+    "tailwindcss": "^4.3.1",
     "v-calendar": "^3.1.2",
     "vue-screen-utils": "^1.0.0-beta.13",
     "zod": "^4.4.3"
@@ -73,7 +74,6 @@
     "eslint": "^10.3.0",
     "nuxt": "^4.4.8",
     "sass-embedded": "^1.100.0",
-    "tailwindcss": "^4.3.1",
     "typescript": "~6.0.3",
     "vitest": "^4.1.5",
     "vue": "^3.5.34",
