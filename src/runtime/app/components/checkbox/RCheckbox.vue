@@ -1,7 +1,7 @@
 <template>
-  <UCheckbox v-model="select" :ui="ui" :label="label" :name="props.name" :help="help" :required="props.required"
+  <UCheckbox v-model="select" :ui="ui" :label="label" :name="props.name" :help="help" :required="props.required"  :indeterminate="indeterminate"
     :disabled="disabled" :value="value" v-bind="$attrs" :id="id"
-    :inputClass="`oc-checkbox  ${disabled || disabled == '' ? '!cursor-not-allowed' : ''}`">
+    :inputClass="['oc-checkbox  ', disabled || disabled == '' ? '!cursor-not-allowed' : '', indeterminate && 'minus']">
     <template #label v-if="$slots.label">
       <slot name="label" />
     </template>
@@ -10,22 +10,26 @@
 
 <script setup>
 const select = defineModel()
-const props = defineProps(['ui', 'label', 'name', 'help', 'required', 'value', 'disabled', 'id'])
+const props = defineProps(['ui', 'label', 'name', 'help', 'required', 'value', 'disabled', 'id',   'indeterminate'])
 
 const ui = computed(() => {
   const defaultUI = {
-    wrapper: 'relative flex items-center gap-1.5',
+    wrapper: 'w-full relative flex items-center gap-1.5',
     container: 'flex items-center h-5',
-    base: 'h-4 w-4 focus-visible:!ring-0 focus:!ring-0',
+    base: 'r-checkbox-base rounded-sm ring ring-inset ring-accented overflow-hidden focus-visible:outline-3 h-4 w-4 focus-visible:!ring-0 focus:!ring-0',
+    indicator: 'flex items-center justify-center size-full text-inverted',
+    icon: 'shrink-0 size-full',
     form: '',
     color: '',
     background: '',
     border: '',
     ring: '',
     inner: 'ms-0 flex flex-col',
-    label: 'text-xs font-normal color-w-b-1 line-clamp-1 cursor-pointer',
+    label: 'block font-medium text-default text-xs font-normal color-w-b-1 line-clamp-1 cursor-pointer',
     required: 'text-xs text-red-500 dark:text-red-400',
     help: 'text-xs text-gray-500 dark:text-gray-400',
+    root: 'relative flex items-start',
+    description: 'text-muted',
     default: {
       color: '',
     },
@@ -49,6 +53,12 @@ mounted(() => {
 
 <style lang="scss">
 $oc-checkbox-padding: 6px;
+
+.r-checkbox-base{
+  border: 2px solid #c3c3c3 !important;
+  width: 15px ! important;
+  height: 15px !important;
+}
 
 input[type='checkbox'] {
   &.oc-checkbox {
