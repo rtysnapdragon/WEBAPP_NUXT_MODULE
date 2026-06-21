@@ -1,5 +1,5 @@
 <template>
-  <RInput ref="refOCInput" v-model.trim="search" icon="ri-search-2-line" :placeholder="placeholder ? placeholder : $t('search')"
+  <RInput ref="refOCInput" v-model.trim="search" icon="ri-search-2-line" :placeholder="placeholder ? placeholder : $t('search')" :isLeft="true" :isRight="true"
     :autofocus="props.autofocus" autocomplete="off" :ui="{
       wrapper: `container-oc-input-search relative sm:w-auto ${props.wrapper ?? ''}`,
       base: `input-search ${props.class ?? ''} ps-9 pe-9`,
@@ -9,11 +9,12 @@
       },
     }" @input="onSearch">
     <template #trailing>
-      <UButton v-show="isNotEmpty(search)" color="gray" variant="link" icon="ri-close-circle-line" :padded="false"
+      <!-- <UButton v-show="isNotEmpty(search)" color="gray" variant="link" icon="ri-close-circle-line" :padded="false"
         @click="onCancel" class="text-lg" :ui="{
           icon: { base: 'flex justify-center items-center text-[14px]' },
           inline: 'hover:no-underline',
-        }" />
+        }" /> -->
+      <div v-show="isNotEmpty(search)" @click="onCancel" class="text-lg cursor-pointer"> <i class="ri-close-circle-line"></i> </div>
     </template>
   </RInput>
 </template>

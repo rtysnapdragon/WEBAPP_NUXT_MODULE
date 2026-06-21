@@ -31,7 +31,7 @@
       </template>
 
       <template #footer>
-        <div class="r-slider-footer r-footer py-[10px] flex justify-end gap-2 w-full">
+        <div class="r-slider-footer py-[10px] flex justify-end gap-2 w-full">
           <slot name="footer">
             <!-- <RBtn
               icon="close"

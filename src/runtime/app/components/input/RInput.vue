@@ -22,9 +22,9 @@
     </template>
 
     <template #trailing v-if="$slots.trailing">
-      <div class="trailing-side right-[10px]">
-        <slot name="trailing" />
-      </div>
+      <slot name="trailing" />
+      <!-- <div class="trailing-side right-[10px]">
+      </div> -->
     </template>
 
     <!-- <template #trailing v-if="!$slots.trailing">
@@ -270,6 +270,7 @@ defineExpose({ ocInput });
   font-size: 12px !important  ;
 }
 .oc-input-wrapper {
+  position: relative;
   .position-right-custom {
     right: 12px;
   }
@@ -310,10 +311,16 @@ defineExpose({ ocInput });
   padding-left: 12px !important;
 }
 
+// [data-slot="trailing"] {
+//   padding-right: 12px !important;
+// }
 [data-slot="trailing"] {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   padding-right: 12px !important;
 }
-
 //work for rinput
 //make space for leading icon
 [data-slot="base"] {
@@ -336,6 +343,14 @@ defineExpose({ ocInput });
 .pin-input-base{
   width:24px !important;
   height: 24px !important;
+}
+
+.trailing-side {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
 .ocs-input {
