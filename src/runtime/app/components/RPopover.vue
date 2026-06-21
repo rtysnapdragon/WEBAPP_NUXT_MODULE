@@ -18,7 +18,7 @@
     </UPopover>
 
     <!-- use = flowbite -->
-    <!-- <fwb-dropdown :placement="placement ?? 'right'" closeInside="closeInside" class="popup-flowbite" v-else-if="use == 'flowbite'">
+    <fwb-dropdown :placement="placement ?? 'right'" closeInside="closeInside" class="popup-flowbite" v-else-if="use == 'flowbite'">
       <template #trigger>
         <slot name="trigger" v-if="$slots.trigger"></slot>
         <div class="btn-leading" v-else @click.stop><i class="ri-more-2-fill"></i></div>
@@ -26,7 +26,7 @@
       <div @click.stop>
         <slot></slot>
       </div>
-    </fwb-dropdown> -->
+    </fwb-dropdown>
 
     <!-- use = headless -->
     <Popover v-slot="{ open }" class="relative popup-headless" v-else-if="use == 'headless'" >
