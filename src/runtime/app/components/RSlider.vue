@@ -8,8 +8,7 @@
     }"
     :class="['r-slider-container', `r-slider-${sliderScreenMode}-mobile`]"
     >
-    <template #content>
-      <!-- <template #header> -->
+      <template #header>
         <div class="r-slider-header flex items-center justify-between w-full">
           <slot name="header">
             <div>
@@ -22,18 +21,18 @@
             <i class="ri-close-line text-[16px] cursor-pointer" @click="closed"></i>
           </slot>
         </div>
-      <!-- </template> -->
+      </template>
       
-      <!-- <template #body> -->
+      <template #body>
         <div ref="refRDrawerBody" class="r-slider-body "
           :class="hasScroll ? 'r-slider-has-scroll isScroll' : ''">
           <slot />
         </div>
-      <!-- </template> -->
+      </template>
 
-      <!-- <template #footer> -->
-        <slot name="footer">
+      <template #footer>
         <div class="r-slider-footer r-footer py-[10px] flex justify-end gap-2 w-full">
+          <slot name="footer">
             <!-- <RBtn
               icon="close"
               color="neutral"
@@ -47,10 +46,9 @@
               :label="$t('save')"
               @click="handleSubmit"
             /> -->
-          </div>
-        </slot>
-      <!-- </template> -->
-    </template>
+          </slot>
+        </div>
+      </template>
   </USlideover>
 </template>
 
