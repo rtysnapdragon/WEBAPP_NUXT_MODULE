@@ -23,8 +23,7 @@
 
     <template #trailing v-if="$slots.trailing">
       <slot name="trailing" />
-      <!-- <div class="trailing-side right-[10px]">
-      </div> -->
+      <!-- <div class="trailing-side right-[10px]"> </div> -->
     </template>
 
     <!-- <template #trailing v-if="!$slots.trailing">
@@ -311,12 +310,10 @@ defineExpose({ ocInput });
   padding-left: 12px !important;
 }
 
-// [data-slot="trailing"] {
-//   padding-right: 12px !important;
-// }
+
 [data-slot="trailing"] {
   position: absolute;
-  right: 12px;
+  // right: 12px;
   top: 50%;
   transform: translateY(-50%);
   padding-right: 12px !important;
@@ -324,8 +321,8 @@ defineExpose({ ocInput });
 //work for rinput
 //make space for leading icon
 [data-slot="base"] {
-  padding-left: v-bind('isRight ? "30px" : "12px"');
-  padding-right: v-bind('isLeft ? "30px" : "12px"');
+  padding-left: v-bind('isLeft ? "35px" : "12px"');
+  padding-right: v-bind('isRight ? "35px" : "12px"');
   // padding-left: v-bind('ui.leading ? "30px" : "12px"') !important;
   // padding-right: v-bind('ui.trailingIcon ? "30px" : "12px"') !important;
   font-size: 16px;

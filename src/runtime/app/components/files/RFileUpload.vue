@@ -1,955 +1,1191 @@
-<script setup lang="ts" generic="M extends boolean = false">
-/**
- * RFileUpload
- * ---------------------------------------------------------------
- * Full custom re-implementation of NuxtUI v4.8.2 <UFileUpload>.
- *
- * Parity goals (see UFileUpload API):
- *  - All props          ✅ (icon/label/description/color/variant/size/
- *                            layout/position/highlight/accept/multiple/
- *                            reset/dropzone/interactive/required/disabled/
- *                            fileIcon/fileImage/fileDelete/fileDeleteIcon/
- *                            preview/ui/name/id/form*)
- *  - All slots          ✅ (default/leading/label/description/actions/
- *                            files/files-top/files-bottom/file/file-leading/
- *                            file-name/file-size/file-trailing)
- *  - All emits          ✅ (change / update:modelValue)
- *  - All exposes        ✅ (inputRef / dropzoneRef) + open()/removeFile()
- *                            passed through default/actions/files-bottom
- *                            slots exactly like UFileUpload.
- *
- * Additions beyond UFileUpload:
- *  - Per-file upload progress bar (via useRFileUpload + uploadHandler prop)
- *  - Retry single failed file, or retry all
- *  - Remove one-by-one or remove all
- *  - Validation warnings (max size / max files / image dimensions)
- *  - RBtn (Remixicon) everywhere instead of UButton/Lucide
- *  - Pure SCSS styling (SARIKA tokens), no Tailwind dependency
- * ---------------------------------------------------------------
- */
-import { computed, ref, watch, useId, useAttrs } from 'vue'
+<script setup>
+// RFileUpload — SARIKA
+// Full UFileUpload wrapper: all props/slots/emits/exposes
+// Extras: per-file progress, error+retry, crop popup, frontend compress,
+//         remove one / remove all, dimension + size warnings, glass UI
+// No lang="ts" — plain <script setup>
+
 import {
-  useRFileUpload,
-  formatBytes,
-  type RUploadHandler,
-  type RFileEntry
-} from '../../composables/useRFileUpload'
+  ref, computed, watch, nextTick, useTemplateRef, defineExpose, defineSlots
+} from 'vue'
+import { useI18n } from 'vue-i18n'
 
-type Color = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
-type Variant = 'button' | 'area'
-type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-type Layout = 'list' | 'grid'
-type Position = 'inside' | 'outside'
+// ── Props ─────────────────────────────────────────────────────────────────
+const props = defineProps({
+  // ── UFileUpload passthrough ──────────────────────────
+  modelValue:   { type: Array,   default: () => [] },       // File[]
+  multiple:     { type: Boolean, default: false },
+  accept:       { type: String,  default: null  },
+  maxSize:      { type: Number,  default: null  },           // bytes
+  maxFiles:     { type: Number,  default: null  },
+  label:        { type: String,  default: 'Drop files here' },
+  description:  { type: String,  default: null  },
+  icon:         { type: String,  default: 'i-lucide-upload-cloud' },
+  layout:       { type: String,  default: 'grid' },         // 'grid'|'list'
+  interactive:  { type: Boolean, default: true  },
+  disabled:     { type: Boolean, default: false },
+  ui:           { type: Object,  default: () => ({}) },
 
-interface FileDeleteConfig {
-  color?: Color
-  variant?: 'solid' | 'outline' | 'ghost' | 'soft' | 'link'
-  size?: Size
-}
+  // ── SARIKA extras ────────────────────────────────────
+  // Dimension limits (images only)
+  maxWidth:     { type: Number,  default: null  },          // px
+  maxHeight:    { type: Number,  default: null  },          // px
+  minWidth:     { type: Number,  default: null  },
+  minHeight:    { type: Number,  default: null  },
 
-interface RFileUploadUi {
-  root?: string
-  base?: string
-  wrapper?: string
-  icon?: string
-  avatar?: string
-  label?: string
-  description?: string
-  actions?: string
-  files?: string
-  file?: string
-  fileLeadingAvatar?: string
-  fileWrapper?: string
-  fileName?: string
-  fileSize?: string
-  fileTrailingButton?: string
-}
+  // Compression
+  compress:     { type: Boolean, default: false },
+  compressQuality: { type: Number, default: 0.82 },         // 0–1
+  compressMaxPx:   { type: Number, default: 1920 },         // longest edge
 
-interface RFileUploadProps {
-  as?: string
-  id?: string
-  name?: string
-  /** Remixicon class. Set to false to hide. @default 'ri-upload-2-line' */
-  icon?: string | false
-  label?: string
-  description?: string
-  color?: Color
-  /** 'button' variant only available when multiple is false */
-  variant?: Variant
-  size?: Size
-  /** Only works when variant is 'area' @default 'grid' */
-  layout?: Layout
-  /** Only works when variant 'area' + layout 'list' @default 'outside' */
-  position?: Position
-  highlight?: boolean
-  /** comma-separated MIME types or extensions @default '*' */
-  accept?: string
-  multiple?: M
-  /** reset input when dialog opens @default false */
-  reset?: boolean
-  /** @default true */
-  dropzone?: boolean
-  /** @default true */
-  interactive?: boolean
-  required?: boolean
-  disabled?: boolean
-  /** Remixicon class for file icon */
-  fileIcon?: string
-  /** @default true */
-  fileImage?: boolean
-  /** @default true */
-  fileDelete?: boolean | FileDeleteConfig
-  fileDeleteIcon?: string
-  /** @default true */
-  preview?: boolean
-  ui?: RFileUploadUi
-  form?: string
-  formaction?: string
-  formenctype?: string
-  formmethod?: string
-  formnovalidate?: boolean
-  formtarget?: string
-  modelValue?: M extends true ? File[] : (File | null)
+  // Crop
+  crop:         { type: Boolean, default: false },
+  cropAspect:   { type: Number,  default: null  },          // e.g. 16/9
 
-  /* ── RFileUpload additions (beyond UFileUpload) ── */
-  /** Max size per file, in bytes */
-  maxSize?: number
-  /** Max number of files (multiple mode) */
-  maxFiles?: number
-  minWidth?: number
-  minHeight?: number
-  maxWidth?: number
-  maxHeight?: number
-  /** Async function performing the real upload. Omit for select-only (no network) behavior. */
-  uploadHandler?: RUploadHandler
-  /** Show per-file progress bar while uploading */
-  showProgress?: boolean
-}
+  // Upload handler (optional — triggers progress simulation or real upload)
+  uploadFn:     { type: Function, default: null },          // async (file) => void
 
-const props = withDefaults(defineProps<RFileUploadProps>(), {
-  icon: 'ri-upload-2-line',
-  color: 'primary',
-  variant: 'area',
-  size: 'md',
-  layout: 'grid',
-  position: 'outside',
-  highlight: false,
-  accept: '*',
-  reset: false,
-  dropzone: true,
-  interactive: true,
-  required: false,
-  disabled: false,
-  fileImage: true,
-  fileDelete: true,
-  preview: true,
-  showProgress: true
+  // Labels bilingual
+  labelKm:      { type: String, default: null },
+  descriptionKm:{ type: String, default: null },
 })
 
-const emit = defineEmits<{
-  change: [event: Event]
-  'update:modelValue': [value: M extends true ? File[] : (File | null)]
-  /** fired when a file finishes successfully */
-  success: [file: File]
-  /** fired when a file fails */
-  error: [file: File, message: string]
-  /** fired when validation rejects a file (size/dimensions/count) */
-  warning: [message: string, file?: File]
-}>()
+const emit = defineEmits([
+  'update:modelValue',
+  'change',           // File[]
+  'add',              // File
+  'remove',           // File
+  'clear',            // all removed
+  'error',            // { file, message }
+  'upload-start',     // { file }
+  'upload-progress',  // { file, percent }
+  'upload-success',   // { file }
+  'upload-error',     // { file, error }
+  'upload-complete',  // all done
+  'crop-open',        // { file }
+  'crop-save',        // { original, cropped }
+  'compress-done',    // { original, compressed }
+])
 
-const attrs = useAttrs()
+const { locale } = useI18n()
+const fileUploadRef = useTemplateRef('fuRef')
 
-/* ────────────────── refs exposed like UFileUpload ────────────────── */
-const inputRef = ref<HTMLInputElement | null>(null)
-const dropzoneRef = ref<HTMLDivElement | null>(null)
+// ── File entry state ───────────────────────────────────────────────────────
+// Each entry: { file, id, preview, status, progress, error, compressed, cropped }
+const entries = ref([])
+let _nextId = 1
+
+function makeEntry(file) {
+  return {
+    id:         _nextId++,
+    file,
+    preview:    null,
+    status:     'idle',   // idle|compressing|uploading|success|error
+    progress:   0,
+    error:      null,
+    compressed: null,     // File after compression
+    cropped:    null,     // File after crop
+    dimError:   null,     // dimension warning message
+  }
+}
+
+// ── modelValue sync ────────────────────────────────────────────────────────
+const internalFiles = computed(() => props.modelValue)
+
+watch(() => props.modelValue, (files) => {
+  // sync any new files not yet in entries
+  files.forEach(f => {
+    if (!entries.value.find(e => e.file === f)) {
+      const entry = makeEntry(f)
+      entries.value.push(entry)
+      initEntry(entry)
+    }
+  })
+  // remove entries whose files are gone
+  entries.value = entries.value.filter(e => files.includes(e.file))
+})
+
+// ── Warning / error state ──────────────────────────────────────────────────
+const globalWarnings = ref([])
+
+function addWarning(msg) {
+  const id = _nextId++
+  globalWarnings.value.push({ id, msg })
+  setTimeout(() => {
+    globalWarnings.value = globalWarnings.value.filter(w => w.id !== id)
+  }, 5000)
+}
+
+// ── Init entry: preview + dimension check + compress + upload ─────────────
+async function initEntry(entry) {
+  const file = entry.file
+  const isImage = file.type.startsWith('image/')
+
+  // ── Preview
+  if (isImage) {
+    entry.preview = URL.createObjectURL(file)
+  }
+
+  // ── Dimension check
+  if (isImage && (props.maxWidth || props.maxHeight || props.minWidth || props.minHeight)) {
+    const dims = await getImageDimensions(file)
+    const errs = []
+    if (props.maxWidth  && dims.w > props.maxWidth)  errs.push(`Max width ${props.maxWidth}px (got ${dims.w}px)`)
+    if (props.maxHeight && dims.h > props.maxHeight) errs.push(`Max height ${props.maxHeight}px (got ${dims.h}px)`)
+    if (props.minWidth  && dims.w < props.minWidth)  errs.push(`Min width ${props.minWidth}px (got ${dims.w}px)`)
+    if (props.minHeight && dims.h < props.minHeight) errs.push(`Min height ${props.minHeight}px (got ${dims.h}px)`)
+    if (errs.length) {
+      entry.dimError = errs.join(' · ')
+      entry.status   = 'error'
+      entry.error    = entry.dimError
+      emit('error', { file, message: entry.dimError })
+      return
+    }
+  }
+
+  // ── Compress
+  if (props.compress && isImage && file.type !== 'image/gif') {
+    entry.status = 'compressing'
+    try {
+      const compressed = await compressImage(file, props.compressQuality, props.compressMaxPx)
+      entry.compressed = compressed
+      emit('compress-done', { original: file, compressed })
+    } catch (e) {
+      // non-fatal — proceed with original
+    }
+    entry.status = 'idle'
+  }
+
+  // ── Crop popup (if crop=true, pause until user saves)
+  if (props.crop && isImage) {
+    openCrop(entry)
+    return  // upload starts after crop save
+  }
+
+  // ── Upload
+  if (props.uploadFn) {
+    await uploadEntry(entry)
+  }
+}
+
+// ── Image helpers ─────────────────────────────────────────────────────────
+function getImageDimensions(file) {
+  return new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight })
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+async function compressImage(file, quality, maxPx) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let { naturalWidth: w, naturalHeight: h } = img
+      const ratio = Math.min(maxPx / w, maxPx / h, 1)
+      w = Math.round(w * ratio)
+      h = Math.round(h * ratio)
+      const canvas = document.createElement('canvas')
+      canvas.width  = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(
+        blob => {
+          if (!blob) { reject(new Error('compress failed')); return }
+          resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }))
+        },
+        'image/jpeg',
+        quality
+      )
+    }
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+// ── Upload per entry ──────────────────────────────────────────────────────
+async function uploadEntry(entry) {
+  const fileToUpload = entry.cropped ?? entry.compressed ?? entry.file
+  entry.status   = 'uploading'
+  entry.progress = 0
+  entry.error    = null
+  emit('upload-start', { file: fileToUpload })
+
+  try {
+    // If uploadFn accepts a progress callback
+    await props.uploadFn(fileToUpload, (pct) => {
+      entry.progress = Math.min(pct, 99)
+      emit('upload-progress', { file: fileToUpload, percent: pct })
+    })
+    entry.progress = 100
+    entry.status   = 'success'
+    emit('upload-success', { file: fileToUpload })
+  } catch (err) {
+    entry.status = 'error'
+    entry.error  = err?.message ?? 'Upload failed'
+    emit('upload-error', { file: fileToUpload, error: err })
+  }
+
+  // Check if all done
+  const remaining = entries.value.filter(e => e.status === 'uploading')
+  if (remaining.length === 0) {
+    emit('upload-complete')
+  }
+}
+
+async function retryEntry(entry) {
+  if (!props.uploadFn) return
+  await uploadEntry(entry)
+}
+
+async function retryAll() {
+  const failed = entries.value.filter(e => e.status === 'error')
+  for (const e of failed) {
+    await retryEntry(e)
+  }
+}
+
+const hasAnyError = computed(() => entries.value.some(e => e.status === 'error'))
+const allUploading = computed(() => entries.value.some(e => e.status === 'uploading'))
+const successCount = computed(() => entries.value.filter(e => e.status === 'success').length)
+
+// ── Remove ────────────────────────────────────────────────────────────────
+function removeEntry(entry) {
+  const idx = entries.value.indexOf(entry)
+  if (idx !== -1) entries.value.splice(idx, 1)
+  const newFiles = entries.value.map(e => e.file)
+  emit('update:modelValue', newFiles)
+  emit('remove', entry.file)
+}
+
+function removeAll() {
+  entries.value = []
+  emit('update:modelValue', [])
+  emit('clear')
+}
+
+// ── File size display ─────────────────────────────────────────────────────
+function fmtSize(bytes) {
+  if (!bytes) return '—'
+  if (bytes < 1024)        return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function fmtName(name, max = 28) {
+  if (!name) return ''
+  if (name.length <= max) return name
+  const ext  = name.includes('.') ? name.split('.').pop() : ''
+  const base = name.slice(0, max - ext.length - 4)
+  return `${base}…${ext ? `.${ext}` : ''}`
+}
+
+// ── Crop popup state ──────────────────────────────────────────────────────
+const cropEntry   = ref(null)
+const cropCanvas  = ref(null)
+const cropOpen    = ref(false)
+const cropImg     = ref(null)
+
+// Simple crop state: drag rectangle
+const cropRect = ref({ x: 0, y: 0, w: 0, h: 0 })
 const isDragging = ref(false)
+const dragStart  = ref({ x: 0, y: 0 })
 
-const autoId = useId()
-const inputId = computed(() => props.id ?? autoId)
+function openCrop(entry) {
+  cropEntry.value = entry
+  cropOpen.value  = true
+  emit('crop-open', { file: entry.file })
+  nextTick(() => drawCropPreview())
+}
 
-/* ────────────────── upload engine ────────────────── */
-const limits = computed(() => ({
-  maxSize: props.maxSize,
-  maxFiles: props.multiple ? props.maxFiles : 1,
-  accept: props.accept,
-  minDimensions: props.minWidth && props.minHeight ? { width: props.minWidth, height: props.minHeight } : undefined,
-  maxDimensions: props.maxWidth && props.maxHeight ? { width: props.maxWidth, height: props.maxHeight } : undefined
+function drawCropPreview() {
+  if (!cropImg.value) return
+  const img = cropImg.value
+  const { naturalWidth: w, naturalHeight: h } = img
+  const aspect = props.cropAspect ?? (w / h)
+  // default full image crop rect
+  if (cropRect.value.w === 0) {
+    if (aspect >= w / h) {
+      cropRect.value = { x: 0, y: 0, w: w, h: Math.round(w / aspect) }
+    } else {
+      cropRect.value = { x: 0, y: 0, w: Math.round(h * aspect), h }
+    }
+  }
+}
+
+async function saveCrop() {
+  if (!cropEntry.value || !cropImg.value) return
+  const img    = cropImg.value
+  const r      = cropRect.value
+  const canvas = document.createElement('canvas')
+  canvas.width  = r.w
+  canvas.height = r.h
+  canvas.getContext('2d').drawImage(img, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h)
+  const entry  = cropEntry.value
+  const cropped = await new Promise(res =>
+    canvas.toBlob(b => res(new File([b], entry.file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.92)
+  )
+  entry.cropped  = cropped
+  entry.preview  = URL.createObjectURL(cropped)
+  cropOpen.value = false
+  emit('crop-save', { original: entry.file, cropped })
+  if (props.uploadFn) await uploadEntry(entry)
+}
+
+function cancelCrop() {
+  cropOpen.value = false
+  // remove the pending entry since user cancelled
+  if (cropEntry.value) removeEntry(cropEntry.value)
+  cropEntry.value = null
+}
+
+// ── Merged NuxtUI ui (SARIKA tokens over defaults) ────────────────────────
+const mergedUi = computed(() => ({
+  root:        'rfu__root',
+  dropzone:    'rfu__dropzone',
+  icon:        'rfu__drop-icon',
+  label:       'rfu__drop-label',
+  description: 'rfu__drop-desc',
+  files:       'rfu__files-area',
+  ...props.ui,
 }))
 
-const {
-  entries,
-  isUploading,
-  hasErrors,
-  erroredEntries,
-  addFiles: engineAddFiles,
-  retryFile,
-  retryAll,
-  removeFile: engineRemoveFile,
-  removeAll: engineRemoveAll
-} = useRFileUpload({
-  limits: limits.value,
-  uploadHandler: props.uploadHandler,
-  onWarning: (message, file) => emit('warning', message, file)
-})
+// ── Resolved labels ───────────────────────────────────────────────────────
+const resolvedLabel = computed(() =>
+  locale.value === 'km' && props.labelKm ? props.labelKm : props.label
+)
+const resolvedDesc = computed(() =>
+  locale.value === 'km' && props.descriptionKm ? props.descriptionKm : props.description
+)
 
-watch(entries, (list) => {
-  list.forEach((e) => {
-    if (e.status === 'success') emit('success', e.file)
-    if (e.status === 'error' && e.error) emit('error', e.file, e.error)
+// ── Change handler (from UFileUpload) ────────────────────────────────────
+function onFileChange(files) {
+  emit('change', files)
+  files.forEach(f => {
+    emit('add', f)
   })
-}, { deep: true })
-
-/* keep modelValue in sync with entries (File-only, mirrors UFileUpload's value shape) */
-function syncModelValue() {
-  if (props.multiple) {
-    emit('update:modelValue', entries.value.map(e => e.file) as any)
-  } else {
-    emit('update:modelValue', (entries.value[0]?.file ?? null) as any)
-  }
 }
 
-watch(entries, syncModelValue, { deep: false })
-
-/* seed from external modelValue (e.g. v-model reset to null/[]) */
-watch(() => props.modelValue, (val) => {
-  const incomingFiles: File[] = Array.isArray(val) ? val : (val ? [val] : [])
-  const currentFiles = entries.value.map(e => e.file)
-  const same = incomingFiles.length === currentFiles.length
-    && incomingFiles.every((f, i) => f === currentFiles[i])
-  if (same) return
-  if (incomingFiles.length === 0) {
-    engineRemoveAll()
-  }
-  // Adding files externally isn't a common UFileUpload use case; we only honor external clears.
-})
-
-/* ────────────────── open() / file selection ────────────────── */
-function open() {
-  if (props.disabled) return
-  if (props.reset && inputRef.value) inputRef.value.value = ''
-  inputRef.value?.click()
-}
-
-function onInputChange(e: Event) {
-  emit('change', e)
-  const target = e.target as HTMLInputElement
-  void handleIncoming(target.files)
-  // allow re-selecting the same file again later
-  target.value = ''
-}
-
-async function handleIncoming(files: FileList | File[] | null) {
-  if (!files) return
-  if (!props.multiple && entries.value.length > 0) {
-    engineRemoveAll()
-  }
-  await engineAddFiles(files)
-}
-
-/* ────────────────── dropzone ────────────────── */
-function onDragOver(e: DragEvent) {
-  if (!props.dropzone || props.disabled) return
-  e.preventDefault()
-  isDragging.value = true
-}
-function onDragLeave() {
-  isDragging.value = false
-}
-async function onDrop(e: DragEvent) {
-  if (!props.dropzone || props.disabled) return
-  e.preventDefault()
-  isDragging.value = false
-  await handleIncoming(e.dataTransfer?.files ?? null)
-}
-function onZoneClick() {
-  if (props.interactive && !props.disabled) open()
-}
-
-/* ────────────────── remove (one-by-one + all) ────────────────── */
-function removeFile(id?: string) {
-  if (id) {
-    engineRemoveFile(id)
-  } else {
-    engineRemoveAll()
-  }
-}
-
-/* ────────────────── computed display helpers ────────────────── */
-const hasFiles = computed(() => entries.value.length > 0)
-const showDropArea = computed(() => props.variant === 'area' && (!hasFiles.value || props.position === 'outside' || props.layout === 'grid'))
-
-const fileDeleteConfig = computed<FileDeleteConfig>(() => {
-  if (props.fileDelete === false) return {}
-  if (props.fileDelete === true || props.fileDelete === undefined) {
-    return props.layout === 'grid'
-      ? { color: 'neutral', variant: 'solid', size: 'xs' }
-      : { color: 'neutral', variant: 'link', size: 'sm' }
-  }
-  return props.fileDelete
-})
-
+// ── Expose ────────────────────────────────────────────────────────────────
 defineExpose({
-  inputRef,
-  dropzoneRef,
-  open,
-  removeFile,
-  retryFile,
-  retryAll
+  open:       () => fileUploadRef.value?.open?.(),
+  clear:      removeAll,
+  retry:      retryAll,
+  retryFile:  retryEntry,
+  entries,
+  getCompressed: () => entries.value.map(e => e.compressed ?? e.file),
 })
 </script>
 
 <template>
-  <div
-    class="r-file-upload"
-    :class="[
-      `r-fu--${color}`,
-      `r-fu--${variant}`,
-      `r-fu--${size}`,
-      `r-fu--layout-${layout}`,
-      `r-fu--pos-${position}`,
-      {
-        'r-fu--disabled': disabled,
-        'r-fu--highlight': highlight,
-        'r-fu--dragging': isDragging,
-        'r-fu--multiple': multiple
-      }
-    ]"
-    :style="ui?.root"
-  >
-    <slot
-      :open="open"
-      :remove-file="removeFile"
-      :retry-file="retryFile"
-      :retry-all="retryAll"
-      :files="entries.map(e => e.file)"
-      :entries="entries"
-    >
+  <div class="rfu-wrap">
+
+    <!-- ══ Global warnings ══════════════════════════════ -->
+    <TransitionGroup name="rfu-warn" tag="div" class="rfu-warnings">
       <div
-        v-if="showDropArea"
-        ref="dropzoneRef"
-        class="r-fu__base"
-        :class="{ 'r-fu__base--interactive': interactive && !disabled, 'r-fu__base--dragging': isDragging }"
-        :tabindex="interactive && !disabled ? 0 : undefined"
-        :style="ui?.base"
-        @click="onZoneClick"
-        @dragover="onDragOver"
-        @dragleave="onDragLeave"
-        @drop="onDrop"
-        @keydown.enter="onZoneClick"
-        @keydown.space.prevent="onZoneClick"
+        v-for="w in globalWarnings"
+        :key="w.id"
+        class="rfu-warnings__item"
       >
-        <div class="r-fu__wrapper" :style="ui?.wrapper">
-          <slot name="leading">
-            <i
-              v-if="icon !== false"
-              class="r-fu__icon"
-              :class="icon"
-              :style="ui?.icon"
-            />
-          </slot>
-
-          <slot name="label">
-            <p v-if="label" class="r-fu__label" :style="ui?.label">
-              {{ label }}
-            </p>
-          </slot>
-
-          <slot name="description">
-            <p v-if="description" class="r-fu__description" :style="ui?.description">
-              {{ description }}
-            </p>
-          </slot>
-
-          <div v-if="$slots.actions" class="r-fu__actions" :style="ui?.actions">
-            <slot name="actions" :open="open" />
-          </div>
-          <div v-else-if="!interactive" class="r-fu__actions" :style="ui?.actions">
-            <RBtn
-              :label="multiple ? 'Select files' : 'Select file'"
-              icon="ri-upload-2-line"
-              color="neutral"
-              variant="outline"
-              :size="size"
-              :disabled="disabled"
-              @click="open"
-            />
-          </div>
-        </div>
+        <i class="ri-error-warning-line" aria-hidden="true" />
+        {{ w.msg }}
       </div>
+    </TransitionGroup>
 
-      <input
-        :id="inputId"
-        ref="inputRef"
-        v-bind="attrs"
-        type="file"
-        class="r-fu__input"
-        :name="name"
-        :accept="accept"
-        :multiple="multiple"
-        :required="required"
-        :disabled="disabled"
-        :form="form"
-        :formaction="formaction"
-        :formenctype="formenctype"
-        :formmethod="formmethod"
-        :formnovalidate="formnovalidate"
-        :formtarget="formtarget"
-        @change="onInputChange"
-      >
+    <!-- ══ UFileUpload core ═════════════════════════════ -->
+    <UFileUpload
+      ref="fuRef"
+      :model-value="modelValue"
+      :multiple="multiple"
+      :accept="accept"
+      :max-size="maxSize"
+      :max-files="maxFiles"
+      :label="resolvedLabel"
+      :description="resolvedDesc"
+      :icon="icon"
+      :layout="layout"
+      :interactive="interactive"
+      :disabled="disabled"
+      :ui="mergedUi"
+      class="rfu"
+      @update:model-value="$emit('update:modelValue', $event)"
+      @change="onFileChange"
+    >
 
-      <!-- ── files list ── -->
-      <template v-if="preview && hasFiles">
-        <div class="r-fu__files-top">
-          <slot name="files-top" :open="open" :files="entries.map(e => e.file)" />
-        </div>
+      <!-- ── #actions slot ─────────────────────────────── -->
+      <template #actions="scope">
+        <slot name="actions" v-bind="scope">
+          <button type="button" class="rfu__action-btn" @click="scope.open?.()">
+            <i class="ri-upload-cloud-2-line" aria-hidden="true" />
+            {{ locale === 'km' ? 'ជ្រើសរើសឯកសារ' : 'Select files' }}
+          </button>
+        </slot>
+      </template>
 
-        <div
-          v-if="hasErrors"
-          class="r-fu__retry-all"
-        >
-          <span class="r-fu__retry-all-text">
-            <i class="ri-error-warning-line" />
-            {{ erroredEntries.length }} file{{ erroredEntries.length === 1 ? '' : 's' }} failed to upload
-          </span>
-          <RBtn
-            label="Retry all"
-            icon="ri-refresh-line"
-            color="danger"
-            variant="soft"
-            size="xs"
-            @click="retryAll"
-          />
-        </div>
+      <!-- ── #files slot — the full list override ─────── -->
+      <template #files="scope">
+        <slot name="files" v-bind="scope">
 
-        <div class="r-fu__files" :style="ui?.files">
-          <slot name="files" :files="entries.map(e => e.file)" :entries="entries" :remove-file="removeFile">
-            <div
-              v-for="entry in entries"
-              :key="entry.id"
-              class="r-fu__file"
-              :class="[`r-fu__file--${entry.status}`]"
-              :style="ui?.file"
-            >
-              <slot
-                name="file"
-                :file="entry.file"
-                :entry="entry"
-                :remove-file="() => removeFile(entry.id)"
-                :retry="() => retryFile(entry.id)"
+          <div v-if="entries.length" class="rfu__file-list">
+
+            <!-- Header row -->
+            <div class="rfu__file-list-head">
+              <span class="rfu__file-count">
+                {{ entries.length }} {{ entries.length === 1 ? 'file' : 'files' }}
+                <template v-if="props.uploadFn">
+                  · <span class="rfu__file-ok">{{ successCount }} done</span>
+                </template>
+              </span>
+
+              <div class="rfu__file-list-actions">
+                <!-- Retry all -->
+                <button
+                  v-if="hasAnyError && props.uploadFn"
+                  type="button"
+                  class="rfu__icon-btn rfu__icon-btn--warn"
+                  title="Retry all failed"
+                  @click="retryAll"
+                >
+                  <i class="ri-refresh-line" aria-hidden="true" />
+                  <span>{{ locale === 'km' ? 'ព្យាយាមទាំងអស់' : 'Retry all' }}</span>
+                </button>
+
+                <!-- Remove all -->
+                <button
+                  type="button"
+                  class="rfu__icon-btn rfu__icon-btn--danger"
+                  title="Remove all files"
+                  @click="removeAll"
+                >
+                  <i class="ri-delete-bin-2-line" aria-hidden="true" />
+                  <span>{{ locale === 'km' ? 'លុបទាំងអស់' : 'Remove all' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- File rows -->
+            <TransitionGroup name="rfu-entry" tag="div" class="rfu__entries">
+              <div
+                v-for="entry in entries"
+                :key="entry.id"
+                :class="[
+                  'rfu__entry',
+                  `rfu__entry--${entry.status}`,
+                ]"
               >
-                <slot name="file-leading" :file="entry.file" :entry="entry">
-                  <div class="r-fu__file-leading">
-                    <img
-                      v-if="fileImage && entry.previewUrl"
-                      :src="entry.previewUrl"
-                      class="r-fu__file-avatar"
-                      :style="ui?.avatar"
-                      alt=""
-                    >
-                    <i
-                      v-else
-                      class="r-fu__file-icon"
-                      :class="fileIcon || (entry.file.type.startsWith('image/') ? 'ri-image-line' : 'ri-file-line')"
-                    />
-                  </div>
-                </slot>
+                <!-- Preview / icon -->
+                <div class="rfu__entry-thumb">
+                  <img
+                    v-if="entry.preview"
+                    :src="entry.preview"
+                    :alt="entry.file.name"
+                    class="rfu__thumb-img"
+                  />
+                  <span v-else class="rfu__thumb-icon">
+                    <i class="ri-file-line" aria-hidden="true" />
+                  </span>
 
-                <div class="r-fu__file-wrapper" :style="ui?.fileWrapper">
-                  <slot name="file-name" :file="entry.file" :entry="entry">
-                    <p class="r-fu__file-name" :style="ui?.fileName">
-                      {{ entry.file.name }}
-                    </p>
-                  </slot>
-
-                  <slot name="file-size" :file="entry.file" :entry="entry">
-                    <p class="r-fu__file-size" :style="ui?.fileSize">
-                      {{ formatBytes(entry.file.size) }}
-                    </p>
-                  </slot>
-
-                  <!-- progress bar -->
+                  <!-- Status overlay on thumb -->
                   <div
-                    v-if="showProgress && entry.status === 'uploading'"
-                    class="r-fu__progress"
+                    v-if="entry.status === 'uploading' || entry.status === 'success' || entry.status === 'error'"
+                    class="rfu__thumb-status"
                   >
-                    <div class="r-fu__progress-track">
-                      <div
-                        class="r-fu__progress-bar"
-                        :style="{ width: `${entry.progress}%` }"
-                      />
-                    </div>
-                    <span class="r-fu__progress-pct">{{ entry.progress }}%</span>
-                  </div>
-
-                  <!-- error + retry (single) -->
-                  <div v-if="entry.status === 'error'" class="r-fu__file-error">
-                    <span class="r-fu__file-error-text">
-                      <i class="ri-error-warning-line" />
-                      {{ entry.error }}
-                    </span>
-                    <RBtn
-                      label="Retry"
-                      icon="ri-refresh-line"
-                      color="danger"
-                      variant="link"
-                      size="xs"
-                      @click="retryFile(entry.id)"
+                    <i
+                      v-if="entry.status === 'success'"
+                      class="ri-checkbox-circle-fill rfu__status-ok"
+                      aria-hidden="true"
+                    />
+                    <i
+                      v-else-if="entry.status === 'error'"
+                      class="ri-error-warning-fill rfu__status-err"
+                      aria-hidden="true"
+                    />
+                    <i
+                      v-else-if="entry.status === 'compressing'"
+                      class="ri-loader-4-line animate-spin rfu__status-spin"
+                      aria-hidden="true"
                     />
                   </div>
                 </div>
 
-                <slot name="file-trailing" :file="entry.file" :entry="entry" :remove-file="() => removeFile(entry.id)">
-                  <div class="r-fu__file-trailing" :style="ui?.fileTrailingButton">
-                    <i
-                      v-if="entry.status === 'success'"
-                      class="r-fu__file-status-icon r-fu__file-status-icon--success ri-checkbox-circle-fill"
-                    />
-                    <RBtn
-                      v-if="fileDelete !== false"
-                      square
-                      :icon="fileDeleteIcon || 'ri-close-line'"
-                      :color="fileDeleteConfig.color || 'neutral'"
-                      :variant="fileDeleteConfig.variant || 'link'"
-                      :size="fileDeleteConfig.size || 'sm'"
-                      @click="removeFile(entry.id)"
+                <!-- Info -->
+                <div class="rfu__entry-info">
+                  <div class="rfu__entry-name" :title="entry.file.name">
+                    {{ fmtName(entry.file.name) }}
+                  </div>
+
+                  <div class="rfu__entry-meta">
+                    <span>{{ fmtSize(entry.compressed?.size ?? entry.file.size) }}</span>
+                    <template v-if="entry.compressed">
+                      <span class="rfu__compress-badge">
+                        <i class="ri-arrow-down-line" aria-hidden="true" />
+                        {{ Math.round((1 - entry.compressed.size / entry.file.size) * 100) }}%
+                      </span>
+                    </template>
+                  </div>
+
+                  <!-- Dimension / upload error -->
+                  <div v-if="entry.error" class="rfu__entry-error">
+                    <i class="ri-error-warning-line" aria-hidden="true" />
+                    {{ entry.error }}
+                  </div>
+
+                  <!-- Progress bar -->
+                  <div v-if="entry.status === 'uploading' || entry.status === 'success'" class="rfu__progress-track">
+                    <div
+                      class="rfu__progress-fill"
+                      :class="{ 'rfu__progress-fill--done': entry.status === 'success' }"
+                      :style="{ width: entry.progress + '%' }"
                     />
                   </div>
-                </slot>
-              </slot>
-            </div>
-          </slot>
-        </div>
+                </div>
 
-        <div class="r-fu__files-bottom">
-          <slot name="files-bottom" :remove-file="removeFile" :files="entries.map(e => e.file)">
-            <RBtn
-              v-if="entries.length"
-              label="Remove all files"
-              icon="ri-delete-bin-line"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              @click="removeFile()"
-            />
-          </slot>
-        </div>
+                <!-- Actions -->
+                <div class="rfu__entry-btns">
+                  <!-- Crop -->
+                  <button
+                    v-if="crop && entry.file.type.startsWith('image/') && entry.status !== 'uploading'"
+                    type="button"
+                    class="rfu__btn-sm"
+                    title="Crop"
+                    @click="openCrop(entry)"
+                  >
+                    <i class="ri-crop-line" aria-hidden="true" />
+                  </button>
+
+                  <!-- Retry -->
+                  <button
+                    v-if="entry.status === 'error' && uploadFn"
+                    type="button"
+                    class="rfu__btn-sm rfu__btn-sm--warn"
+                    title="Retry upload"
+                    @click="retryEntry(entry)"
+                  >
+                    <i class="ri-refresh-line" aria-hidden="true" />
+                  </button>
+
+                  <!-- Remove -->
+                  <button
+                    v-if="entry.status !== 'uploading'"
+                    type="button"
+                    class="rfu__btn-sm rfu__btn-sm--danger"
+                    title="Remove file"
+                    @click="removeEntry(entry)"
+                  >
+                    <i class="ri-delete-bin-line" aria-hidden="true" />
+                  </button>
+                </div>
+
+              </div><!-- /entry -->
+            </TransitionGroup>
+
+          </div>
+        </slot>
       </template>
-    </slot>
+
+      <!-- ── #files-bottom slot ────────────────────────── -->
+      <template #files-bottom="scope">
+        <slot name="files-bottom" v-bind="scope" />
+      </template>
+
+      <!-- ── Passthrough remaining slots ──────────────── -->
+      <template
+        v-for="(_, name) in $slots"
+        #[name]="slotProps"
+      >
+        <slot
+          v-if="!['actions','files','files-bottom'].includes(name)"
+          :name="name"
+          v-bind="slotProps ?? {}"
+        />
+      </template>
+
+    </UFileUpload>
+
+    <!-- ══ Crop popup ═══════════════════════════════════ -->
+    <Transition name="rfu-modal">
+      <div v-if="cropOpen" class="rfu-crop-overlay" @click.self="cancelCrop">
+        <div class="rfu-crop-panel">
+
+          <!-- Header -->
+          <div class="rfu-crop-panel__head">
+            <div class="rfu-crop-panel__title">
+              <i class="ri-crop-line" aria-hidden="true" />
+              {{ locale === 'km' ? 'កាត់រូបភាព' : 'Crop image' }}
+            </div>
+            <button type="button" class="rfu-crop-panel__close" @click="cancelCrop">
+              <i class="ri-close-line" aria-hidden="true" />
+            </button>
+          </div>
+
+          <!-- Preview area -->
+          <div class="rfu-crop-panel__body">
+            <div class="rfu-crop-panel__preview">
+              <img
+                v-if="cropEntry"
+                ref="cropImg"
+                :src="cropEntry.preview"
+                class="rfu-crop-panel__img"
+                @load="drawCropPreview"
+              />
+              <div class="rfu-crop-panel__guide">
+                <i class="ri-scissors-cut-line" aria-hidden="true" />
+                <p>{{ locale === 'km' ? 'ការកាត់រូបភាពអនឡាញ' : 'Adjust crop via the inputs below' }}</p>
+              </div>
+            </div>
+
+            <!-- Crop rect inputs -->
+            <div class="rfu-crop-panel__inputs">
+              <label class="rfu-crop-input">
+                <span>X</span>
+                <input v-model.number="cropRect.x" type="number" min="0" />
+              </label>
+              <label class="rfu-crop-input">
+                <span>Y</span>
+                <input v-model.number="cropRect.y" type="number" min="0" />
+              </label>
+              <label class="rfu-crop-input">
+                <span>W</span>
+                <input v-model.number="cropRect.w" type="number" min="1" />
+              </label>
+              <label class="rfu-crop-input">
+                <span>H</span>
+                <input v-model.number="cropRect.h" type="number" min="1" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="rfu-crop-panel__foot">
+            <button type="button" class="rfu__icon-btn" @click="cancelCrop">
+              <i class="ri-close-line" aria-hidden="true" />
+              {{ locale === 'km' ? 'បោះបង់' : 'Cancel' }}
+            </button>
+            <button type="button" class="rfu__icon-btn rfu__icon-btn--accent" @click="saveCrop">
+              <i class="ri-check-line" aria-hidden="true" />
+              {{ locale === 'km' ? 'រក្សាទុក' : 'Apply crop' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style lang="scss" scoped>
-/* ============================================
-   RFileUpload — styles
-   SARIKA tokens only · glassmorphism · no Tailwind
-   ============================================ */
 
-.r-file-upload {
-  position: relative;
-  display: flex;
+// ─────────────────────────────────────────────────────────
+// WRAPPER
+// ─────────────────────────────────────────────────────────
+.rfu-wrap {
+  display:        flex;
   flex-direction: column;
-  gap: var(--sp-2);
-  width: 100%;
-  font-family: var(--font-fallback);
-  color: var(--c-text);
-
-  &.r-fu--layout-list {
-    align-items: flex-start;
-  }
+  gap:            var(--space-3, 12px);
+  font-family:    var(--font-fallback, 'Inter', system-ui, sans-serif);
+  position:       relative;
 }
 
-/* ── dropzone / base ── */
-.r-fu__base {
-  position: relative;
-  flex: 1;
-  width: 100%;
-  display: flex;
+// ─────────────────────────────────────────────────────────
+// GLOBAL WARNINGS STRIP
+// ─────────────────────────────────────────────────────────
+.rfu-warnings {
+  display:        flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  border-radius: var(--r-lg);
-  border: 1.5px dashed var(--c-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--glass-shadow);
-  padding: var(--sp-6) var(--sp-4);
-  transition:
-    background-color var(--t-base) var(--ease-out),
-    border-color var(--t-base) var(--ease-out),
-    box-shadow var(--t-base) var(--ease-out);
-  outline: none;
+  gap:            6px;
 
-  &--interactive {
-    cursor: pointer;
+  &__item {
+    display:       flex;
+    align-items:   center;
+    gap:           8px;
+    padding:       10px 14px;
+    background:    rgba(248, 113, 113, 0.1);
+    border:        1px solid rgba(248, 113, 113, 0.25);
+    border-radius: var(--radius-md, 10px);
+    font-size:     0.78rem;
+    color:         var(--c-danger, #f87171);
+    font-weight:   500;
 
-    &:hover {
-      background: color-mix(in srgb, var(--c-accent) 6%, var(--glass-bg));
-      border-color: var(--c-accent);
-    }
-
-    &:focus-visible {
-      border-color: var(--c-accent);
-      box-shadow: var(--glow-accent-sm);
-    }
-  }
-
-  &--dragging {
-    border-color: var(--c-accent);
-    background: color-mix(in srgb, var(--c-accent) 10%, var(--glass-bg));
-    box-shadow: var(--glow-accent);
+    i { font-size: 1rem; flex-shrink: 0; }
   }
 }
 
-.r-file-upload.r-fu--disabled .r-fu__base {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+.rfu-warn-enter-active, .rfu-warn-leave-active { transition: all 0.2s ease; }
+.rfu-warn-enter-from,  .rfu-warn-leave-to      { opacity: 0; transform: translateY(-6px); }
 
-.r-file-upload.r-fu--highlight .r-fu__base {
-  border-color: var(--c-accent);
-  box-shadow: var(--glow-accent-sm);
-}
+// ─────────────────────────────────────────────────────────
+// ACTION BUTTON (replaces UButton in actions slot)
+// ─────────────────────────────────────────────────────────
+.rfu__action-btn {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           8px;
+  padding:       8px 18px;
+  border:        1px solid var(--c-border, rgba(255,140,66,0.16));
+  border-radius: var(--radius-md, 10px);
+  background:    transparent;
+  color:         var(--c-text, #1a1510);
+  font-size:     0.875rem;
+  font-weight:   500;
+  font-family:   inherit;
+  cursor:        pointer;
+  @include transition(fast);
 
-/* color variants tint the border/glow on highlight or drag */
-@each $clr in primary, secondary, success, info, warning, error, neutral {
-  .r-fu--#{$clr}.r-fu--highlight .r-fu__base,
-  .r-fu--#{$clr} .r-fu__base--dragging {
-    border-color: var(--c-accent);
+  i { font-size: 1rem; color: var(--c-accent, #ff8c42); }
+
+  &:hover {
+    border-color: var(--c-accent, #ff8c42);
+    color:        var(--c-accent, #ff8c42);
+    background:   rgba(255, 140, 66, 0.06);
   }
 }
-.r-fu--success.r-fu--highlight .r-fu__base { border-color: var(--c-success); }
-.r-fu--error.r-fu--highlight .r-fu__base,
-.r-fu--error .r-fu__base--dragging { border-color: var(--c-danger); }
-.r-fu--info.r-fu--highlight .r-fu__base { border-color: var(--c-info); }
-.r-fu--warning.r-fu--highlight .r-fu__base { border-color: var(--c-accent-2); }
 
-/* variant: button (compact, no big dropzone) */
-.r-fu--button .r-fu__base {
-  flex-direction: row;
-  align-items: center;
-  padding: var(--sp-2) var(--sp-3);
-  border-style: solid;
-}
-
-/* ── content inside dropzone ── */
-.r-fu__wrapper {
-  display: flex;
+// ─────────────────────────────────────────────────────────
+// FILE LIST
+// ─────────────────────────────────────────────────────────
+.rfu__file-list {
+  display:        flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: var(--sp-1);
-}
+  gap:            var(--space-2, 8px);
+  margin-top:     var(--space-3, 12px);
 
-.r-fu__icon {
-  font-size: 30px;
-  color: var(--c-accent);
-  filter: drop-shadow(var(--glow-text));
-  margin-bottom: var(--sp-1);
-}
+  &-head {
+    @include flex-between;
+    padding:       0 var(--space-1, 4px);
+    margin-bottom: var(--space-1, 4px);
+  }
 
-.r-fu__label {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--c-text);
-  margin: 0;
-}
-
-.r-fu__description {
-  font-size: 0.8rem;
-  color: var(--c-muted);
-  margin: 0;
-}
-
-.r-fu__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
-  justify-content: center;
-  margin-top: var(--sp-4);
-}
-
-.r-fu__input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ── sizes ── */
-.r-fu--xs .r-fu__icon { font-size: 22px; }
-.r-fu--sm .r-fu__icon { font-size: 24px; }
-.r-fu--md .r-fu__icon { font-size: 28px; }
-.r-fu--lg .r-fu__icon { font-size: 32px; }
-.r-fu--xl .r-fu__icon { font-size: 38px; }
-
-.r-fu--xs .r-fu__label,
-.r-fu--sm .r-fu__label { font-size: 0.85rem; }
-.r-fu--lg .r-fu__label,
-.r-fu--xl .r-fu__label { font-size: 1.05rem; }
-
-/* ── files-top / files-bottom slots ── */
-.r-fu__files-top:empty,
-.r-fu__files-bottom:empty {
-  display: none;
-}
-
-.r-fu__files-bottom {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--sp-1);
-}
-
-/* ── retry-all banner ── */
-.r-fu__retry-all {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--c-danger) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--c-danger) 30%, transparent);
-}
-
-.r-fu__retry-all-text {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  font-size: 0.8rem;
-  color: var(--c-danger);
-}
-
-/* ── files list ── */
-.r-fu__files {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: var(--sp-2);
-}
-
-.r-fu--layout-grid .r-fu__files {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-3);
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  &-actions {
+    display:     flex;
+    align-items: center;
+    gap:         var(--space-2, 8px);
   }
 }
 
-/* ── individual file ── */
-.r-fu__file {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  width: 100%;
-  min-width: 0;
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-md);
-  border: 1px solid var(--c-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur-sm);
-  -webkit-backdrop-filter: var(--glass-blur-sm);
-  transition: border-color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
-
-  &--error {
-    border-color: color-mix(in srgb, var(--c-danger) 50%, var(--c-border));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-danger) 18%, transparent);
-  }
-
-  &--success {
-    border-color: color-mix(in srgb, var(--c-success) 35%, var(--c-border));
-  }
-}
-
-.r-fu--layout-grid .r-fu__file {
-  flex-direction: column;
-  aspect-ratio: 1 / 1;
-  padding: 0;
-  overflow: hidden;
-  align-items: stretch;
-}
-
-.r-fu--layout-grid .r-fu__file-wrapper {
-  display: none;
-}
-
-/* ── file leading (avatar/icon) ── */
-.r-fu__file-leading {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.r-fu__file-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-sm);
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.r-fu--layout-grid .r-fu__file-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--r-lg);
-}
-
-.r-fu__file-icon {
-  font-size: 26px;
-  color: var(--c-muted);
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--r-sm);
-  background: var(--c-hover);
-}
-
-/* ── file text block ── */
-.r-fu__file-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-  gap: 2px;
-}
-
-.r-fu__file-name {
-  margin: 0;
-  font-size: 0.82rem;
+.rfu__file-count {
+  font-size:   0.75rem;
+  color:       var(--c-muted, #8a7f72);
   font-weight: 500;
-  color: var(--c-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.r-fu__file-size {
-  margin: 0;
-  font-size: 0.72rem;
-  color: var(--c-muted);
+.rfu__file-ok {
+  color:       var(--c-success, #4ade80);
+  font-weight: 600;
 }
 
-/* ── progress bar ── */
-.r-fu__progress {
+// ─────────────────────────────────────────────────────────
+// FILE ENTRY ROW
+// ─────────────────────────────────────────────────────────
+.rfu__entries { display: flex; flex-direction: column; gap: 8px; }
+
+.rfu__entry {
+  display:       flex;
+  align-items:   center;
+  gap:           var(--space-3, 12px);
+  padding:       var(--space-3, 12px);
+  background:    var(--glass-bg, rgba(255,255,255,0.72));
+  border:        1px solid var(--c-border, rgba(255,140,66,0.16));
+  border-radius: var(--radius-md, 10px);
+  backdrop-filter: var(--glass-blur-sm, blur(12px) saturate(150%));
+  -webkit-backdrop-filter: var(--glass-blur-sm, blur(12px) saturate(150%));
+  @include transition;
+
+  &--success { border-color: rgba(74, 222, 128, 0.3); }
+  &--error   { border-color: rgba(248, 113, 113, 0.35); background: rgba(248,113,113,0.04); }
+  &--uploading { border-color: rgba(255,140,66,0.3); }
+  &--compressing { opacity: 0.8; }
+}
+
+.rfu-entry-enter-active { transition: all 0.25s ease; }
+.rfu-entry-leave-active { transition: all 0.2s ease; }
+.rfu-entry-enter-from   { opacity: 0; transform: translateX(-10px); }
+.rfu-entry-leave-to     { opacity: 0; transform: translateX(10px); max-height: 0; }
+
+// Thumbnail
+.rfu__entry-thumb {
+  position:      relative;
+  width:         48px;
+  height:        48px;
+  flex-shrink:   0;
+  border-radius: var(--radius-md, 10px);
+  overflow:      hidden;
+  background:    var(--bg-tertiary, #f1f3f6);
+  @include flex-center;
+}
+
+.rfu__thumb-img {
+  width:       100%;
+  height:      100%;
+  object-fit:  cover;
+  border-radius: inherit;
+}
+
+.rfu__thumb-icon {
+  font-size: 1.4rem;
+  color:     var(--c-muted, #8a7f72);
+  i { display: flex; }
+}
+
+.rfu__thumb-status {
+  position:  absolute;
+  inset:     0;
+  @include flex-center;
+  background: rgba(0,0,0,0.35);
+  border-radius: inherit;
+}
+
+.rfu__status-ok   { font-size: 1.3rem; color: var(--c-success, #4ade80); }
+.rfu__status-err  { font-size: 1.3rem; color: var(--c-danger, #f87171); }
+.rfu__status-spin { font-size: 1.3rem; color: var(--c-accent, #ff8c42); }
+
+// Info block
+.rfu__entry-info {
+  flex:    1;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
+  gap:     4px;
+}
+
+.rfu__entry-name {
+  font-size:   0.82rem;
+  font-weight: 500;
+  color:       var(--c-text, #1a1510);
+  @include truncate;
+}
+
+.rfu__entry-meta {
+  display:     flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-1);
+  gap:         8px;
+  font-size:   0.72rem;
+  color:       var(--c-muted, #8a7f72);
 }
 
-.r-fu__progress-track {
-  flex: 1;
-  height: 5px;
-  border-radius: var(--r-full);
-  background: var(--c-hover);
-  overflow: hidden;
+.rfu__compress-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           2px;
+  padding:       1px 6px;
+  background:    rgba(74, 222, 128, 0.12);
+  color:         var(--c-success, #4ade80);
+  border-radius: var(--radius-full, 9999px);
+  font-size:     0.68rem;
+  font-weight:   700;
 }
 
-.r-fu__progress-bar {
-  height: 100%;
-  border-radius: var(--r-full);
-  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2));
-  box-shadow: var(--glow-accent-sm);
-  transition: width var(--t-base) var(--ease-out);
-}
-
-.r-fu__progress-pct {
-  font-size: 0.68rem;
-  color: var(--c-muted);
-  min-width: 30px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── per-file error + retry ── */
-.r-fu__file-error {
-  display: flex;
+.rfu__entry-error {
+  display:     flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2);
-  margin-top: 2px;
+  gap:         4px;
+  font-size:   0.72rem;
+  color:       var(--c-danger, #f87171);
+  font-weight: 500;
+  i { font-size: 0.85rem; }
 }
 
-.r-fu__file-error-text {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.7rem;
-  color: var(--c-danger);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+// Progress bar
+.rfu__progress-track {
+  height:        4px;
+  background:    var(--c-border, rgba(255,140,66,0.16));
+  border-radius: 999px;
+  overflow:      hidden;
+  margin-top:    2px;
 }
 
-/* ── file trailing (status icon + delete button) ── */
-.r-fu__file-trailing {
-  display: flex;
+.rfu__progress-fill {
+  height:     100%;
+  background: var(--c-accent, #ff8c42);
+  border-radius: 999px;
+  @include transition(slow);
+  box-shadow: 0 0 8px rgba(255,140,66,0.4);
+
+  &--done { background: var(--c-success, #4ade80); box-shadow: 0 0 8px rgba(74,222,128,0.4); }
+}
+
+// Entry action buttons
+.rfu__entry-btns {
+  display:     flex;
   align-items: center;
-  gap: var(--sp-1);
+  gap:         6px;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
-.r-fu--layout-grid .r-fu__file-trailing {
-  position: absolute;
-  top: var(--sp-1);
-  right: var(--sp-1);
-  margin-left: 0;
-  background: color-mix(in srgb, var(--c-bg) 70%, transparent);
-  border-radius: var(--r-full);
-  backdrop-filter: blur(6px);
-}
+.rfu__btn-sm {
+  width:         28px;
+  height:        28px;
+  border:        1px solid var(--c-border, rgba(255,140,66,0.16));
+  border-radius: var(--radius-sm, 6px);
+  background:    transparent;
+  color:         var(--c-muted, #8a7f72);
+  cursor:        pointer;
+  @include flex-center;
+  @include transition(fast);
+  font-size:     0.9rem;
 
-.r-fu__file-status-icon {
-  font-size: 16px;
-  display: inline-flex;
+  &:hover { border-color: var(--c-accent, #ff8c42); color: var(--c-accent, #ff8c42); }
 
-  &--success {
-    color: var(--c-success);
-  }
-}
-
-/* ── dark theme adjustments ── */
-.dark {
-  .r-fu__file-icon {
-    background: var(--c-hover);
+  &--warn {
+    &:hover { border-color: var(--color-yellow, #ffb347); color: var(--color-yellow, #ffb347); }
   }
 
-  .r-fu__icon {
-    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c-accent) 45%, transparent));
+  &--danger {
+    &:hover { border-color: var(--c-danger, #f87171); color: var(--c-danger, #f87171); }
   }
 }
 
-/* ── responsive: mobile tightening ── */
-@media (max-width: 480px) {
-  .r-fu__base {
-    padding: var(--sp-4) var(--sp-3);
+// Icon buttons (list header)
+.rfu__icon-btn {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       5px 12px;
+  border:        1px solid var(--c-border, rgba(255,140,66,0.16));
+  border-radius: var(--radius-md, 10px);
+  background:    transparent;
+  color:         var(--c-muted, #8a7f72);
+  font-size:     0.75rem;
+  font-weight:   500;
+  font-family:   inherit;
+  cursor:        pointer;
+  @include transition(fast);
+
+  i { font-size: 0.88rem; }
+
+  &:hover { border-color: var(--c-accent, #ff8c42); color: var(--c-accent, #ff8c42); }
+
+  &--warn   { &:hover { border-color: var(--color-yellow, #ffb347); color: var(--color-yellow, #ffb347); } }
+  &--danger { color: var(--c-muted); &:hover { border-color: var(--c-danger, #f87171); color: var(--c-danger, #f87171); } }
+  &--accent {
+    border-color: var(--c-accent, #ff8c42);
+    background:   var(--c-accent, #ff8c42);
+    color:        #fff;
+    box-shadow:   0 0 16px rgba(255,140,66,0.25);
+    &:hover { background: var(--c-accent-2, #ffb347); border-color: var(--c-accent-2, #ffb347); }
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// CROP MODAL
+// ─────────────────────────────────────────────────────────
+.rfu-crop-overlay {
+  position:       fixed;
+  inset:          0;
+  z-index:        1000;
+  background:     rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  @include flex-center;
+  padding:        var(--space-4, 16px);
+}
+
+.rfu-crop-panel {
+  width:          min(560px, 100%);
+  background:     var(--glass-bg, rgba(255,255,255,0.92));
+  backdrop-filter: var(--glass-blur, blur(24px) saturate(180%));
+  -webkit-backdrop-filter: var(--glass-blur, blur(24px) saturate(180%));
+  border:         1px solid var(--glass-border, rgba(255,140,66,0.16));
+  border-radius:  var(--radius-xl, 24px);
+  box-shadow:     var(--glass-shadow, 0 8px 32px rgba(0,0,0,0.08));
+  overflow:       hidden;
+  display:        flex;
+  flex-direction: column;
+
+  &__head {
+    @include flex-between;
+    padding:       var(--space-4, 16px) var(--space-5, 20px);
+    border-bottom: 1px solid var(--c-border, rgba(255,140,66,0.16));
   }
 
-  .r-fu--layout-grid .r-fu__files {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--sp-2);
+  &__title {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    font-size:   0.95rem;
+    font-weight: 700;
+    color:       var(--c-text, #1a1510);
+    i { color: var(--c-accent, #ff8c42); font-size: 1.1rem; }
   }
 
-  .r-fu__actions {
+  &__close {
+    width:         32px;
+    height:        32px;
+    border:        1px solid var(--c-border, rgba(255,140,66,0.16));
+    border-radius: var(--radius-md, 10px);
+    background:    transparent;
+    color:         var(--c-muted, #8a7f72);
+    cursor:        pointer;
+    @include flex-center;
+    @include transition(fast);
+    font-size:     1rem;
+    &:hover { border-color: var(--c-accent, #ff8c42); color: var(--c-accent, #ff8c42); }
+  }
+
+  &__body {
+    display:        flex;
     flex-direction: column;
-    width: 100%;
+    gap:            var(--space-4, 16px);
+    padding:        var(--space-5, 20px);
+  }
 
-    > * {
-      width: 100%;
-    }
+  &__preview {
+    position:      relative;
+    width:         100%;
+    background:    var(--bg-tertiary, #f1f3f6);
+    border-radius: var(--radius-lg, 16px);
+    overflow:      hidden;
+    min-height:    200px;
+    @include flex-center;
+  }
+
+  &__img {
+    max-width:  100%;
+    max-height: 320px;
+    object-fit: contain;
+    display:    block;
+  }
+
+  &__guide {
+    position:       absolute;
+    inset:          0;
+    @include flex-center;
+    flex-direction: column;
+    gap:            8px;
+    color:          var(--c-muted, #8a7f72);
+    font-size:      0.8rem;
+    pointer-events: none;
+    opacity:        0.6;
+    i { font-size: 1.8rem; color: var(--c-accent, #ff8c42); }
+  }
+
+  &__inputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:     var(--space-3, 12px);
+  }
+
+  &__foot {
+    @include flex-between;
+    padding:    var(--space-4, 16px) var(--space-5, 20px);
+    border-top: 1px solid var(--c-border, rgba(255,140,66,0.16));
+    background: rgba(0,0,0,0.02);
+  }
+}
+
+.rfu-crop-input {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+
+  span {
+    font-size:      0.68rem;
+    font-weight:    700;
+    color:          var(--c-muted, #8a7f72);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  input {
+    width:         100%;
+    height:        34px;
+    padding:       0 10px;
+    font-family:   inherit;
+    font-size:     0.82rem;
+    color:         var(--c-text, #1a1510);
+    background:    var(--c-surface, #ffffff);
+    border:        1px solid var(--c-border, rgba(255,140,66,0.16));
+    border-radius: var(--radius-sm, 6px);
+    outline:       none;
+    @include transition(fast);
+    &:focus { border-color: var(--c-accent, #ff8c42); box-shadow: 0 0 0 3px rgba(255,140,66,0.12); }
+  }
+}
+
+// Crop modal transition
+.rfu-modal-enter-active { transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.rfu-modal-leave-active { transition: all 0.18s ease; }
+.rfu-modal-enter-from   { opacity: 0; transform: scale(0.95); }
+.rfu-modal-leave-to     { opacity: 0; transform: scale(0.96); }
+</style>
+
+<!-- ─────────────────────────────────────────────────────────
+     GLOBAL — override NuxtUI UFileUpload portal tokens
+     All UFileUpload :ui slot classes mapped here
+────────────────────────────────────────────────────────── -->
+<style lang="scss">
+// ── Dropzone root ──────────────────────────────────────────
+.rfu__root {
+  width:         100%;
+  font-family:   var(--font-fallback, 'Inter', system-ui, sans-serif) !important;
+}
+
+// ── Drop area ─────────────────────────────────────────────
+.rfu__dropzone {
+  position:        relative;
+  display:         flex !important;
+  flex-direction:  column !important;
+  align-items:     center !important;
+  justify-content: center !important;
+  padding:         var(--space-8, 32px) var(--space-6, 24px) !important;
+  border:          2px dashed var(--c-border, rgba(255,140,66,0.16)) !important;
+  border-radius:   var(--radius-xl, 24px) !important;
+  background:      var(--glass-bg, rgba(255,255,255,0.72)) !important;
+  backdrop-filter: var(--glass-blur-sm, blur(12px) saturate(150%)) !important;
+  -webkit-backdrop-filter: var(--glass-blur-sm, blur(12px) saturate(150%)) !important;
+  box-shadow:      var(--glass-shadow, 0 8px 32px rgba(0,0,0,0.08)) !important;
+  gap:             var(--space-3, 12px) !important;
+  text-align:      center !important;
+  @include transition;
+
+  // Drag-over glow
+  &[data-drag-over="true"],
+  &:focus-within {
+    border-color: var(--c-accent, #ff8c42) !important;
+    background:   rgba(255, 140, 66, 0.04) !important;
+    box-shadow:   0 0 40px rgba(255,140,66,0.12), var(--glass-shadow) !important;
+  }
+}
+
+// ── Drop icon ─────────────────────────────────────────────
+.rfu__drop-icon {
+  font-size: 2.5rem !important;
+  color:     var(--c-accent, #ff8c42) !important;
+  filter:    drop-shadow(0 0 12px rgba(255,140,66,0.3)) !important;
+  margin-bottom: var(--space-1, 4px) !important;
+}
+
+// ── Label + description ───────────────────────────────────
+.rfu__drop-label {
+  font-size:   1rem !important;
+  font-weight: 600 !important;
+  color:       var(--c-text, #1a1510) !important;
+  font-family: var(--font-fallback, 'Inter', system-ui, sans-serif) !important;
+}
+
+.rfu__drop-desc {
+  font-size: 0.78rem !important;
+  color:     var(--c-muted, #8a7f72) !important;
+  font-family: var(--font-fallback, 'Inter', system-ui, sans-serif) !important;
+}
+
+// ── Files area ────────────────────────────────────────────
+.rfu__files-area {
+  margin-top: var(--space-2, 8px) !important;
+}
+
+// ── Dark mode ─────────────────────────────────────────────
+.dark {
+  .rfu__dropzone {
+    background: rgba(19,19,26,0.72) !important;
+    border-color: var(--c-border, rgba(255,140,66,0.12)) !important;
+  }
+
+  .rfu__entry {
+    background: rgba(19,19,26,0.72) !important;
+  }
+
+  .rfu-crop-panel {
+    background: rgba(19,19,26,0.95) !important;
   }
 }
 </style>
