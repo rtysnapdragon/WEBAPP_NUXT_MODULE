@@ -164,7 +164,8 @@ const ui = computed(() => {
   //   base: floatingLabel.value
   // ? 'peer text-[12px] transition-colors'
   // : 'peer leading-4 trailing-padding leading-padding pr-12 pl-14.5 rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75 text-[12px] transition-colors'
-    base:['peer', floatingLabel.value ? '' : 'leading-4 trailing-padding leading-padding pr-12 pl-14.5 peer rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75','text-[12px]','transition-colors'], //controls font-size, borders, color
+    base:['r-input-base',
+      { 'input-error': !!error },'peer', floatingLabel.value ? '' : 'leading-4 trailing-padding leading-padding pr-12 pl-14.5 peer rounded-md border-0 appearance-none placeholder:text-dimmed disabled:cursor-not-allowed disabled:opacity-75','text-[12px]','transition-colors'], //controls font-size, borders, color
     wrapper: 'relative oc-input-wrapper',
     placeholder: "placeholder:text-[12px]",
     rounded: "",
@@ -420,6 +421,18 @@ defineExpose({ ocInput });
     display: none;
 }
 
+.input-error {
+  border: 1px solid #ef4444 !important;
+}
+
+.input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px #ef4444;
+}
+
+.border-red-500 {
+  border-color: #ef4444;
+}
 </style>
 
 <!-- 

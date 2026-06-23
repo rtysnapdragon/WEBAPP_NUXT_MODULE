@@ -144,9 +144,10 @@ watch(selected, (newVal, oldVal) => {
     isOpen.value = false
   }
 })
+
 const defaultUI = {
   base: [
-    'rdp-input', // bind with scss global
+    'rdp-input-base', // bind with scss global
     'w-full',
     'rounded-[14px]',  // 15px not work bz of not in tailwind
     'border',
@@ -166,22 +167,22 @@ const defaultUI = {
   //     ]
   //   }
   // },
-  segment: [
-    'rounded',
-    'text-center',
-    'outline-none',
-    'transition-colors',
-    'data-placeholder:text-[var(--c-muted)]',
-    'data-invalid:text-red-500',
-    'data-disabled:opacity-50',
-    'flex items-center justify-center',
-    'h-full',
-  ],
+  // segment: [
+  //   'rounded',
+  //   'text-center',
+  //   'outline-none',
+  //   'transition-colors',
+  //   'data-placeholder:text-[var(--c-muted)]',
+  //   'data-invalid:text-red-500',
+  //   'data-disabled:opacity-50',
+  //   'flex items-center justify-center',
+  //   'h-full',
+  // ],
 
   leading: 'absolute inset-y-0 start-0 flex items-center',
 
   trailing: 'absolute inset-y-0 end-0 flex items-center',
-
+  // trailing: 'hidden',
   separatorIcon: 'shrink-0 text-[var(--c-muted)]'
 }
 // const mergedUi = computed(() => ({
@@ -372,7 +373,7 @@ const mergedUi = computed(() =>
   &--disabled { opacity: 0.5; pointer-events: none; }
   &--readonly { cursor: default; }
 
-  &--error .rdp__input :deep([data-slot="base"]) {
+  &--error .rdp__input :deep([data-slot="base"]) { //:deep() This is correct only inside a scoped style block:
     --tw-ring-color: var(--c-danger) !important;
     border-color: var(--c-danger) !important;
   }
@@ -406,7 +407,72 @@ const mergedUi = computed(() =>
   color:       var(--c-danger);
   margin:      0;
 }
+// .rdp-input-base {
+//   :deep([data-segment="day"]),
+//   :deep([data-segment="month"]),
+//   :deep([data-segment="year"]) {
+//     width: fit-content !important;
+//     min-width: 0 !important;
+//     flex: none !important;
+//     padding-inline: 2px;
+//   }
+// }
 
+// :deep(.rdp__input) { // work too
+//   [data-segment="day"],
+//   [data-segment="month"],
+//   [data-segment="year"] {
+//     width: fit-content !important;
+//     min-width: 0 !important;
+//     flex: none !important;
+//     padding-inline: 2px !important;
+//   }
+// }
+
+:deep(.rdp-input-base) {
+  [data-segment="day"],
+  [data-segment="month"],
+  [data-segment="year"] {
+    width: fit-content !important;
+    min-width: 0 !important;
+    flex: none !important;
+    padding-inline: 2px !important;
+
+    background-color: blue;
+  }
+  [data-segment="day"]:focus,
+  [data-segment="month"]:focus,
+  [data-segment="year"]:focus {
+    background-color: green !important;
+  }
+}
+// :deep(.rdp-input-base) { // work with clean
+//   [data-segment] {
+//     width: fit-content !important;
+//     min-width: 0 !important;
+//     flex: none !important;
+//     padding-inline: 2px !important;
+
+//     background-color: blue;
+//   }
+
+//   [data-segment]:focus {
+//     background-color: green !important;
+//   }
+// }
+
+// .rdp__input {
+//   :deep([data-slot="trailing"]) {
+//     display: none !important;
+//   }
+// }
+:deep(.rdp-input-base) { // work
+  [data-slot="trailing"] {
+    right: 0px !important;
+    padding-right: 0 !important;
+    background: transparent !important;
+  }
+}
 // ── Input override ─────────────────────────────────────────────────────────
 .rdp__input {
   width: 100%;
@@ -424,10 +490,20 @@ const mergedUi = computed(() =>
 
   // Segment highlight
   :deep([data-slot="segment"]) {
+    padding: 4px !important;
+    
+    // [data-segment="day"],
+    // [data-segment="month"],
+    // [data-segment="year"] {
+    //   // width: 400px !important;
+    //   width: fit-content;
+    //   min-width: fit-content;
+    //   flex: 0 0 auto;
+    // }
     &:focus, &[data-focused=""] {
-      background:    rgba(255,140,66,0.14) !important;
+      background:    var(--c-surface) !important;
       color:         var(--c-accent) !important;
-      border-radius: 3px;
+      border-radius: 300px;
       outline:       none;
     }
   }
@@ -461,7 +537,7 @@ const mergedUi = computed(() =>
 .rdp__cal-btn {
   width:         28px;
   height:        28px;
-  margin-right: 10px;
+  // margin-right: 10px;
   border:        1px solid var(--c-border);
   border-radius: 8px;
   background:    transparent;
@@ -489,17 +565,68 @@ const mergedUi = computed(() =>
 
 <!-- Popover teleports outside scoped — must be global -->
 <style lang="scss">
+// .rdp-input-base {
+//   [data-slot="segment"] {
+//     width: fit-content !important;
+//     min-width: unset !important;
+//     flex: 0 0 auto !important;
+//     padding-inline: 2px;
+//   }
+// }
 
+// .rdp-input-base {
+//   [data-segment="day"],
+//   [data-segment="month"],
+//   [data-segment="year"] {
+//     width: fit-content !important;
+//     min-width: unset !important;
+//     flex: 0 0 auto !important;
+//   }
+// }
 // can override the NuxtUI style but need css class to base of ui of NuxtUI but need as global without scoped
-.rdp-input {
+.rdp-input-base {
   // min-height: 22px !important ; //base
-  min-height: v-bind(inputHeight) !important ; //base
+  min-height: v-bind('inputHeight ?? "38px"') !important ; //base
   padding: 0 12px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 12px;
-}
 
+
+  //   [data-slot="segment"] {
+  //   width: fit-content !important;
+  //   min-width: unset !important;
+  //   flex: 0 0 auto !important;
+  //   padding-inline: 2px;
+  // }
+  // [data-slot="segments"] {
+  //   padding: 4px !important;
+  //   [data-segment="day"] {
+  //     min-width: 80px !important;
+  //   }
+  // }
+  // [data-slot="segments"] {
+  //   padding: 4px !important;
+
+  //   [data-segment="day"],
+  //   [data-segment="month"],
+  //   [data-segment="year"] {
+  //     width: 400px !important;
+  //     // width: fit-content;
+  //     // min-width: fit-content;
+  //     // flex: 0 0 auto;
+  //   }
+  // }
+}
+// .rdp-input-base {  //f the component library is applying a larger min-width, you may need:
+//   [data-segment="day"],
+//   [data-segment="month"],
+//   [data-segment="year"] {
+//     min-width: unset !important;
+//     width: fit-content !important;
+//     flex: 0 0 auto !important;
+//   }
+// }
 .rdp-pop {
   padding:       0 !important;
   overflow:      hidden;
@@ -522,9 +649,9 @@ const mergedUi = computed(() =>
 //   border-radius: 10px;
 // }
 
-::deep(.rdp-input) {
-  height: 44px !important;
-}
+// ::deep(.rdp-input) {
+//   height: 44px !important;
+// }
 .rdp-pop__inner {
   display:        flex;
   flex-direction: column;
