@@ -199,7 +199,6 @@ const allSelected = computed(() =>
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
 
 /* ── Skeleton ── */
 .r-skeleton {
