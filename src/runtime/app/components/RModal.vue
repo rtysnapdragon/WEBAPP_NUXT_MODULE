@@ -1,6 +1,6 @@
 <template>
   <UModal
-    v-model:open="open"
+    v-model:open="isOpen"
     :title="title"
     :description="description"
     :transition="true"
@@ -18,19 +18,33 @@
 
     <!-- HEADER -->
     <template #header>
-      <div class="r-modal__header">
-        <slot name="header">
-          <div class="r-modal__header__custom">
-            <div class="flex gap-2 items-center">
-              <div v-if="icon" v-html="`<i class='${icon} text-[16px]'></i>`"></div>
-              <div class="flex flex-col">
-                <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
-                <span v-if="description" v-html="description" class="text-[var(--c-muted])]"></span>
-              </div>
-            </div>
-            <i class="ri-close-large-fill cursor-pointer" @click="() => { open = false }" />
+      <div v-if="$slots.header" class="r-modal__header">
+        <div class="title">
+          <slot name="header" />
+        </div>
+        <div
+          :class="['btn-close', noClose ? '!hidden' : '']"
+          @click="
+            () => {
+              onCloseModal();
+            }
+          "
+        >
+          <i class="ri-close-large-fill"></i>
+        </div>
+        <slot name="headerCenter" />
+        <slot name="headerRight" />
+      </div>
+
+      <div v-else class="r-modal__header r-modal__header__custom">
+        <div class="flex gap-2 items-center">
+          <div v-if="icon" v-html="`<i class='${icon} text-[16px]'></i>`"></div>
+          <div class="flex flex-col">
+            <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
+            <span v-if="description" v-html="description" class="text-[var(--c-muted])]"></span>
           </div>
-        </slot>
+        </div>
+        <i class="ri-close-large-fill cursor-pointer" @click="() => { onCloseModal() }" />
       </div>
     </template>
 
@@ -42,33 +56,16 @@
     </template>
 
     <!-- FOOTER -->
-    <template #footer="{ close }">
-      <div class="r-modal__footer">
-        <slot v-if="$slots.footer" name="footer" :close="close">
-            <RBtn
-              :label="$t('Cancel')"
-              color="cancel"
-              variant="outline"
-              class="r-modal__btn"
-              icon="ri-close-large-fill"
-              @click="close"
-            />
-
-            <RBtn
-              :label="submitLabel"
-              color="submit"
-              class="r-modal__btn"
-              icon="ri-save-line"
-              @click="$emit('submit', close)"
-            />
-        </slot>
+    <template #footer>
+      <div v-if="$slots.footer" class="r-modal__footer" >
+        <slot name="footer" :close="onCloseModal()" />
       </div>
     </template>
   </UModal>
 </template>
 
 <script setup>
-const open = defineModel()
+const isOpen = defineModel()
 
 const props = defineProps([
   'title',
@@ -79,72 +76,75 @@ const props = defineProps([
 ])
   
 
-defineEmits(["submit"])
+const emit = defineEmits(["submit",'onClose'])
 
 const title = computed(() => props.title)
 const description = computed(() => props.description)
 const isFullScreen = computed(() => props.isFullScreen)
 const noClose = computed(() => props.noClose)
-
+const onCloseModal = () => {
+  isOpen.value = false;
+  emit("onClose");
+};
 const mergedUi = computed(() => ({
   base: "r-modal__base",
-  content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
-  header: "r-modal__header flex items-center gap-1.5 p-4 sm:px-6 min-h-(--ui-header-height)" ,
-  body: "r-modal__body-ui flex-1 p-4 sm:p-6",
-  footer: "flex items-center gap-1.5 p-4 sm:px-6",
-  overlay: "r-modal__overlay fixed inset-0",
-  rounded: "r-modal__rounded",
-  shadow: "r-modal__shadow",
-  description: 'mt-1 text-muted text-sm',
-  title: 'text-highlighted font-semibold',
-  close: 'absolute top-4 end-4',
-  variants: {
-    transition: {
-      true: {
-        overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
-        content: 'data-[state=open]:animate-[scale-in_200ms_ease-out] data-[state=closed]:animate-[scale-out_200ms_ease-in]'
-      }
-    },
-    fullscreen: {
-      true: {
-        content: 'inset-0'
-      },
-      false: {
-        content: 'w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default'
-      }
-    },
-    overlay: {
-      true: {
-        overlay: 'bg-elevated/75'
-      }
-    },
-    scrollable: {
-      true: {
-        overlay: 'overflow-y-auto',
-        content: 'relative'
-      },
-      false: {
-        content: 'fixed',
-        body: 'overflow-y-auto'
-      }
-    }
-  },
-  compoundVariants: [
-    {
-      scrollable: true,
-      fullscreen: false,
-      class: {
-        overlay: 'grid place-items-center p-4 sm:py-8'
-      }
-    },
-    {
-      scrollable: false,
-      fullscreen: false,
-      class: {
-        content: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-hidden'
-      }
-    }
-  ],
+  // content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
+  // header: "r-modal__header" ,
+  // body: "r-modal__body-ui flex-1 p-4 sm:p-6",
+  // footer: "flex items-center gap-1.5 p-4 sm:px-6",
+  // overlay: "r-modal__overlay fixed inset-0",
+  // rounded: "r-modal__rounded",
+  // shadow: "r-modal__shadow",
+  // description: 'mt-1 text-muted text-sm',
+  // title: 'text-highlighted font-semibold',
+  // close: 'absolute top-4 end-4',
+  // variants: {
+  //   transition: {
+  //     true: {
+  //       overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
+  //       content: 'data-[state=open]:animate-[scale-in_200ms_ease-out] data-[state=closed]:animate-[scale-out_200ms_ease-in]'
+  //     }
+  //   },
+  //   fullscreen: {
+  //     true: {
+  //       content: 'inset-0'
+  //     },
+  //     false: {
+  //       content: 'w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default'
+  //     }
+  //   },
+  //   overlay: {
+  //     true: {
+  //       overlay: 'bg-elevated/75'
+  //     }
+  //   },
+  //   scrollable: {
+  //     true: {
+  //       overlay: 'overflow-y-auto',
+  //       content: 'relative'
+  //     },
+  //     false: {
+  //       content: 'fixed',
+  //       body: 'overflow-y-auto'
+  //     }
+  //   }
+  // },
+  // compoundVariants: [
+  //   {
+  //     scrollable: true,
+  //     fullscreen: false,
+  //     class: {
+  //       overlay: 'grid place-items-center p-4 sm:py-8'
+  //     }
+  //   },
+  //   {
+  //     scrollable: false,
+  //     fullscreen: false,
+  //     class: {
+  //       content: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-hidden'
+  //     }
+  //   }
+  // ],
 }))
 
 const defaultUI = computed(() => ({
@@ -168,33 +168,83 @@ const defaultUI = computed(() => ({
   :deep(.backdrop) {
     backdrop-filter: blur(10px);
   }
+
+    :deep([data-slot="header"]) {
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
 }
+
+.r-modal__header__custom{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between !important;
+}
+
 /* ===== Overlay ===== */
-.r-modal :deep(.r-modal__overlay) {
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6px);
-}
-
+.r-modal__base{  
+  button{
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  :deep(.r-modal__overlay) {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+  }
+  
 /* ===== Modal container ===== */
-.r-modal :deep(.r-modal__content) {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+  :deep(.r-modal__content) {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  /* ===== Header ===== */
+  // :deep(.r-modal__header) {
+  //   padding: 5px 15px;
+  //   font-size: 14px;
+  //   font-weight: 600;
+  //   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  // }
+
 }
 
-/* ===== Header ===== */
-.r-modal :deep(.r-modal__header) {
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+.r-modal {
+  :deep([data-slot="header"]) {
+    height: 10px !important;
+    min-height: 10px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+
+    button{
+      margin-right: -10px;
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }
+}
+
+:deep([data-slot="header"]) {
+  height: 10px !important;
+  min-height: 10px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  button{
+    margin-right: -10px;
+    width: 20px !important;
+    height: 20px !important;
+  }
 }
 
 .r-modal__header{
     padding: 5px 15px;
     width: 100%;
-    min-height: 40px;
+    // min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: start;
