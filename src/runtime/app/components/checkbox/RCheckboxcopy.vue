@@ -50,7 +50,7 @@ mounted(() => {
 
 })
 </script>
-
+<!-- 
 <style lang="scss">
 $oc-checkbox-padding: 6px;
 
@@ -132,4 +132,66 @@ input[type='checkbox'] {
     }
   }
 }
+</style> -->
+
+<style scoped lang="scss">
+:deep([data-slot="base"]) {
+  width: 15px !important;
+  height: 15px !important;
+
+  border: 2px solid #c3c3c3 !important;
+  border-radius: 5px !important;
+
+  position: relative;
+  overflow: visible;
+}
+
+:deep([data-slot="base"][data-state="checked"]) {
+  border-color: var(--c-accent) !important;
+}
+
+:deep([data-slot="indicator"]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--c-accent) !important;
+}
+
+:deep([data-slot="indicator"] svg) {
+  width: 10px;
+  height: 10px;
+}
+
+
+// :deep([data-slot="base"])
+// :deep([data-slot="indicator"])
+// :deep([data-slot="label"])
+// :deep([data-state="checked"])
+// :deep([data-state="indeterminate"])
 </style>
+<!-- 
+<style scoped lang="scss">
+:deep([data-slot="base"]) {
+  width: 16px !important;
+  height: 16px !important;
+
+  border: 2px solid #c3c3c3 !important;
+  border-radius: 4px !important;
+
+  transition: all .2s;
+}
+
+:deep([data-slot="base"][data-state="checked"]) {
+  border-color: var(--c-accent) !important;
+}
+
+:deep([data-slot="indicator"]) {
+  color: var(--c-accent) !important;
+}
+
+:deep([data-slot="label"]) {
+  font-size: 12px;
+  color: var(--color-w-b-1);
+}
+</style> -->

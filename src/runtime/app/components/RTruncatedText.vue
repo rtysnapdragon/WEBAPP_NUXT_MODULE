@@ -37,10 +37,20 @@ const expand = (txt) => {
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  -webkit-line-clamp: var(--lines,2);
+  -webkit-box-orient: vertical;
   white-space: nowrap;
   min-width: 0;
 }
+// .r-table-clamp {
+//   display: -webkit-box;
+//   -webkit-line-clamp: var(--clamp-lines, 2);
 
+//   overflow: hidden;
+//   text-overflow: ellipsis;
+//   white-space: normal;
+//   word-break: break-word;
+// }
 
 // .truncate {
 //   overflow: hidden;
