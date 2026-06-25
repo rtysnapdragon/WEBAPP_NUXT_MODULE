@@ -16,7 +16,6 @@
     :ui="defaultUI"
     class="r-modal"
   >
-
     <!-- HEADER -->
     <template #header>
       <div v-if="$slots.header" class="r-modal__header">
@@ -75,7 +74,8 @@ const props = defineProps([
   'noClose',
   'ui',
   'icon',
-  'noHeader'
+  'noHeader',
+  'mode'
 ])
   
 
@@ -86,6 +86,7 @@ const description = computed(() => props.description)
 const isFullScreen = computed(() => props.isFullScreen)
 const noClose = computed(() => props.noClose)
 const icon = computed(() => props.icon)
+const mode = computed(() => props.mode)
 const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
@@ -232,12 +233,7 @@ const defaultUI = computed(() => ({
 }
 
 /* ===== Footer ===== */
-// .r-modal__footer {
-//   width: 100%;
-//   display: flex;
-//   justify-content: flex-end;
-//   align-items: center;
-// }
+
 .r-modal__footer {
   width: 100%;
   display: flex;
@@ -257,7 +253,7 @@ const defaultUI = computed(() => ({
 }
 </style>
 
-
+// global setup style on NuxtUI to full access override
 <style lang="scss">
   [data-slot="header"] {
     padding: 5px 15px;
@@ -282,6 +278,7 @@ const defaultUI = computed(() => ({
   }
 
 
+// hide UMoldal header of NuxtUI
 .hide-header{
   display: none !important;
 }
