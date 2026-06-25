@@ -7,6 +7,7 @@
     :fullscreen="isFullScreen"
     :dismissible="noClose"
     closeIcon="ri-close-line"
+    :hide-header="noHeader"
     :close="{
       color: 'primary',
       variant: 'outline',
@@ -44,7 +45,7 @@
             <span v-if="description" v-html="description" class="text-[var(--c-muted])]"></span>
           </div>
         </div>
-        <i class="ri-close-large-fill cursor-pointer" @click="() => { onCloseModal() }" />
+        <i class="ri-close-large-fill cursor-pointer btn-close" @click="() => { onCloseModal() }" />
       </div>
     </template>
 
@@ -72,7 +73,9 @@ const props = defineProps([
   'description',
   'isFullScreen',
   'noClose',
-  'ui'
+  'ui',
+  'icon',
+  'noHeader'
 ])
   
 
@@ -82,6 +85,7 @@ const title = computed(() => props.title)
 const description = computed(() => props.description)
 const isFullScreen = computed(() => props.isFullScreen)
 const noClose = computed(() => props.noClose)
+const icon = computed(() => props.icon)
 const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
@@ -89,7 +93,7 @@ const onCloseModal = () => {
 const mergedUi = computed(() => ({
   base: "r-modal__base",
   // content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
-  // header: "r-modal__header" ,
+  header: ["r-modal__header", props.noHeader ? 'hide-header !p-0 !min-h-0' : 'p-0'] ,
   // body: "r-modal__body-ui flex-1 p-4 sm:p-6",
   // footer: "flex items-center gap-1.5 p-4 sm:px-6",
   // overlay: "r-modal__overlay fixed inset-0",
@@ -153,6 +157,18 @@ const defaultUI = computed(() => ({
 </script>
 
 <style lang="scss" scoped>
+.btn-close{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 5px;
+  border-radius: 999px !important;
+  :hover{
+    background-color: red !important;
+  }
+}
 .r-modal{
   background-color: var(--c-bg) !important;
   z-index: 9999;
@@ -168,20 +184,6 @@ const defaultUI = computed(() => ({
   :deep(.backdrop) {
     backdrop-filter: blur(10px);
   }
-
-    :deep([data-slot="header"]) {
-    height: 0 !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-  }
-}
-
-.r-modal__header__custom{
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between !important;
 }
 
 /* ===== Overlay ===== */
@@ -203,46 +205,9 @@ const defaultUI = computed(() => ({
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     overflow: hidden;
   }
-
-  /* ===== Header ===== */
-  // :deep(.r-modal__header) {
-  //   padding: 5px 15px;
-  //   font-size: 14px;
-  //   font-weight: 600;
-  //   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  // }
-
-}
-
-.r-modal {
-  :deep([data-slot="header"]) {
-    height: 10px !important;
-    min-height: 10px !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-
-    button{
-      margin-right: -10px;
-      width: 20px !important;
-      height: 20px !important;
-    }
-  }
-}
-
-:deep([data-slot="header"]) {
-  height: 10px !important;
-  min-height: 10px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  button{
-    margin-right: -10px;
-    width: 20px !important;
-    height: 20px !important;
-  }
 }
 
 .r-modal__header{
-    padding: 5px 15px;
     width: 100%;
     // min-height: 40px;
     display: flex;
@@ -289,5 +254,35 @@ const defaultUI = computed(() => ({
 /* rounded override */
 .r-modal__rounded {
   border-radius: 50px;
+}
+</style>
+
+
+<style lang="scss">
+  [data-slot="header"] {
+    padding: 5px 15px;
+    min-height: 50px !important;
+    // max-height: 20px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+
+    h2 {
+    font-size: 15px !important;
+    line-height: 20px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+  }
+
+  /* Adjust close icon size */
+  :deep([data-slot="header"] .ri-close-large-fill) {
+    font-size: 18px !important;
+  }
+  }
+
+
+.hide-header{
+  display: none !important;
 }
 </style>
