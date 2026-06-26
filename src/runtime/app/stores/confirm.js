@@ -1,8 +1,6 @@
 import { defineStore, acceptHMRUpdate } from '#imports'
 
-export const useConfirmStore_11 = defineStore(
-  'ConfirmStore',
-  {
+export const useConfirmStore = defineStore( 'ConfirmStore', {
     state: () => ({
       confirm: null,
       loading: false
@@ -23,11 +21,13 @@ export const useConfirmStore_11 = defineStore(
       },
 
       show(props) {
-        // this.confirm = props,
+        // this.confirm = props;
         this.confirm = {
+          type: props.type ?? "confirm",
           color: 'primary',
           confirmText: 'Confirm',
           cancelText: 'Cancel',
+          message: props.message ?? "",
           persistent: false,
           ...props
         }
@@ -39,9 +39,10 @@ export const useConfirmStore_11 = defineStore(
 
         try {
           this.loading = true
-
+          
           await this.confirm.onConfirm()
 
+          await this.confirm.onCancel()
           this.hide()
         } catch (error) {
           this.loading = false
@@ -55,7 +56,7 @@ export const useConfirmStore_11 = defineStore(
 if (import.meta.hot) {
   import.meta.hot.accept(
     acceptHMRUpdate(
-      useConfirmStore_11,
+      useConfirmStore,
       import.meta.hot
     )
   )
