@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { toastQueue } from '~/composables/useRToast'
+import { toastQueue } from '../../composables/useRToast'
+import { useRToast } from '../../composables/useRToast'
 
 const toast = useRToast()
 

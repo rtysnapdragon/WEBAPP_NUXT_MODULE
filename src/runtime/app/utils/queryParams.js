@@ -1,4 +1,4 @@
-import { useToast } from "#imports";
+import { useRToast } from "#imports";
 import queryString from "query-string";
 export default (key, value) => {
   const toast = useRToast();

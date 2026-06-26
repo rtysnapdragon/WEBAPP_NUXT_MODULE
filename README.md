@@ -73,6 +73,8 @@ npm install @nuxt/kit
 npm install fs-extra
 npm install nuxt-swiper
 npm install @nuxt/content
+npm install query-string
+
 npm install better-sqlite3
 npm install @nuxt/module-builder @nuxt/kit typescript -D
 
