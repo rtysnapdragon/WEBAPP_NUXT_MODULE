@@ -12,12 +12,6 @@ withDefaults(defineProps<{
   padding:  'md',
   bordered: true,
 })
-
-const emits = defineEmits(['click'])
-
-function onClick(event: Event) {
-  emits('click', event)
-}
 </script>
 
 <template>
@@ -25,7 +19,7 @@ function onClick(event: Event) {
     'r-card',
     `r-card--pad-${padding}`,
     { 'r-card--glass': glass, 'r-card--hoverable': hoverable, 'r-card--bordered': bordered }
-  ]" @click="onClick">
+  ]">
     <!-- Header -->
     <div v-if="title || $slots.header" class="r-card__header">
       <slot name="header">
@@ -60,6 +54,7 @@ function onClick(event: Event) {
   background:    var(--c-surface);
   border-radius: var(--radius-lg);
   overflow:      hidden;
+  min-height: calc(100dvh - 350px) ;
   @include transition;
 
   &--bordered { border: 1px solid var(--c-border); }

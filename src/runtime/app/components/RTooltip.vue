@@ -199,8 +199,8 @@ function onMouseLeave() {
 }
 
 .default-text-toolip{
-  white-space: nowrap;
-  padding: 4px 10px ;
+  white-space: nowrap !important;
+  padding: 4px 10px !important;
 }
 </style>
 

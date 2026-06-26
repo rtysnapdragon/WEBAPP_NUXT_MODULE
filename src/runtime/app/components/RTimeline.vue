@@ -1,198 +1,137 @@
+<script setup>
+// RTimeline — SARIKA
+// Thin wrapper around NuxtUI v4.8.2 UTimeline
+// • No  lang="ts" — plain <script setup>
+// • All UTimeline props forwarded via v-bind="$attrs"
+// • All UTimeline slots forwarded with full scoped data
+// • RemixIcon support: riIcon field → <i> tag rendered inside #indicator
+// • SARIKA ui tokens merged with consumer :ui prop
+// • Modes: vertical (default) | horizontal | alternating
+// • Supports: v-model, :default-value, reverse, size, color, orientation, @select
 
+import { computed, useAttrs } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-<script setup lang="ts">
-/**
- * RTimeline — SARIKA reusable timeline component
- * Built on NuxtUI 4.8.2 UTimeline primitives
- *
- * Slots exposed:
- *   #indicator          — override the avatar/icon bubble for all items
- *   #wrapper            — override the full content area for all items
- *   #date               — override the date text for all items
- *   #title              — override the title for all items
- *   #description        — override the description for all items
- *   #[slot]-indicator   — per-item indicator (item.slot = 'custom')
- *   #[slot]-wrapper     — per-item full wrapper
- *   #[slot]-date        — per-item date
- *   #[slot]-title       — per-item title
- *   #[slot]-description — per-item description
- *   #prefix             — inject above the list
- *   #suffix             — inject below the list
- */
-import { computed, useSlots } from 'vue'
-import type { TimelineItem } from '@nuxt/ui'
+// ── Props (SARIKA extras — UTimeline props pass through $attrs) ─────────────
+const props = defineProps([
+  // SARIKA-level extras
+  'items',
+  'mode',          // { type: String,  default: 'vertical' }, // 'vertical'|'horizontal'|'alternating'
+  'ui',            // { type: Object,  default: () => ({}) },
+  // bilingual helpers (applied per-item if fields exist)
+  // items can carry: titleKm, descriptionKm, dateKm, riIcon, tag, color
 
-// ── Extended item type with SARIKA extras ─────────────────────────────────
-export interface RTimelineItem extends TimelineItem {
-  /** Override icon with a Remix Icon class (rendered via v-html) */
-  remixIcon?:    string
-  /** Status badge label */
-  status?:       string
-  /** Status color: success | error | warning | info | neutral */
-  statusColor?:  'success' | 'error' | 'warning' | 'info' | 'neutral'
-  /** Extra metadata key/value pairs shown below description */
-  meta?:         Record<string, string>
-  /** Dot-only mode — hides icon, shows small dot */
-  dot?:          boolean
-  /** Custom class on item wrapper */
-  class?:        string
-  slot?:         string
-}
+])
+const emit = defineEmits(['update:modelValue', 'select'])
+const { locale } = useI18n()
+const attrs = useAttrs()
 
-// ── Props ─────────────────────────────────────────────────────────────────
-const props = withDefaults(defineProps<{
-  items:          RTimelineItem[]
-  /** v-model: active step index or value string */
-  modelValue?:    string | number
-  defaultValue?:  string | number
-  /** Layout */
-  orientation?:   'vertical' | 'horizontal'
-  /** Alternate layout (zigzag) — applies even:flex-row-reverse */
-  alternate?:     boolean
-  /** Color for completed/active indicator */
-  color?:         'primary' | 'success' | 'error' | 'warning' | 'info' | 'neutral'
-  /** Avatar size */
-  size?:          'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  /** Reverse step direction */
-  reverse?:       boolean
-  /** valueKey for item matching */
-  valueKey?:      string
-  /** Extra class on root */
-  class?:         string
-  /** NuxtUI :ui passthrough — merged on top of SARIKA defaults */
-  ui?:            Record<string, any>
-}>(), {
-  orientation: 'vertical',
-  alternate:   false,
-  color:       'primary',
-  size:        'md',
-  reverse:     false,
-  valueKey:    'value',
-  ui:          () => ({}),
+const items = computed(() => props.items)
+const mode = computed(() => props.mode)
+const ui = computed(() => props.ui)
+
+// ── Alternating class + ui preset ──────────────────────────────────────────
+const isAlternating = computed(() => mode.value === 'alternating')
+
+const wrapperClass = computed(() => {
+  if (isAlternating.value) return 'translate-x-[calc(50%-1rem)] w-full'
+  return ''
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [val: string | number]
-  select:              [event: MouseEvent, item: RTimelineItem]
-}>()
+const alternatingUi = computed(() =>
+  isAlternating.value
+    ? { item: 'even:flex-row-reverse even:-translate-x-[calc(100%-2rem)] even:text-right' }
+    : {}
+)
 
-const model = defineModel<string | number>()
-
-// ── SARIKA merged :ui ─────────────────────────────────────────────────────
-// Merges SARIKA design token overrides with consumer :ui passthrough.
-// UTimeline accepts ui as a flat object of slot class overrides.
-const mergedUi = computed(() => ({
-  // ── Root ──
-  root: [
-    'rt-root',
-  ].join(' '),
-  // ── Each item row ──
-  item: [
-    'rt-item',
-    props.alternate
-      ? 'even:flex-row-reverse even:-translate-x-[calc(100%-2rem)] even:text-right'
-      : '',
-  ].filter(Boolean).join(' '),
-
-  // ── Left column: indicator + separator ──
-  container: 'rt-container',
-
-  // ── The icon/avatar bubble ──
-  indicator: [
-    'rt-indicator',
-    // completed → accent fill
-    'group-data-[state=completed]:bg-[var(--c-accent)] group-data-[state=completed]:text-white',
-    // active → accent fill + ring
-    'group-data-[state=active]:bg-[var(--c-accent)] group-data-[state=active]:text-white',
-    'group-data-[state=active]:ring-2 group-data-[state=active]:ring-[var(--c-accent)] group-data-[state=active]:ring-offset-2 group-data-[state=active]:ring-offset-[var(--c-bg)]',
-    // default (upcoming)
-    'bg-[var(--c-surface)] text-[var(--c-muted)] ring-1 ring-[var(--c-border)]',
-    // hover on clickable
-    'transition-all duration-200',
-  ].join(' '),
-
-  // ── Connector line ──
-  separator: [
-    'rt-separator',
-    'bg-[var(--c-border)]',
-    // completed fills with accent
-    'group-data-[state=completed]:bg-[var(--c-accent)]',
-    'transition-colors duration-300',
-  ].join(' '),
-
-  // ── Right column ──
+// ── Merge ui: alternating preset → SARIKA base → consumer override ─────────
+const sarikBaseUi = computed(() => ({
+  // Colour the active indicator dot with accent
+    // ── Right column ──
   wrapper: 'rt-wrapper',
-
-  // ── Date label ──
-  date: 'rt-date text-[var(--c-muted)] text-xs mb-0.5 font-mono',
-
-  // ── Title ──
-  title: 'rt-title text-[var(--c-text)] text-sm font-semibold leading-snug',
-
-  // ── Description ──
-  description: 'rt-desc text-[var(--c-muted)] text-sm leading-relaxed',
-
-  // Deep-merge consumer ui on top
-  ...props.ui,
+  indicator: 'rtl-indicator',
+  separator: 'rtl-separator',
+  date:      'rtl-date',
+  title:     'rtl-title',
+  description: 'rtl-desc',
+  ...alternatingUi.value,
+  ...ui.value,
 }))
 
-// ── Status color map ──────────────────────────────────────────────────────
-const STATUS_COLORS: Record<string, string> = {
-  success: 'var(--c-success)',
-  error:   'var(--c-danger)',
-  warning: 'var(--color-warning)',
-  info:    'var(--c-info)',
-  neutral: 'var(--c-muted)',
+// ── Resolve item icon: prefer riIcon, then icon ────────────────────────────
+function isRiIcon(item) {
+  return !!(item.riIcon || (item.icon && item.icon.startsWith('ri-')))
+}
+function riClass(item) {
+  return item.riIcon || item.icon || 'ri-circle-line'
 }
 
-function statusColor(item: RTimelineItem): string {
-  return STATUS_COLORS[item.statusColor ?? 'neutral']
+// ── Bilingual helpers ──────────────────────────────────────────────────────
+function itemTitle(item) {
+  return (locale.value === 'km' && item.titleKm) ? item.titleKm : (item.title ?? '')
+}
+function itemDesc(item) {
+  return (locale.value === 'km' && item.descriptionKm) ? item.descriptionKm : (item.description ?? '')
+}
+function itemDate(item) {
+  return (locale.value === 'km' && item.dateKm) ? item.dateKm : (item.date ?? '')
 }
 
-// ── Item select ────────────────────────────────────────────────────────────
-function onSelect(event: MouseEvent, item: RTimelineItem) {
-  emit('select', event, item)
-}
+// ── Resolved items (bilingual fields injected so UTimeline renders them) ───
+const resolvedItems = computed(() =>
+  items.value?.map(item => ({
+    ...item,
+    title:       itemTitle(item),
+    description: itemDesc(item),
+    date:        itemDate(item),
+  }))
+)
+
+// ── Orientation derived from mode ──────────────────────────────────────────
+const orientation = computed(() => {
+  if (attrs.orientation) return attrs.orientation
+  return props.mode === 'horizontal' ? 'horizontal' : 'vertical'
+})
 </script>
 
 <template>
-  <div :class="['rtl-wrap', props.class]">
+  <UTimeline
+    v-bind="$attrs"
+    :items="resolvedItems"
+    :orientation="orientation"
+    :ui="sarikBaseUi"
+    :class="['rtl', wrapperClass]"
+    @update:model-value="$emit('update:modelValue', $event)"
+    @select="$emit('select', $event)"
+  >
 
-    <!-- Prefix slot -->
-    <slot name="prefix" />
+    <!-- ── #indicator ──────────────────────────────────────
+         Scope: { item, index, isLeading, modelValue }
+         We render RemixIcon <i> OR UAvatar OR fall through
+    ─────────────────────────────────────────────────────── -->
+    <template #indicator="scope">
+      <slot name="indicator" v-bind="scope">
 
-    <UTimeline
-      v-model="model"
-      :items="items"
-      :orientation="orientation"
-      :color="color"
-      :size="size"
-      :reverse="reverse"
-      :value-key="valueKey"
-      :default-value="defaultValue"
-      :ui="mergedUi"
-      @select="onSelect"
-    >
-      <!-- ══════════════════════════════════════════════════════
-           GLOBAL SLOTS  (apply to all items unless item.slot set)
-           ══════════════════════════════════════════════════════ -->
+        <!-- Avatar (GitHub PR example pattern) -->
+        <UAvatar
+          v-if="scope.item.avatar"
+          v-bind="scope.item.avatar"
+          size="xs"
+          class="rtl__avatar"
+        />
 
-      <!-- ── Indicator ─────────────────────────────────────── -->
-      <template #indicator="{ item }">
-        <slot name="indicator" :item="item">
-          <!-- Dot mode -->
-          <span v-if="(item as RTimelineItem).dot" class="rt-dot" />
+        <!-- RemixIcon via <i> tag -->
+        <i
+          v-else-if="isRiIcon(scope.item)"
+          :class="[riClass(scope.item), 'rtl__ri-icon']"
+          aria-hidden="true"
+        />
 
-          <!-- Remix icon via v-html -->
-          <span
-            v-else-if="(item as RTimelineItem).remixIcon"
-            v-html="`<i class='${(item as RTimelineItem).remixIcon}'></i>`"
-            class="rt-remix-icon"
-          />
+        <!-- NuxtUI UIcon (default UTimeline behaviour — no override needed) -->
+        <!-- UTimeline handles i-lucide-* icons internally when no slot override -->
 
-          <!-- Let UTimeline render its default avatar/icon otherwise (no content = default) -->
-        </slot>
-      </template>
+      </slot>
+    </template>
 
       <!-- ── Wrapper (full right-column content) ───────────── -->
       <template #wrapper="{ item }">
@@ -202,10 +141,10 @@ function onSelect(event: MouseEvent, item: RTimelineItem) {
             <!-- Date -->
             <slot name="date" :item="item">
               <time
-                v-if="(item as RTimelineItem).date"
+                v-if="(item).date"
                 class="rt-date"
               >
-                {{ (item as RTimelineItem).date }}
+                {{ (item).date }}
               </time>
             </slot>
 
@@ -213,40 +152,40 @@ function onSelect(event: MouseEvent, item: RTimelineItem) {
             <div class="rt-title-row">
               <slot name="title" :item="item">
                 <span
-                  v-if="(item as RTimelineItem).title"
+                  v-if="(item).title"
                   class="rt-title"
                 >
-                  {{ (item as RTimelineItem).title }}
+                  {{ (item).title }}
                 </span>
               </slot>
 
               <!-- Status badge -->
               <span
-                v-if="(item as RTimelineItem).status"
+                v-if="(item).status"
                 class="rt-badge"
-                :style="{ '--rt-badge-color': statusColor(item as RTimelineItem) }"
+                :style="{ '--rt-badge-color': statusColor(item) }"
               >
-                {{ (item as RTimelineItem).status }}
+                {{ (item).status }}
               </span>
             </div>
 
             <!-- Description -->
             <slot name="description" :item="item">
               <p
-                v-if="(item as RTimelineItem).description"
+                v-if="(item).description"
                 class="rt-desc"
               >
-                {{ (item as RTimelineItem).description }}
+                {{ (item).description }}
               </p>
             </slot>
 
             <!-- Meta key/value pairs -->
             <dl
-              v-if="(item as RTimelineItem).meta && Object.keys((item as RTimelineItem).meta!).length"
+              v-if="(item).meta && Object.keys((item).meta).length"
               class="rt-meta"
             >
               <div
-                v-for="(val, key) in (item as RTimelineItem).meta"
+                v-for="(val, key) in (item).meta"
                 :key="key"
                 class="rt-meta__row"
               >
@@ -259,172 +198,161 @@ function onSelect(event: MouseEvent, item: RTimelineItem) {
         </slot>
       </template>
 
-      <!-- ══════════════════════════════════════════════════════
-           FORWARD ALL PER-ITEM NAMED SLOTS to UTimeline
-           Consumer uses: <template #my-slot-indicator="{ item }">
-           when item.slot = 'my-slot'
-           ══════════════════════════════════════════════════════ -->
-      <template
-        v-for="(_, name) in $slots"
-        :key="name"
-        #[name]="slotProps"
-      >
-        <slot :name="name" v-bind="slotProps ?? {}" />
-      </template>
+    <!-- ── #title ─────────────────────────────────────────
+         Scope: { item, index }
+    ─────────────────────────────────────────────────────── -->
+    <template #title="scope">
+      <slot name="title" v-bind="scope">
+        <span class="rtl__title-text">{{ scope.item.title }}</span>
+        <!-- Optional tag chip beside title -->
+        <span v-if="scope.item.tag" class="rtl__tag">{{ scope.item.tag }}</span>
+      </slot>
+    </template>
 
-    </UTimeline>
+    <!-- ── #description ──────────────────────────────────
+         Scope: { item, index }
+    ─────────────────────────────────────────────────────── -->
+    <template #description="scope">
+      <slot name="description" v-bind="scope">
+        <p v-if="scope.item.description" class="rtl__desc-text">
+          {{ scope.item.description }}
+        </p>
+      </slot>
+    </template>
 
-    <!-- Suffix slot -->
-    <slot name="suffix" />
+    <!-- ── #date ─────────────────────────────────────────
+         Scope: { item, index }
+    ─────────────────────────────────────────────────────── -->
+    <template #date="scope">
+      <slot name="date" v-bind="scope">
+        <span v-if="scope.item.date" class="rtl__date-text">{{ scope.item.date }}</span>
+      </slot>
+    </template>
 
-  </div>
+    <!-- ── Passthrough all remaining slots consumer may define ── -->
+    <!-- (e.g. #content, any future UTimeline slots) -->
+    <template v-for="(_, name) in $slots" #[name]="slotProps">
+      <slot
+        v-if="name !== 'indicator' && name !== 'title' && name !== 'description' && name !== 'date'"
+        :name="name"
+        v-bind="slotProps ?? {}"
+      />
+    </template>
+
+  </UTimeline>
 </template>
 
 <style lang="scss" scoped>
-// ─────────────────────────────────────────────────────────────────────────────
-// WRAPPER
-// ─────────────────────────────────────────────────────────────────────────────
-.rtl-wrap {
-  display:     flex;
-  flex-direction: column;
-  gap:         var(--space-3, 12px);
+// ── Host ──────────────────────────────────────────────────
+.rtl {
   font-family: var(--font-fallback);
+
+  // avatar inside indicator
+  &__avatar {
+    border: 2px solid var(--c-border);
+    border-radius: 50%;
+  }
+
+  // RemixIcon in indicator cell
+  &__ri-icon {
+    font-size: 1em;
+    line-height: 1;
+    color: inherit;
+  }
+
+  // Title text
+  &__title-text {
+    font-weight: 600;
+    color:       var(--c-text);
+  }
+
+  // Tag chip
+  &__tag {
+    display:       inline-flex;
+    align-items:   center;
+    margin-left:   var(--space-2);
+    padding:       1px 8px;
+    font-size:     0.6rem;
+    font-weight:   700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background:    rgba(255, 140, 66, 0.1);
+    color:         var(--c-accent);
+    border:        1px solid rgba(255, 140, 66, 0.2);
+    border-radius: var(--radius-full);
+    vertical-align: middle;
+  }
+
+  // Description
+  &__desc-text {
+    font-size:   0.82rem;
+    color:       var(--c-muted);
+    line-height: 1.55;
+    margin:      0;
+  }
+
+  // Date
+  &__date-text {
+    font-size:      0.68rem;
+    font-weight:    600;
+    color:          var(--c-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
+</style>
+
+<!-- ─────────────────────────────────────────────────────────
+     GLOBAL — override NuxtUI UTimeline design tokens
+     Applied via the :ui class strings above (rtl-*)
+────────────────────────────────────────────────────────── -->
+<style lang="scss">
+
+// Separator / connector line
+.rtl-separator {
+  background: var(--c-border) !important;
+  @include transition;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CONTENT WRAP (right column)
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-content-wrap {
-  display:        flex;
-  flex-direction: column;
-  gap:            3px;
-  padding-bottom: 20px; // breathing room between items
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DATE
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-date {
-  display:     block;
-  font-size:   0.72rem;
-  font-weight: 500;
-  color:       var(--c-muted);
-  font-family: 'JetBrains Mono', 'Fira Code', monospace, var(--font-fallback);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TITLE ROW
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-title-row {
-  display:     flex;
-  align-items: center;
-  gap:         7px;
-  flex-wrap:   wrap;
-}
-
-.rt-title {
-  font-size:   0.875rem;
-  font-weight: 600;
-  color:       var(--c-text);
-  line-height: 1.4;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DESCRIPTION
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-desc {
-  font-size:   0.8rem;
-  color:       var(--c-muted);
-  line-height: 1.6;
-  margin:      2px 0 0;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STATUS BADGE
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-badge {
-  display:       inline-flex;
-  align-items:   center;
-  font-size:     0.65rem;
-  font-weight:   600;
-  line-height:   1;
-  padding:       3px 7px;
-  border-radius: 20px;
+// Date slot
+.rtl-date {
+  font-family:    var(--font-fallback);
+  font-size:      0.68rem !important;
+  font-weight:    600 !important;
+  color:          var(--c-muted) !important;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color:         var(--rt-badge-color, var(--c-accent));
-  background:    color-mix(in srgb, var(--rt-badge-color, var(--c-accent)) 14%, transparent);
-  border:        1px solid color-mix(in srgb, var(--rt-badge-color, var(--c-accent)) 28%, transparent);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// META KEY/VALUE
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-meta {
-  display:        flex;
-  flex-direction: column;
-  gap:            3px;
-  margin-top:     6px;
-  padding:        8px 10px;
-  background:     var(--bg-tertiary, rgba(0,0,0,0.03));
-  border-radius:  8px;
-  border:         1px solid var(--c-border);
+// Title slot
+.rtl-title {
+  font-family: var(--font-fallback);
+  font-weight: 600 !important;
+  color:       var(--c-text) !important;
+  font-size:   0.875rem !important;
+}
 
-  &__row {
-    display:     flex;
-    gap:         6px;
-    font-size:   0.75rem;
-    line-height: 1.5;
-  }
+// Description slot
+.rtl-desc {
+  font-family: var(--font-fallback);
+  font-size:   0.8rem !important;
+  color:       var(--c-muted) !important;
+  line-height: 1.55 !important;
+}
 
-  &__key {
-    color:      var(--c-muted);
-    min-width:  80px;
-    flex-shrink: 0;
-    font-weight: 500;
-  }
-
-  &__val {
-    color: var(--c-text);
+// Indicator dot — accent when active
+.rtl-indicator {
+  // NuxtUI exposes color via CSS var; we patch active ring
+  &[data-active="true"],
+  &[aria-current="true"] {
+    background:   var(--c-accent) !important;
+    border-color: var(--c-accent) !important;
+    box-shadow:   var(--glow-accent-sm) !important;
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DOT INDICATOR
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-dot {
-  display:       block;
-  width:         10px;
-  height:        10px;
-  border-radius: 50%;
-  background:    var(--c-accent);
-  box-shadow:    0 0 0 3px rgba(255,140,66,0.18);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// REMIX ICON
-// ─────────────────────────────────────────────────────────────────────────────
-.rt-remix-icon {
-  display:    flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  font-size:  1em;
-
-  :deep(i) {
-    font-size: inherit;
-    line-height: 1;
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DARK MODE overrides
-// ─────────────────────────────────────────────────────────────────────────────
-.dark {
-  .rt-meta {
-    background: rgba(255,255,255,0.03);
-  }
+// Dark-mode connector
+.dark .rtl-separator {
+  background: var(--c-border) !important;
 }
 </style>

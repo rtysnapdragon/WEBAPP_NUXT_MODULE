@@ -70,6 +70,7 @@
 
 <script setup>
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
+import RTooltip from '../RTooltip.vue'
 const props = defineProps(["items", "closeInside"]);
 const close = computed(() => props.closeInside);
 const dataMenu = useMenuStore();
@@ -266,8 +267,8 @@ function getCurrentTop(child) {
 }
 
 .ocs-btn-icon {
-  width: 25px;
-  height: 25px;
+  width: 25px !important;
+  height: 25px !important;
   border-radius: 7px;
   border: 1px solid var(--ocs-c-gray);
   color: var(--ocs-c-gray);
@@ -702,6 +703,7 @@ function getCurrentTop(child) {
 
       .btn-label {
         color: var(--color-w-b-4) !important;
+        white-space: nowrap !important;
       }
     }
 
@@ -805,7 +807,7 @@ function getCurrentTop(child) {
       font-family: var(--font-400);
       line-height: 14px;
       color: var(--color-w-b-2);
-      white-space: nowrap;
+      white-space: nowrap !important;
     }
   }
 }
