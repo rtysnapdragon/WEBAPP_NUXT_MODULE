@@ -116,11 +116,11 @@ const onChangeTab = (index) => {
 };
 const refOCTab = ref();
 
-function OCTab() {
+function RTab() {
   return refOCTab.value;
 }
 defineExpose({
-  OCTab,
+  RTab,
   jumpTo: (index) => {
     model.value = index;
   },
