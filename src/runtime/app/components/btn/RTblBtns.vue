@@ -8,7 +8,7 @@
             action?.showIfAllowed,
             dataMenu.getActionPermission(action?.permission)
           )
-        " class="ocs-btn-icon relative" @click="
+        " class="r-btn-icon relative" @click="
           click(action?.type, action?.permission, action?.label, action)
           " :class="[
             action?.isRotate ? `rotateButton` : ``,
@@ -25,8 +25,8 @@
 
       <fwb-dropdown placement="left" class="popup-wrapper z-50" v-if="actionsMore.length > 0" :close-inside="close">
         <template #trigger>
-          <RTooltip :label="$t('more')" :placement="'left'">
-            <button class="ocs-btn-icon more" @click="clickShow">
+          <RTooltip :label="$t(more)" placement="left">
+            <button class="r-btn-icon more" @click="clickShow">
               <div class="icon"><i class="ri-more-2-fill"></i></div>
             </button>
           </RTooltip>
@@ -70,6 +70,7 @@
 
 <script setup>
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
+const { t } = useI18n();
 import RTooltip from '../RTooltip.vue'
 const props = defineProps(["items", "closeInside"]);
 const close = computed(() => props.closeInside);
@@ -92,6 +93,7 @@ function generateIcon(icon) {
   if (icon.startsWith('ri-') ?? icon.startsWith('i-')) {
     return icon
   }
+  
   let classIcon = icon;
   if (icon?.toLowerCase() == "add") classIcon = "ri-add-circle-line";
   if (icon?.toLowerCase() == "view") classIcon = "ri-eye-line";
@@ -258,7 +260,7 @@ function getCurrentTop(child) {
   grid-gap: 4px;
 }
 
-.ocs-btn-icon-size {
+.r-btn-icon-size {
   width: 24px;
   height: 24px;
   display: flex;
@@ -266,12 +268,12 @@ function getCurrentTop(child) {
   align-items: center;
 }
 
-.ocs-btn-icon {
+.r-btn-icon {
   width: 25px !important;
   height: 25px !important;
   border-radius: 7px;
-  border: 1px solid var(--ocs-c-gray);
-  color: var(--ocs-c-gray);
+  border: 1px solid var(--r-c-gray);
+  color: var(--r-c-gray);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -296,53 +298,53 @@ function getCurrentTop(child) {
   }
 
   &.change {
-    border: 1px solid var(--ocs-c-blue);
-    color: var(--ocs-c-blue);
+    border: 1px solid var(--r-c-blue);
+    color: var(--r-c-blue);
 
     &.fill {
-      background: var(--ocs-c-blue);
+      background: var(--r-c-blue);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-blue);
+      background: var(--r-c-blue);
       color: #fff;
     }
   }
 
   &:hover {
-    background: var(--ocs-c-gray);
+    background: var(--r-c-gray);
     color: #fff;
   }
 
   &.return,
   &.add,
   &.view {
-    border: 1px solid var(--ocs-c-nenoBlue);
-    color: var(--ocs-c-nenoBlue);
+    border: 1px solid var(--r-c-nenoBlue);
+    color: var(--r-c-nenoBlue);
 
     &.fill {
-      background: var(--ocs-c-nenoBlue);
+      background: var(--r-c-nenoBlue);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-nenoBlue);
+      background: var(--r-c-nenoBlue);
       color: #fff;
     }
   }
 
   &.edit {
-    border: 1px solid var(--ocs-c-green);
-    color: var(--ocs-c-green);
+    border: 1px solid var(--r-c-green);
+    color: var(--r-c-green);
 
     &.fill {
-      background: var(--ocs-c-green);
+      background: var(--r-c-green);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-green);
+      background: var(--r-c-green);
       color: #fff;
     }
   }
@@ -364,7 +366,7 @@ function getCurrentTop(child) {
 
   &.void {
     border: 1px solid #e26666;
-    color: var(--ocs-c-red);
+    color: var(--r-c-red);
 
     &.fill {
       background: #aa4b4b;
@@ -378,76 +380,76 @@ function getCurrentTop(child) {
   }
 
   &.run {
-    border: 1px solid var(--ocs-c-orangeRed);
-    color: var(--ocs-c-orangeRed);
+    border: 1px solid var(--r-c-orangeRed);
+    color: var(--r-c-orangeRed);
 
     &.fill {
-      background: var(--ocs-c-orangeRed);
+      background: var(--r-c-orangeRed);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-orangeRed);
+      background: var(--r-c-orangeRed);
       color: #fff;
     }
   }
 
   &.delete {
-    border: 1px solid var(--ocs-c-red);
-    color: var(--ocs-c-red);
+    border: 1px solid var(--r-c-red);
+    color: var(--r-c-red);
 
     &.fill {
-      background: var(--ocs-c-red);
+      background: var(--r-c-red);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-red);
+      background: var(--r-c-red);
       color: #fff;
     }
   }
 
   &.approve {
-    border: 1px solid var(--ocs-c-green);
-    color: var(--ocs-c-green);
+    border: 1px solid var(--r-c-green);
+    color: var(--r-c-green);
 
     &.fill {
-      background: var(--ocs-c-green);
+      background: var(--r-c-green);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-green);
+      background: var(--r-c-green);
       color: #fff;
     }
   }
 
   &.setting {
-    border: 1px solid var(--ocs-c-purple);
-    color: var(--ocs-c-purple);
+    border: 1px solid var(--r-c-purple);
+    color: var(--r-c-purple);
 
     &.fill {
-      background: var(--ocs-c-purple);
+      background: var(--r-c-purple);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-purple);
+      background: var(--r-c-purple);
       color: #fff;
     }
   }
 
   &.print {
-    border: 1px solid var(--ocs-c-orange);
-    color: var(--ocs-c-orange);
+    border: 1px solid var(--r-c-orange);
+    color: var(--r-c-orange);
 
     &.fill {
-      background: var(--ocs-c-orange);
+      background: var(--r-c-orange);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-orange);
+      background: var(--r-c-orange);
       color: #fff;
     }
   }
@@ -463,32 +465,32 @@ function getCurrentTop(child) {
   }
 
   &.release {
-    border: 1px solid var(--ocs-c-capture);
-    color: var(--ocs-c-capture);
+    border: 1px solid var(--r-c-capture);
+    color: var(--r-c-capture);
 
     &.fill {
-      background: var(--ocs-c-capture);
+      background: var(--r-c-capture);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-capture);
+      background: var(--r-c-capture);
       color: #fff;
     }
   }
 
   &.copy,
   &.clone {
-    border: 1px solid var(--ocs-c-purple);
-    color: var(--ocs-c-purple);
+    border: 1px solid var(--r-c-purple);
+    color: var(--r-c-purple);
 
     &.fill {
-      background: var(--ocs-c-purple);
+      background: var(--r-c-purple);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-purple);
+      background: var(--r-c-purple);
       color: #fff;
     }
   }
@@ -555,16 +557,16 @@ function getCurrentTop(child) {
   }
 
   &.chat {
-    border: 1px solid var(--ocs-c-orange);
-    color: var(--ocs-c-orange);
+    border: 1px solid var(--r-c-orange);
+    color: var(--r-c-orange);
 
     &.fill {
-      background: var(--ocs-c-orange);
+      background: var(--r-c-orange);
       color: #fff;
     }
 
     &:hover {
-      background: var(--ocs-c-orange);
+      background: var(--r-c-orange);
       color: #fff;
     }
   }
@@ -720,44 +722,44 @@ function getCurrentTop(child) {
       &.return,
       &.add,
       &.view {
-        color: var(--ocs-c-nenoBlue);
+        color: var(--r-c-nenoBlue);
       }
 
       &.edit {
-        color: var(--ocs-c-capture);
+        color: var(--r-c-capture);
       }
 
       &.run {
-        color: var(--ocs-c-orangeRed);
+        color: var(--r-c-orangeRed);
       }
 
       &.delete {
-        color: var(--ocs-c-red);
+        color: var(--r-c-red);
       }
 
       &.approve {
-        color: var(--ocs-c-green);
+        color: var(--r-c-green);
       }
 
       &.setting {
-        color: var(--ocs-c-purple);
+        color: var(--r-c-purple);
       }
 
       &.print {
-        color: var(--ocs-c-orange);
+        color: var(--r-c-orange);
       }
 
       &.more {
-        color: var(--ocs-c-gray);
+        color: var(--r-c-gray);
       }
 
       &.release {
-        color: var(--ocs-c-capture);
+        color: var(--r-c-capture);
       }
 
       &.copy,
       &.clone {
-        color: var(--ocs-c-purple);
+        color: var(--r-c-purple);
       }
 
       &.employee,
@@ -778,7 +780,7 @@ function getCurrentTop(child) {
       }
 
       &.chat {
-        color: var(--ocs-c-orange);
+        color: var(--r-c-orange);
       }
 
       &.split {

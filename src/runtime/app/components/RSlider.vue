@@ -31,7 +31,7 @@
       </template>
 
       <template #footer>
-        <div v-if="$slots.footer" class="r-slider-footer py-[10px] flex justify-end gap-2 w-full">
+        <div v-if="$slots.footer" class="r-slider-footer flex justify-end gap-2 w-full">
           <slot name="footer">
             <!-- <RBtn
               icon="close"
@@ -105,7 +105,15 @@ watch(() => screen.isMobile, (n) => {
 
 const ui = computed(() => {
   const defaultUI = {
-     closeButton: {
+    content: 'r-slider-content',
+    base: `r-wrapper-container relative flex-1 flex flex-col w-full focus:outline-none ${props.class}`,
+    background: "color-bg-content",
+    ring: "",
+    rounded: "",
+    padding: "",
+    shadow: "shadow-none",
+    width: `w-full max-w-md max-w-sm ${props.class}`,
+    closeButton: {
       base: 'absolute top-4 right-4',
       padding: 'p-1',
       rounded: 'rounded-md',
@@ -137,14 +145,6 @@ const ui = computed(() => {
         leaveTo: "opacity-0",
       },
     },
-    content: 'max-w-lg',
-    // base: `relative flex-1 flex flex-col w-full focus:outline-none ${props.class}`,
-    background: "color-bg-content",
-    ring: "",
-    rounded: "",
-    padding: "",
-    shadow: "shadow-none",
-    width: `w-full max-w-md max-w-sm ${props.class}`,
     transition: {
       enter: "!transform !transition !duration-[250ms]",
       leave: "!transform !transition !duration-200",
@@ -244,7 +244,7 @@ function closed() {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .r-slider-container {
   background-color: var(--bg-wrapper);
   color: var(--c-text);
@@ -277,7 +277,7 @@ function closed() {
     flex-direction: column;
     height: 100%;
     max-height: 100%;
-    padding:5px 15px ;
+    // padding:5px 15px ;
 
     &.isScroll {
       // this class add auto
@@ -306,12 +306,20 @@ function closed() {
     display: flex;
     align-items: center;
     justify-content: end;
-    min-height: 71px;
-    padding: 5px 15px !important;
+    // padding: 5px 15px !important;
     grid-gap: 6px;
   }
 }
 
+:deep([data-slot="body"]){
+  padding-right: 50px !important;
+}
+
+.r-slider-content{
+  [data-slot="body"]{
+    padding: 50px !important;
+  }
+}
 .r-drawer-overlay {
   background: var(--bg-wrapper-50) !important;
 }
@@ -324,6 +332,8 @@ function closed() {
 }
 
 [data-slot="body"]{
+
+  padding-right: 20px !important;
   .hasScroll{
     padding:0 !important;
   }

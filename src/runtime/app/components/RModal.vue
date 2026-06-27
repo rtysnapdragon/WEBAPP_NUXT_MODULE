@@ -56,11 +56,9 @@
     </template>
 
     <!-- FOOTER -->
-    <template #footer>
-      <div v-if="$slots.footer" class="r-modal__footer" >
-        <slot name="footer" :close="onCloseModal()" />
-      </div>
-    </template>
+    <div v-if="$slots.footer" class="r-modal__footer" >
+      <slot name="footer" :close="onCloseModal()" />
+    </div>
   </UModal>
 </template>
 
@@ -95,7 +93,7 @@ const mergedUi = computed(() => ({
   base: "r-modal__base",
   // content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
   header: ["r-modal__header", props.noHeader ? 'hide-header !p-0 !min-h-0' : 'p-0'] ,
-  // body: "r-modal__body-ui flex-1 p-4 sm:p-6",
+  body: "r-modal__body-ui flex-1",
   // footer: "flex items-center gap-1.5 p-4 sm:px-6",
   // overlay: "r-modal__overlay fixed inset-0",
   // rounded: "r-modal__rounded",
@@ -170,6 +168,7 @@ const defaultUI = computed(() => ({
     background-color: red !important;
   }
 }
+
 .r-modal{
   background-color: var(--c-bg) !important;
   z-index: 9999;
@@ -206,6 +205,10 @@ const defaultUI = computed(() => ({
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     overflow: hidden;
   }
+
+  [data-slot="body"]{
+    padding: 10px 20px  !important;
+  }
 }
 
 .r-modal__header{
@@ -225,7 +228,6 @@ const defaultUI = computed(() => ({
 
 /* ===== Body ===== */
 .r-modal__body {
-  padding: 5px 15px;
   font-size: 13px;
   color: var(--c-text);
   /* max-height: 70vh; */

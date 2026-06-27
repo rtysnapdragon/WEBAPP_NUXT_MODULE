@@ -55,11 +55,10 @@
               @click="onCancel"
               />
               <!-- class="r-confirm__btn r-confirm__btn--cancel" -->
-
             <RBtn
               :type="type"
               :icon="type"
-              :label="$t(labelBtnConfirm)"
+              :label="labelBtnConfirm"
               size="s"
               :variant="confirmStore.loading ? 'ghost' : 'solid'"
               :noIcon="!confirmStore.loading"
@@ -67,7 +66,6 @@
               @click="onConfirm"
               />
               <!-- :class="typeClasses.confirmButton" -->
-              <!-- class="r-confirm__btn" -->
             </div>
         </div>
       </div>
@@ -93,6 +91,7 @@ confirm.show({
 <script setup>
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import { useConfirmStore } from '../../stores/confirm'
 
 const confirmStore = useConfirmStore();
 
@@ -105,8 +104,6 @@ const isOpen = computed({
     }
   }
 })
-
-console.log("Is open comfirm =============> ", isOpen.value)
 
 // const title = computed(() => confirmStore.data?.title ?? "");
 // const description = computed(() => confirmStore.data?.description ?? "");
@@ -123,6 +120,103 @@ const description = ref("");
 
 const noIcon = ref(true);
 const loading = ref(false);
+
+watch(
+  () => confirmStore.data,
+  () => {
+    if (confirmStore.data) {
+      confirmStore.data.type != undefined
+        ? (type.value = confirmStore.data.type)
+        : (type.value = "delete"); // if user does't pass type when call store
+      if (
+        confirmStore.data.type == "delete" ||
+        confirmStore.data.type == undefined ||
+        confirmStore.data.type == ""
+      ) {
+        title.value = t("confirm");
+        message.value = t("do_you_want_to_delete");
+        labelBtnConfirm.value = t("delete");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "save") {
+        title.value = t("confirm");
+        message.value = t("do_you_want_to_save");
+        labelBtnConfirm.value = t("save");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "update") {
+        title.value = t("confirm");
+        message.value = t("do_you_want_to_update");
+        labelBtnConfirm.value = t("update");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "confirm") {
+        type.value = "save";
+        labelBtnConfirm.value = t("ok");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "warning") {
+        type.value = "print";
+        labelBtnConfirm.value = t("ok");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "view") {
+        type.value = "view";
+        labelBtnConfirm.value = t("ok");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "create") {
+        type.value = "create";
+        labelBtnConfirm.value = t("create");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "update") {
+        type.value = "update";
+        labelBtnConfirm.value = t("update");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "info") {
+        type.value = "info";
+        labelBtnConfirm.value = t("ok");
+        description.value = "";
+      }
+      if (confirmStore.data.type == "custom") {
+        type.value = "custom";
+        labelBtnConfirm.value = t("ok");
+        description.value = "";
+      }
+
+      if (confirmStore.data.title ?? "" != "") title.value = confirmStore.data.title;
+      if (confirmStore.data.message ?? "" != "") message.value = confirmStore.data.message;
+      if (confirmStore.data.description ?? "" != "") description.value = confirmStore.data.description;
+      if (confirmStore.data.labelBtn ?? "" != "") labelBtnConfirm.value = confirmStore.data.labelBtn;
+    }
+  }
+);
+
+
+watch(
+  () => confirmStore.loading,
+  (n) => {
+    if (confirmStore.loading === false) {
+      confirmStore.hide();
+    }
+  }
+);
+// watch(
+//   () => confirmStore.data,
+//   (val) => {
+//     console.log("confirmStore.data changed:", val);
+//   },
+//   { deep: true }
+// );
+
+// watch(
+//   () => confirmStore.loading,
+//   (val) => {
+//     console.log("loading changed:", val);
+//   }
+// );
 
 async function onConfirm() {
   confirmStore.setLoading(true);
@@ -271,103 +365,6 @@ const typeClasses1 = computed(() => {
       };
   }
 });
-
-watch(
-  () => confirmStore.data,
-  () => {
-    if (confirmStore.data) {
-      confirmStore.data.type != undefined
-        ? (type.value = confirmStore.data.type)
-        : (type.value = "delete"); // if user does't pass type when call store
-      if (
-        confirmStore.data.type == "delete" ||
-        confirmStore.data.type == undefined ||
-        confirmStore.data.type == ""
-      ) {
-        title.value = t("confirm");
-        message.value = t("do_you_want_to_delete");
-        labelBtnConfirm.value = t("delete");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "save") {
-        title.value = t("confirm");
-        message.value = t("do_you_want_to_save");
-        labelBtnConfirm.value = t("save");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "update") {
-        title.value = t("confirm");
-        message.value = t("do_you_want_to_update");
-        labelBtnConfirm.value = t("update");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "confirm") {
-        type.value = "save";
-        labelBtnConfirm.value = t("ok");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "warning") {
-        type.value = "print";
-        labelBtnConfirm.value = t("ok");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "view") {
-        type.value = "view";
-        labelBtnConfirm.value = t("ok");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "create") {
-        type.value = "create";
-        labelBtnConfirm.value = t("create");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "update") {
-        type.value = "update";
-        labelBtnConfirm.value = t("update");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "info") {
-        type.value = "info";
-        labelBtnConfirm.value = t("ok");
-        description.value = "";
-      }
-      if (confirmStore.data.type == "custom") {
-        type.value = "custom";
-        labelBtnConfirm.value = t("ok");
-        description.value = "";
-      }
-
-      if (confirmStore.data.title ?? "" != "") title.value = confirmStore.data.title;
-      if (confirmStore.data.message ?? "" != "") message.value = confirmStore.data.message;
-      if (confirmStore.data.description ?? "" != "") description.value = confirmStore.data.description;
-      if (confirmStore.data.labelBtn ?? "" != "") labelBtnConfirm.value = confirmStore.data.labelBtn;
-    }
-  }
-);
-
-
-watch(
-  () => confirmStore.loading,
-  (n) => {
-    if (confirmStore.loading === false) {
-      confirmStore.hide();
-    }
-  }
-);
-// watch(
-//   () => confirmStore.data,
-//   (val) => {
-//     console.log("confirmStore.data changed:", val);
-//   },
-//   { deep: true }
-// );
-
-// watch(
-//   () => confirmStore.loading,
-//   (val) => {
-//     console.log("loading changed:", val);
-//   }
-// );
 async function onCancel() {
   if (confirmStore.data.onCancel) await confirmStore.data?.onCancel();
   confirmStore.hide();

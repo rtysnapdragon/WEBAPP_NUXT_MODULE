@@ -81,8 +81,8 @@ function fnClick(type, list) {
   flex-wrap: wrap;
 
   .r-group-action-more {
-    width: 36px;
-    height: 36px;
+    width: 36px !important;
+    height: 36px !important;
     border-radius: 10px;
     display: flex;
     justify-content: center;
@@ -93,8 +93,6 @@ function fnClick(type, list) {
     color: var(--color-w-b-1);
     cursor: pointer;
   }
-
-
 
   .r-popup-action-btn {
     position: relative;
