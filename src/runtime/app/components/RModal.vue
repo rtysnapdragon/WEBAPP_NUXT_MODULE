@@ -56,9 +56,11 @@
     </template>
 
     <!-- FOOTER -->
-    <div v-if="$slots.footer" class="r-modal__footer" >
-      <slot name="footer" :close="onCloseModal()" />
-    </div>
+    <template v-if="$slots.footer" #footer>
+      <div class="r-modal__footer" >
+        <slot name="footer" :close="onCloseModal()" />
+      </div>
+    </template>
   </UModal>
 </template>
 
@@ -91,63 +93,63 @@ const onCloseModal = () => {
 };
 const mergedUi = computed(() => ({
   base: "r-modal__base",
-  // content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
+  content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
   header: ["r-modal__header", props.noHeader ? 'hide-header !p-0 !min-h-0' : 'p-0'] ,
   body: "r-modal__body-ui flex-1",
-  // footer: "flex items-center gap-1.5 p-4 sm:px-6",
-  // overlay: "r-modal__overlay fixed inset-0",
-  // rounded: "r-modal__rounded",
-  // shadow: "r-modal__shadow",
-  // description: 'mt-1 text-muted text-sm',
-  // title: 'text-highlighted font-semibold',
-  // close: 'absolute top-4 end-4',
-  // variants: {
-  //   transition: {
-  //     true: {
-  //       overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
-  //       content: 'data-[state=open]:animate-[scale-in_200ms_ease-out] data-[state=closed]:animate-[scale-out_200ms_ease-in]'
-  //     }
-  //   },
-  //   fullscreen: {
-  //     true: {
-  //       content: 'inset-0'
-  //     },
-  //     false: {
-  //       content: 'w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default'
-  //     }
-  //   },
-  //   overlay: {
-  //     true: {
-  //       overlay: 'bg-elevated/75'
-  //     }
-  //   },
-  //   scrollable: {
-  //     true: {
-  //       overlay: 'overflow-y-auto',
-  //       content: 'relative'
-  //     },
-  //     false: {
-  //       content: 'fixed',
-  //       body: 'overflow-y-auto'
-  //     }
-  //   }
-  // },
-  // compoundVariants: [
-  //   {
-  //     scrollable: true,
-  //     fullscreen: false,
-  //     class: {
-  //       overlay: 'grid place-items-center p-4 sm:py-8'
-  //     }
-  //   },
-  //   {
-  //     scrollable: false,
-  //     fullscreen: false,
-  //     class: {
-  //       content: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-hidden'
-  //     }
-  //   }
-  // ],
+  footer: "flex items-center",
+  overlay: "r-modal__overlay fixed inset-0",
+  rounded: "r-modal__rounded",
+  shadow: "r-modal__shadow",
+  description: 'mt-1 text-muted text-sm',
+  title: 'text-highlighted font-semibold',
+  close: 'absolute top-4 end-4',
+  variants: {
+    transition: {
+      true: {
+        overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
+        content: 'data-[state=open]:animate-[scale-in_200ms_ease-out] data-[state=closed]:animate-[scale-out_200ms_ease-in]'
+      }
+    },
+    fullscreen: {
+      true: {
+        content: 'inset-0'
+      },
+      false: {
+        content: 'w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default'
+      }
+    },
+    overlay: {
+      true: {
+        overlay: 'bg-elevated/75'
+      }
+    },
+    scrollable: {
+      true: {
+        overlay: 'overflow-y-auto',
+        content: 'relative'
+      },
+      false: {
+        content: 'fixed',
+        body: 'overflow-y-auto'
+      }
+    }
+  },
+  compoundVariants: [
+    {
+      scrollable: true,
+      fullscreen: false,
+      class: {
+        overlay: 'grid place-items-center p-4 sm:py-8'
+      }
+    },
+    {
+      scrollable: false,
+      fullscreen: false,
+      class: {
+        content: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-hidden'
+      }
+    }
+  ],
 }))
 
 const defaultUI = computed(() => ({
@@ -155,7 +157,7 @@ const defaultUI = computed(() => ({
 }))
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .btn-close{
   display: flex;
   justify-content: center;
@@ -241,7 +243,6 @@ const defaultUI = computed(() => ({
   display: flex;
   justify-content: flex-end;
   gap: 6px;
-  padding: 15px 15px 15px 15px;
 }
 
 /* buttons */
@@ -253,10 +254,9 @@ const defaultUI = computed(() => ({
 .r-modal__rounded {
   border-radius: 50px;
 }
-</style>
+
 
 // global setup style on NuxtUI to full access override
-<style lang="scss">
   [data-slot="header"] {
     padding: 5px 15px;
     min-height: 50px !important;
