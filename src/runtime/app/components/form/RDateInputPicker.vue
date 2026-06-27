@@ -418,17 +418,6 @@ const mergedUi = computed(() =>
 //   }
 // }
 
-// :deep(.rdp__input) { // work too
-//   [data-segment="day"],
-//   [data-segment="month"],
-//   [data-segment="year"] {
-//     width: fit-content !important;
-//     min-width: 0 !important;
-//     flex: none !important;
-//     padding-inline: 2px !important;
-//   }
-// }
-
 :deep(.rdp-input-base) {
   [data-segment="day"],
   [data-segment="month"],
@@ -437,13 +426,20 @@ const mergedUi = computed(() =>
     min-width: 0 !important;
     flex: none !important;
     padding-inline: 2px !important;
+    // padding: 1px 2px !important;
 
-    background-color: blue;
+    // background-color: var(--color-w-b-6);
   }
   [data-segment="day"]:focus,
   [data-segment="month"]:focus,
   [data-segment="year"]:focus {
-    background-color: green !important;
+    background-color: var(--color-w-b-6) !important;
+  }
+
+  [data-slot="trailing"] {
+    right: 0 !important;
+    // padding-right: 4px !important;
+    background: transparent !important;
   }
 }
 // :deep(.rdp-input-base) { // work with clean
@@ -466,13 +462,7 @@ const mergedUi = computed(() =>
 //     display: none !important;
 //   }
 // }
-:deep(.rdp-input-base) { // work
-  [data-slot="trailing"] {
-    right: 0px !important;
-    padding-right: 0 !important;
-    background: transparent !important;
-  }
-}
+
 // ── Input override ─────────────────────────────────────────────────────────
 .rdp__input {
   width: 100%;

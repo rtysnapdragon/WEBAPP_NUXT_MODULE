@@ -108,6 +108,7 @@ const ui = computed(() => {
     content: 'r-slider-content',
     base: `r-wrapper-container relative flex-1 flex flex-col w-full focus:outline-none ${props.class}`,
     background: "color-bg-content",
+    body: 'r-slider-body',
     ring: "",
     rounded: "",
     padding: "",
@@ -244,12 +245,12 @@ function closed() {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .r-slider-container {
   background-color: var(--bg-wrapper);
   color: var(--c-text);
   width: 100%;
-  min-width: v-bind("width ? `${width}px` : '500px'");
+  min-width: v-bind("width ? `${width}px` : '400px'");
   max-width: 500px !important;
   --ui-radius: var(--r-xl);
 
@@ -262,7 +263,7 @@ function closed() {
     align-items: center;
     gap: 4px;
     min-height: 40px;
-    padding: 5px 15px;
+    // padding: 5px 15px;
     font-size: 14px;
     font-family: var(--font-500);
     width: 100%;
@@ -311,15 +312,18 @@ function closed() {
   }
 }
 
-:deep([data-slot="body"]){
-  padding-right: 50px !important;
-}
+.r-slider-content{ //work all if no scoped
+  [data-slot="body"],[data-slot="header"],[data-slot="footer"]{
+    padding: 10px 15px !important;
+  }
 
-.r-slider-content{
   [data-slot="body"]{
-    padding: 50px !important;
+    .hasScroll{
+      padding:0 !important;
+    }
   }
 }
+
 .r-drawer-overlay {
   background: var(--bg-wrapper-50) !important;
 }
@@ -331,11 +335,4 @@ function closed() {
   min-height: 500px;
 }
 
-[data-slot="body"]{
-
-  padding-right: 20px !important;
-  .hasScroll{
-    padding:0 !important;
-  }
-}
 </style>
