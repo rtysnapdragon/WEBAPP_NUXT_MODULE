@@ -563,7 +563,7 @@ defineExpose({
 
   &:disabled { background: var(--bg-tertiary, #f1f3f6) !important; opacity: 0.65; }
 
-  &::placeholder { color: var(--color-w-b-3, #878080) !important; font-size: 12px; }
+  &::placeholder { color: var(--c-muted, #c6c4c4) !important; font-size: 12px; }
 
   // Remove number spinners
   &::-webkit-outer-spin-button,
