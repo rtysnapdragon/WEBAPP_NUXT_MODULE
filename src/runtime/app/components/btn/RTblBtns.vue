@@ -25,7 +25,7 @@
 
       <fwb-dropdown placement="left" class="popup-wrapper z-50" v-if="actionsMore.length > 0" :close-inside="close">
         <template #trigger>
-          <RTooltip :label="$t(more)" placement="left">
+          <RTooltip :text="$t('more_button')" placement="left">
             <button class="r-btn-icon more" @click="clickShow">
               <div class="icon"><i class="ri-more-2-fill"></i></div>
             </button>

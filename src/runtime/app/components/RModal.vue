@@ -14,7 +14,6 @@
       class: 'rounded-full'
     }"
     :ui="defaultUI"
-    class="r-modal"
   >
     <!-- HEADER -->
     <template #header>
@@ -171,23 +170,6 @@ const defaultUI = computed(() => ({
   }
 }
 
-.r-modal{
-  background-color: var(--c-bg) !important;
-  z-index: 9999;
-  border-radius: 10px;
-  --ui-radius: var(--r-xl);
-
-  :deep([role='dialog']) {
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    box-shadow: var(--glass-shadow);
-  }
-
-  :deep(.backdrop) {
-    backdrop-filter: blur(10px);
-  }
-}
-
 /* ===== Overlay ===== */
 .r-modal__base{  
   button{
@@ -277,7 +259,7 @@ const defaultUI = computed(() => ({
   :deep([data-slot="header"] .ri-close-large-fill) {
     font-size: 18px !important;
   }
-  }
+}
 
 
 // hide UMoldal header of NuxtUI
