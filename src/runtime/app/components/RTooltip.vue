@@ -187,6 +187,10 @@ function onMouseLeave() {
 </script>
 
 <style lang="scss" scoped>
+.w-fit{
+  white-space: nowrap !important;
+  font-family: var(--font-400) !important;
+}
 .shadow-tooltip {
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.0941176471);
   z-index: 10000 !important;
