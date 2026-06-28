@@ -33,30 +33,13 @@
           ref="checkboxRef"
         />
 
-        <label
-          v-if="label || $slots.label"
-          :for="id"
-          class="r-checkbox-label"
-        >
-          <slot name="label">
-            {{ label }}
-          </slot>
-
-          <span
-            v-if="required"
-            class="r-checkbox-required"
-          >
-            *
-          </span>
+        <label v-if="label || $slots.label" :for="id" class="r-checkbox-label" >
+          <slot name="label"> {{ label }} </slot>
+          <span  v-if="required" class="r-checkbox-required" > * </span>
         </label>
       </div>
 
-      <p
-        v-if="help"
-        class="r-checkbox-help"
-      >
-        {{ help }}
-      </p>
+      <p v-if="help" class="r-checkbox-help"> {{ help }} </p>
     </div>
   </div>
 </template>
@@ -94,12 +77,14 @@ $oc-checkbox-padding: 6px;
 .r-checkbox-root {
   display: flex;
   flex-direction: column;
+  min-width: fit-content !important;
 }
 
 .r-checkbox-container {
   display: flex;
   align-items: center;
-  gap: 6px;
+  // gap: 6px;
+  min-width: fit-content;
 }
 
 .r-checkbox-label {
