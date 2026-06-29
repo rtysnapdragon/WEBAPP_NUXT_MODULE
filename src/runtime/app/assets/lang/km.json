@@ -46,5 +46,15 @@
     "success": "",
     "error": "",
     "warning": "",
-    "info": ""
+    "info": "",
+    "first":"ទី១",
+    "second":"ទី២",
+    "third":"ទី៣",
+    "fourth":"ទី៤",
+    "fifth":"ទី៥",
+    "sixth":"ទី៦",
+    "seventh":"ទី៧",
+    "eighth":"ទី៨",
+    "ninth":"ទី៩",
+    "tenth":"ទី១០"
 }

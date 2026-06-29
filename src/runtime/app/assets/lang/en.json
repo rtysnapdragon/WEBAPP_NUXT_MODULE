@@ -49,5 +49,15 @@
   "info": "Info",
   "send_via_telegram": "Send via Telegram",
   "send_via_mail": "Send via Email",
-  "send_via_whatsapp": "Send via Whatsapp"
+  "send_via_whatsapp": "Send via Whatsapp",
+  "first":"First",
+  "second":"Second",
+  "third":"Third",
+  "fourth":"Fourth",
+  "fifth":"Fifth",
+  "sixth":"Sixth",
+  "seventh":"Seventh",
+  "eighth":"Eighth",
+  "ninth":"Ninth",
+  "tenth":"Tenth"
 }
