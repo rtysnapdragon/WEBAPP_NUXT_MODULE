@@ -328,7 +328,6 @@ defineExpose({
         {{ aiError }}
       </div>
     </Transition>
-
   </div>
 </template>
 

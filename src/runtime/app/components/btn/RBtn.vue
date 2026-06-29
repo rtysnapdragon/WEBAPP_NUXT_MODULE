@@ -150,6 +150,11 @@ const icon = computed(() => {
   )
     return "ri-pencil-line";
   else if (
+    props.type?.toLowerCase() == "edit" ||
+    props.icon?.toLowerCase() == "edit"
+  )
+    return "ri-edit-box-line";
+  else if (
     props.type?.toLowerCase() == "save" ||
     props.icon?.toLowerCase() == "save"
   )
@@ -428,6 +433,7 @@ function actionClick() {
 
   &.approve,
   &.update,
+  &.edit,
   &.save,
   &.save-update {
     background: var(--r-c-green);
@@ -556,6 +562,7 @@ function actionClick() {
   &.approve,
   &.update,
   &.save,
+  &.edit,
   &.save-update {
     border: 1px solid var(--r-c-green);
     color: var(--c-text);

@@ -2,31 +2,31 @@
   <div ref="refOCSelect" class="ocs-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
     <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" :uiMenu="uiMenu"
-      :loading="isLoading" loadingIcon="ri-loader-4-line" :searchable-placeholder="$t('search')" :options="listData" @update:open="onOpen"
+      :loading="isLoading" loadingIcon="ri-loader-4-line" :searchable-placeholder="$t('search')" :items="listData" @update:open="onOpen"
       :searchable="isNotEmpty(props.api)
         ? props.searchable ?? true
           ? fnSearch
           : false
         : props.searchable ?? true
-        " :search-attributes="props.localData?.keySearch" :clear-search-on-close="true" trailing :required="true" :leadingIcon="leadingIcon"
+        " :search-input="props.localData?.keySearch" :clear-search-on-close="true" trailing :required="true" :leadingIcon="leadingIcon"
       size="md" :disabled="props.disabled ?? false" :multiple="multiple" :by="pk" @update:modelValue="fnSelect" :class="fullWidth ? 'w-full' : 'w-[11/12]'">
       <template #label="{ selected }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(selected) && !selected.isDefault" name="leading" :data="selected" />
-        <RTruncated :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
+        <RTruncatedText :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
         <RProfileInfo size="2xs" border="s" :src="selected[templateLeading.imagePath]"
           :errorType="templateLeading.imageType" :gender="selected[templateLeading?.gender]"
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
           <template #title>
-            <RTruncated :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncatedText :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
         </RProfileInfo>
 
         <RViewInfo
           v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
           <template #title>
-            <RTruncated :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncatedText :text="fnGenerateTextLabel(selected, templateLeading)" />
           </template>
         </RViewInfo>
 
@@ -44,21 +44,21 @@
               <slot name="leading" :data="item"></slot>
             </span>
 
-            <RTruncated :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
+            <RTruncatedText :text="$tBy({ en: item.NameEnglish, km: item.Name })" class="text-[13px] color-w-b-1"
               v-else-if="!$slots.leading && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
 
             <RProfileInfo size="2xs" border="s" :src="item[templateLeading.imagePath]"
               :errorType="templateLeading.imageType" :gender="item[templateLeading?.gender]"
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
               <template #title>
-                <RTruncated :text="fnGenerateTextLabel(item, templateLeading)" />
+                <RTruncatedText :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
             </RProfileInfo>
 
             <RViewInfo
               v-else-if="!$slots.leading && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
               <template #title>
-                <RTruncated :text="fnGenerateTextLabel(item, templateLeading)" />
+                <RTruncatedText :text="fnGenerateTextLabel(item, templateLeading)" />
               </template>
             </RViewInfo>
 
@@ -431,6 +431,7 @@ watch(apiUrl, (n) => {
 });
 
 watch(localData, (n) => {
+  console.log("Local DATA =========================> ", n)
   if (isNotEmpty(n)) {
     listData.value = [...n?.data];
     if (!multiple.value && !n.defaultSelect) {
@@ -438,6 +439,10 @@ watch(localData, (n) => {
     }
   }
 }, { deep: true });
+
+watchDebounced(query, async () => {
+    items.value = await search(query.value)
+}, { deep: true })
 
 function deepEqual(obj1, obj2) {
   if (obj1 === obj2) return true;
@@ -673,7 +678,7 @@ const uiMenu = computed(() => {
 
 const ui = computed(() => {
   const defaultUI = {
-    container: "ocs-customer-select",
+    // container: "ocs-customer-select",
     base: `ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
     content:'min-w-fit',
     ring: "",
