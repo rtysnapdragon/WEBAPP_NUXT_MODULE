@@ -1,6 +1,6 @@
 <template>
   <div class="ocs-wrapper-chip">
-    <div v-for="(item, i) in items" :class="`oc-chip-container color-bg-content ${isNotEmpty(item.value )? '' : 'hidden'
+    <div v-for="(item, i) in items" :class="`r-chip-container color-bg-content ${isNotEmpty(item.value )? '' : 'hidden'
       }`">
       <div class="flex items-center gap-1.5">
         <img :src="item.src" alt="" class="w-5 h-5 rounded-full" v-if="item.src" />
@@ -11,7 +11,7 @@
         </div>
         <span class="text-xs whitespace-nowrap">{{ item.value }}</span>
       </div>
-      <div class="oc-chip-cancel" v-if="!item.isNotRemove">
+      <div class="r-chip-cancel" v-if="!item.isNotRemove">
         <i class="ri-close-line transition-all cursor-pointer hover:opacity-75" @click="onRemove(i)"></i>
       </div>
     </div>
@@ -86,7 +86,7 @@ watch(() => items.value, (n) => {
 
 <style lang="scss" scoped>
 .color-bg-content {
-  .oc-chip-container {
+  .r-chip-container {
     background-color: var(--bg-wrapper) !important;
   }
 }
@@ -97,7 +97,7 @@ watch(() => items.value, (n) => {
   align-items: center;
   flex-wrap: wrap;
 
-  .oc-chip-container {
+  .r-chip-container {
     &.hidden{
       display: none;
     }
@@ -114,7 +114,7 @@ watch(() => items.value, (n) => {
       margin-top: 12px;
     }
 
-    .oc-chip-cancel {
+    .r-chip-cancel {
       position: absolute;
       top: 6px;
       right: 4px;

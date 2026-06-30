@@ -369,6 +369,18 @@ defineExpose({
     border-color: var(--c-success, #4ade80) !important;
     box-shadow:   0 0 0 3px rgba(74,222,128,0.12) !important;
   }
+
+  :deep(input),
+  :deep(textarea) {
+    font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
+    font-size: 13px !important;
+    color: var(--c-text, #1a1510) !important;
+  }
+
+  :deep(input::placeholder),
+  :deep(textarea::placeholder) {
+    font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
+  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -542,6 +554,18 @@ defineExpose({
 ────────────────────────────────────────────────────────── -->
 <style lang="scss">
 // ── Base input ─────────────────────────────────────────────
+
+// .r-inp input,
+// .r-inp textarea {
+//   font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
+//   font-size: 13px !important;
+// }
+
+// .r-inp input::placeholder,
+// .r-inp textarea::placeholder {
+//   font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
+// }
+
 .r-inp {
   box-shadow:      none !important;
   border:          1px solid var(--color-w-b-4, rgba(255,140,66,0.16)) !important;
@@ -553,6 +577,8 @@ defineExpose({
   background:      transparent !important;
   font-family:     var(--font-fallback, 'Inter', system-ui, sans-serif) !important;
   @include transition(fast);
+
+
 
   &:focus {
     border-color: var(--c-accent, #ff8c42) !important;
@@ -605,6 +631,7 @@ defineExpose({
   padding-left:  12px;
   padding-right: 12px;
   font-size:     13px;
+  font-family: var(--font-400);
 }
 
 // ── Icons ─────────────────────────────────────────────────

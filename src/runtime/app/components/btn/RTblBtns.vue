@@ -139,6 +139,7 @@ function click(e, per, label, action) {
     return
   }
   if (dataMenu.getActionPermission(per) == 1) {
+    action?.actionClick?.()   // Execute inline callback
     emit("actionClick", e, action);
   } else {
     toast.add({

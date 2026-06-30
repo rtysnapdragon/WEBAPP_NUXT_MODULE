@@ -743,6 +743,7 @@ function fnGenerateTextSubLabel(data, template) {
   }
 
   width: 100%;
+  border-radius: 10px !important;
 
   .height-btn-select-all {
     height: 100% !important;

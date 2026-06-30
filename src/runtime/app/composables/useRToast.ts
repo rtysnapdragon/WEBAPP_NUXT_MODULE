@@ -104,7 +104,7 @@ export function useRToast() {
     }, item.remaining)
   }
 
-  function app(options: RToastOptions) {
+  function add(options: RToastOptions) {
     const duration = options.duration ?? 5000
 
     const item: RToastItem = {
@@ -249,7 +249,7 @@ export function useRToast() {
   )
 
   return {
-    app,
+    add,
     alert,
     remove,
     clear,
@@ -263,7 +263,7 @@ export function useRToast() {
 // const toast = useRToast()
 
 // // 1. Success
-// toast.app({
+// toast.add({
 //   type: 'success',
 //   title: 'Operation Successful',
 //   description: 'Your data has been saved.',
@@ -271,7 +271,7 @@ export function useRToast() {
 // })
 
 // // 2. Error
-// toast.app({
+// toast.add({
 //   type: 'error',
 //   title: 'Operation Failed',
 //   description: 'Please check your connection.',
@@ -279,7 +279,7 @@ export function useRToast() {
 // })
 
 // // 3. Loading
-// toast.app({
+// toast.add({
 //   type: 'loading',
 //   title: 'Processing...',
 //   description: 'Please wait while we process your request.',
@@ -287,7 +287,7 @@ export function useRToast() {
 // })
 
 // // 4. Countdown
-// toast.app({
+// toast.add({
 //   type: 'countdown',
 //   title: 'Session Expiring',
 //   description: 'Your session will expire soon.',
@@ -296,7 +296,7 @@ export function useRToast() {
 // })
 
 // // 5. Progress
-// toast.app({
+// toast.add({
 //   type: 'progress',
 //   title: 'File Upload',
 //   description: 'Uploading large file...',
@@ -305,7 +305,7 @@ export function useRToast() {
 // })
 
 // // 6. Multistep
-// toast.app({
+// toast.add({
 //   type: 'multistep',
 //   title: 'Deployment Process',
 //   steps: [
@@ -318,7 +318,7 @@ export function useRToast() {
 // })
 
 // // 7. Action
-// toast.app({
+// toast.add({
 //   type: 'action',
 //   title: 'Update Available',
 //   description: 'A new version is ready to install.',
@@ -330,7 +330,7 @@ export function useRToast() {
 // })
 
 // // 8. Gradient
-// toast.app({
+// toast.add({
 //   type: 'gradient',
 //   title: '✨ Premium Feature',
 //   description: 'You have unlocked a new feature!',
@@ -338,7 +338,7 @@ export function useRToast() {
 // })
 
 // // 9. Safety
-// toast.app({
+// toast.add({
 //   type: 'safety',
 //   title: 'Security Check Passed',
 //   description: 'All systems are secure.',
@@ -346,7 +346,7 @@ export function useRToast() {
 // })
 
 // // 10. Streaming
-// toast.app({
+// toast.add({
 //   type: 'streaming',
 //   title: 'Live Data Stream',
 //   streamText: 'Processing real-time data...',
@@ -354,7 +354,7 @@ export function useRToast() {
 // })
 
 // // 11. Pipeline
-// toast.app({
+// toast.add({
 //   type: 'pipeline',
 //   title: 'AI Pipeline Running',
 //   description: 'Processing through pipeline stages',

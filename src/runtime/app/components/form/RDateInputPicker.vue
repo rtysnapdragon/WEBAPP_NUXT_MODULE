@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * RDatePicker — SARIKA single date picker, NuxtUI 4.4.0
+ * RDateInputPicker — SARIKA single date picker, NuxtUI 4.8.2
  *
  * ROOT CAUSE (confirmed from reka-ui source):
  *   DateFieldRoot calls: passive = props.modelValue === void 0
@@ -16,7 +16,7 @@
  *      from the placeholder (so navigating months doesn't set a value).
  *
  * Usage:
- *   <RDatePicker v-model="date" label="Pick a date" />
+ *   <RDateInputPicker v-model="date" label="Pick a date" />
  *   date: shallowRef<CalendarDate | null>(null)
  */
 import { shallowRef, computed, watch, toRaw } from 'vue'
@@ -181,7 +181,7 @@ const defaultUI = {
 
   leading: 'absolute inset-y-0 start-0 flex items-center',
 
-  trailing: 'absolute inset-y-0 end-0 flex items-center',
+  trailing: 'rdp-input-trailing',
   // trailing: 'hidden',
   separatorIcon: 'shrink-0 text-[var(--c-muted)]'
 }
@@ -362,7 +362,7 @@ const mergedUi = computed(() =>
   display:        flex;
   flex-direction: column;
   gap:            6px;
-  font-family:    var(--font-fallback);
+  font-family:    var(--font-400) !important;
 
   &--xs  { --rdp-fs: 0.72rem;  }
   &--sm  { --rdp-fs: 0.8rem;   }
@@ -436,10 +436,11 @@ const mergedUi = computed(() =>
     background-color: var(--color-w-b-6) !important;
   }
 
-  [data-slot="trailing"] {
-    right: 0 !important;
-    // padding-right: 4px !important;
+  [data-slot="trailing"] {  // not in this for padding-right, use outside instead;
+    // right: 0 !important;
+    padding-right: 8px !important;
     background: transparent !important;
+    font-size: 14px !important;
   }
 }
 // :deep(.rdp-input-base) { // work with clean
@@ -506,6 +507,12 @@ const mergedUi = computed(() =>
   gap:         2px;
 }
 
+.rdp-input-trailing {
+  // right: 0 !important;
+  min-height: 100%;
+  margin-right: 8px;
+}
+
 .rdp__clear {
   width:         20px;
   height:        20px;
@@ -551,6 +558,7 @@ const mergedUi = computed(() =>
 // ── Transitions ────────────────────────────────────────────────────────────
 .rdp-fade-enter-active, .rdp-fade-leave-active { transition: opacity 0.15s; }
 .rdp-fade-enter-from,   .rdp-fade-leave-to     { opacity: 0; }
+
 </style>
 
 <!-- Popover teleports outside scoped — must be global -->
@@ -665,7 +673,7 @@ const mergedUi = computed(() =>
   font-size:     0.73rem;
   color:         var(--c-text);
   cursor:        pointer;
-  font-family:   var(--font-fallback);
+  font-family:   var(--font-400) !important;
   transition:    all 0.15s;
 
   &:hover         { border-color: var(--c-accent); color: var(--c-accent); background: rgba(255,140,66,0.07); }
@@ -702,6 +710,6 @@ const mergedUi = computed(() =>
 .rdp-pop__date-label {
   font-size: 0.75rem;
   color:     var(--c-muted);
-  font-family: var(--font-fallback);
+  font-family: var(--font-400) !important;
 }
 </style>
