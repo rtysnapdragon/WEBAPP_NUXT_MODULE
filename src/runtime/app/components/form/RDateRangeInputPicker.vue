@@ -398,13 +398,13 @@ const calendarUI = {
           class="r-date-range-picker__trigger"
         /> -->
        <button
-                type="button"
-                :disabled="disabled"
-                :class="['rdp__cal-btn', { 'rdp__cal-btn--active': !!model }]"
-                aria-label="Open calendar"
-              >
-                <i class="ri ri-calendar-line" />
-              </button>
+          type="button"
+          :disabled="disabled"
+          :class="['rdp__cal-btn', { 'rdp__cal-btn--active': !!model }]"
+          aria-label="Open calendar"
+        >
+          <i class="ri ri-calendar-line" />
+        </button>
 
         <template #content>
           <div class="r-date-range-picker__popover">
