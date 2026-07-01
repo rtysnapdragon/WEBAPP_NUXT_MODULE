@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@easylogic/colorpicker": "^1.10.11",
+    "@intlify/unplugin-vue-i18n": "^6.0.3",
     "@nuxt/content": "^3.14.0",
     "@nuxt/ui": "^4.8.2",
     "@popperjs/core": "^2.11.8",
