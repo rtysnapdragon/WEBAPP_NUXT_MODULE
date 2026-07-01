@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
   isYearDisabled: false,
   isMonthUnavailable: true,
   isYearUnavailable: false,
-  isDayChip: true,
+  isDayChip: false,
 })
 
 const emit = defineEmits<{
@@ -265,14 +265,14 @@ onMounted(() => {
         icon: 'ri-arrow-left-double-line',
         color: 'primary',
         variant: 'soft',
-        class: 'cursor-pointer',
+        class: 'cursor-pointer h-7 w-7 flex justify-center items-center hover:dark:bg-red-500 hover:bg-red-500',
         size:'sm'
       }"
       :next-year="{
         icon: 'ri-arrow-right-double-line',
         color: 'primary',
         variant: 'soft',
-        class: 'cursor-pointer',
+        class: 'cursor-pointer h-7 w-7 flex justify-center items-center ',
         size:'sm'
       }"
       
@@ -280,14 +280,14 @@ onMounted(() => {
         icon: 'ri-arrow-left-s-line',
         color: 'primary',
         variant: 'soft',
-        class: 'cursor-pointer',
+        class: 'cursor-pointer h-7 w-7 flex justify-center items-center',
         size:'sm',
       }"
       :next-month="{
         icon: 'ri-arrow-right-s-line',
         color: 'primary',
         variant: 'soft',
-        class: 'cursor-pointer',
+        class: 'cursor-pointer h-7 w-7 flex justify-center items-center',
         size:'sm'
       }"
     >
@@ -302,14 +302,10 @@ onMounted(() => {
 
     <template #day="{ day }">
       <slot name="day" :day="day">
-        <UChip v-if="isDayChip" :show="!!getColorByDate(day.toDate('UTC'))" :color="getColorByDate(day.toDate('UTC'))" size="2xs"
-        :ui="{root:'relative inline-flex items-center justify-center shrink-0', base:'rounded-full ring ring-bg flex items-center justify-center text-inverted font-medium whitespace-nowrap'}"
-        :title="tBy({
-            en: `Remove ${day}`,
-            km: `លុប ${day}`
-          })"
+        <UChip v-if="isDayChip" :inset="false" position="top-right" :show="!!getColorByDate(day.toDate('UTC'))" :color="getColorByDate(day.toDate('UTC'))" size="2xs" 
+        class="calendar-chip"
         >
-          {{ day.day }}
+          <span class="text-[var(--c-text)]">{{ day.day }}</span>
         </UChip>
         <span v-else>{{ day.day }}</span>
       </slot>
@@ -368,12 +364,21 @@ onMounted(() => {
 
 
 <style scoped lang="scss">
+.calendar-chip {
+  :deep([data-slot="base"]) {
+    position: absolute;
+    top: -7px;
+    right: -17px;
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    padding: 0 !important;
+    border-radius: 9999px !important;
+  }
+}
+
 .rcalendar-wrapper {
   width: 100%;
-}
-.rcalendar {
-  background: var(--c-surface);
-  // border-radius: 16px;
 }
 
 .default-nav {
@@ -413,7 +418,9 @@ onMounted(() => {
 }
 
 .rcalendar {
+  background: var(--bg-content);
   :deep([data-slot="prev-button"]),
+
   :deep([data-slot="next-button"]) {
     width: 22px !important;
     height: 22px !important;
@@ -438,6 +445,26 @@ onMounted(() => {
   :deep(button[aria-label*="Previous"]:hover),
   :deep(button[aria-label*="Next"]:hover) {
     background: var(--c-primary-50);
+  }
+
+  //override cell day
+  :deep([data-slot="cellTrigger"]){
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 100%; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // background-color: var(--color-primary-300) !important;
+    color: var(--c-text) !important;
+  }
+  // :deep([data-slot="cellTrigger"]):hover{
+  //   background-color: var(--c-content-hover) !important;
+  //   color: var(--c-text-hover) !important;
+  // }
+
+  :deep([data-slot="heading"]){
+    color: var(--c-text) !important;
   }
 }
 
@@ -465,12 +492,14 @@ onMounted(() => {
   // margin: 4px;
 }
 
-.rdp-calendar-day {
-  width: 36px;
-  height: 36px;
-  border-radius: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+// .rdp-calendar-day {
+//   width: 36px;
+//   height: 36px;
+//   border-radius: 100%;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   background-color: black !important;
+//   color: white !important;
+// }
 </style>

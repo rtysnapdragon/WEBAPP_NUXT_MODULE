@@ -55,6 +55,11 @@ const icon = computed(() => {
   )
     return "ri-add-circle-line";
   else if (
+    props.type?.toLowerCase() == "view" ||
+    props.icon?.toLowerCase() == "view"
+  )
+    return "ri-eye-line";
+  else if (
     props.type?.toLowerCase() == "print" ||
     props.icon?.toLowerCase() == "print"
   )
@@ -256,9 +261,9 @@ const permission = computed(() => props.permission);
 const dataMenu = useMenuStore();
 const per = dataMenu.getActionPermission(permission.value);
 const showIfAllowed = computed(() => per == 1 || (props.showIfAllowed ?? true));
-function actionClick() {
+function actionClick(e) {
   if (per == 1) {
-    emit("click");
+    emit("click",e);
   } else {
     toast.add({
       color: "yellow",
@@ -395,6 +400,7 @@ function actionClick() {
   &.apply,
   &.next,
   &.cash,
+  &.view,
   &.send {
     background: var(--r-c-nenoBlue);
   }
@@ -596,6 +602,7 @@ function actionClick() {
   }
 
   &.review,
+  &.view,
   &.email {
     border: 1px solid var(--r-c-orangeRed);
     color: var(--r-c-orangeRed);

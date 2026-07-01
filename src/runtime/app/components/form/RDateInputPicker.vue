@@ -437,8 +437,8 @@ const mergedUi = computed(() =>
   }
 
   [data-slot="trailing"] {  // not in this for padding-right, use outside instead;
-    // right: 0 !important;
-    padding-right: 8px !important;
+    right: 0 !important;
+    padding-right: 2px !important;
     background: transparent !important;
     font-size: 14px !important;
   }
@@ -586,7 +586,7 @@ const mergedUi = computed(() =>
   // min-height: 22px !important ; //base
   min-height: v-bind('inputHeight ?? "38px"') !important ; //base
   padding: 0 12px;
-  background: var(--c-surface);
+  background: var(--bg-content);
   border: 1px solid var(--c-border);
   border-radius: 12px;
 
@@ -653,6 +653,7 @@ const mergedUi = computed(() =>
 .rdp-pop__inner {
   display:        flex;
   flex-direction: column;
+  background-color: var(--bg-wrapper-cardBorder);
 }
 
 .rdp-pop__quick {

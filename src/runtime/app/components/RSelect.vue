@@ -1,7 +1,7 @@
 <template>
   <div ref="refOCSelect" class="ocs-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
-    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" :uiMenu="uiMenu"
+    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" :uiMenu="uiMenu" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base"
       :loading="isLoading" loadingIcon="ri-loader-4-line" :searchable-placeholder="$t('search')" :items="listData" @update:open="onOpen"
       :searchable="isNotEmpty(props.api)
         ? props.searchable ?? true
@@ -678,7 +678,7 @@ const uiMenu = computed(() => {
 
 const ui = computed(() => {
   const defaultUI = {
-    // container: "ocs-customer-select",
+    container: "ocs-customer-select",
     base: `ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
     content:'min-w-fit',
     ring: "",
@@ -692,24 +692,25 @@ const ui = computed(() => {
       base: "!text-red-700",
     },
     leading: 'text-red-500',
-    icon: {
-      base: "",
-      loading: "!h-4 !w-4 ri-loader-4-line",
-      leading: {
-        wrapper: "absolute inset-y-0 start-0 flex items-center pr-custom",
-      },
-      trailing: {
-        wrapper: "absolute inset-y-0 end-0 flex items-center",
-        padding: {
-          "2xs": "px-2",
-          xs: "px-2.5",
-          sm: "px-2.5",
-          md: "px-2.5",
-          lg: "px-3.5",
-          xl: "px-3.5",
-        },
-      },
-    },
+    
+    // icon: {
+    //   base: "",
+    //   loading: "!h-4 !w-4 ri-loader-4-line",
+    //   leading: {
+    //     wrapper: "absolute inset-y-0 start-0 flex items-center pr-custom",
+    //   },
+    //   trailing: {
+    //     wrapper: "absolute inset-y-0 end-0 flex items-center",
+    //     padding: {
+    //       "2xs": "px-1",
+    //       xs: "px-2.5",
+    //       sm: "px-2.5",
+    //       md: "px-2.5",
+    //       lg: "px-3.5",
+    //       xl: "px-3.5",
+    //     },
+    //   },
+    // },
     arrow: {
       input: "",
     },
@@ -733,6 +734,10 @@ function fnGenerateTextSubLabel(data, template) {
 .ui-select-base { // work
   width: 100%;
   min-width: fit-content !important;
+
+  [data-slot="trailing"]{
+    padding-right: 2px !important;
+  }
 }
 .ocs-customer-select {
   &.have-selected-value {
@@ -743,7 +748,6 @@ function fnGenerateTextSubLabel(data, template) {
   }
 
   width: 100%;
-  border-radius: 10px !important;
 
   .height-btn-select-all {
     height: 100% !important;
@@ -765,6 +769,7 @@ function fnGenerateTextSubLabel(data, template) {
     height: 38px !important; // This line determines the height
     box-shadow: unset !important;
     border: 1px solid var(--color-w-b-4);
+    border-radius: 10px !important;
 
     &:focus {
       border: 1px solid var(--color-primary);

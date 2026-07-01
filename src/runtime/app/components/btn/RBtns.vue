@@ -75,6 +75,22 @@ function fnClick(type, list) {
   }
 }
 
+.popup{
+  background: var(--bg-wrapper);
+  position: absolute;
+  top: -18px;
+  right: -1px;
+  padding: 8px 8px;
+  border-radius: 10px;
+  box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.05);
+  // box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.05);
+  bottom: unset;
+  animation: ani-bottom 0.25s ease-in-out;
+  transform: translateY(0px);
+  opacity: 1;
+  width: fit-content;
+  border: none;
+}
 .r-group-actions {
   display: flex;
   grid-gap: 6px;

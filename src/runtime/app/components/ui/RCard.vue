@@ -55,14 +55,33 @@ function onClick(event: Event) {
 </template>
 
 <style lang="scss" scoped>
+/* ── BASE GLASS ── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--c-border);
+  box-shadow: var(--glass-shadow);
+}
 
 .r-card {
+  @extend .glass;
   background:    var(--c-surface);
   border-radius: var(--radius-lg);
   overflow:      hidden;
   @include transition;
+  position: relative;
 
-  &--bordered { border: 1px solid var(--c-border); }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  // &--bordered { border: 1px solid var(--c-border); }
 
   &--glass {
     @include glass;
