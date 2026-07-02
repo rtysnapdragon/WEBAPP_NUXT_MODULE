@@ -2,12 +2,12 @@
   <div ref="refOCSelect" class="ocs-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
     <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" :uiMenu="uiMenu" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base"
-      :loading="isLoading" loadingIcon="ri-loader-4-line" :searchable-placeholder="$t('search')" :items="listData" @update:open="onOpen"
-      :searchable="isNotEmpty(props.api)
-        ? props.searchable ?? true
+      :loading="isLoading" loadingIcon="ri-loader-4-line" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen"
+      :searchInput="isNotEmpty(props.api)
+        ? props.searchInput ?? true
           ? fnSearch
           : false
-        : props.searchable ?? true
+        : props.searchInput ?? true
         " :search-input="props.localData?.keySearch" :clear-search-on-close="true" trailing :required="true" :leadingIcon="leadingIcon"
       size="md" :disabled="props.disabled ?? false" :multiple="multiple" :by="pk" @update:modelValue="fnSelect" :class="fullWidth ? 'w-full' : 'w-[11/12]'">
       <template #label="{ selected }" v-if="!multiple">
@@ -125,6 +125,7 @@
 import _ from "lodash-es";
 import RProfileInfo from './RProfileInfo.vue'
 import RViewInfo from './RViewInfo.vue'
+import RTruncatedText from './RTruncatedText.vue'
 function generateSelect(select) {
   if (isNotEmpty(select) || isNotEmpty(selected.value)) {
     const data = isNotEmpty(select) ? select : selected.value
@@ -146,7 +147,7 @@ const props = defineProps([
   "defaultSelect",
   "multiple",
   "selectIfOne",
-  "searchable",
+  "searchInput",
   "disabled",
   "specificProp",
   "variant",
@@ -197,6 +198,7 @@ const apiUrl = computed(() => props.api?.url ?? ""); //sinh
 const multiple = computed(() => isNotEmpty(props.multiple));
 const templateLeading = computed(() => {
   const defautLeading = {
+    valueKey:'',
     labelKey: '',
     labelKeyEn: '',
     imagePath: '',
@@ -271,7 +273,7 @@ mounted(async () => {
       : isNotEmpty(listData.value[index]?.RecordCounts)
         ? listData.value[index]?.RecordCounts
         : listData.value[index]?.RecordCount;
-    if (props.searchable ?? true) query.value = " ";
+    if (props.searchInput ?? true) query.value = " ";
     fnBindScroll();
   } else {
     listData.value = [...localData.value?.data];

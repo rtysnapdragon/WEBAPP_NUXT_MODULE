@@ -55,9 +55,9 @@
     </template>
 
     <!-- FOOTER -->
-    <template v-if="$slots.footer" #footer>
-      <div class="r-modal__footer" >
-        <slot name="footer" :close="onCloseModal()" />
+    <template #footer>
+      <div v-if="$slots.footer"  class="r-modal__footer" >
+        <slot name="footer" />
       </div>
     </template>
   </UModal>
