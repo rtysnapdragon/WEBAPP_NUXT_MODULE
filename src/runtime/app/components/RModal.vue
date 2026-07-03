@@ -8,14 +8,14 @@
     :dismissible="noClose"
     closeIcon="ri-close-line"
     :hide-header="noHeader"
+    :hide-footer="noFooter"
     :close="{
       color: 'primary',
       variant: 'outline',
       class: 'rounded-full'
     }"
-    :class="modalClass"
+    :content="{ style: { minWidth: modalWidthValue } }"
     :ui="defaultUI"
-    :style="{width: mode == 'fullscreen' ? '100%' : '80%', '--modal-width': modalClass}"
   >
     <!-- HEADER -->
     <template #header>
@@ -57,10 +57,10 @@
     </template>
 
     <!-- FOOTER -->
-    <template #footer>
-      <div v-if="$slots.footer"  class="r-modal__footer" >
-        <slot name="footer" />
-      </div>
+    <template  #footer>
+        <div  v-if="$slots.footer" class="r-modal__footer" >
+          <slot name="footer" />
+        </div>
     </template>
   </UModal>
 </template>
@@ -72,13 +72,13 @@ const props = defineProps([
   'title',
   'description',
   'isFullScreen',
+  'modalWidth',
   'noClose',
   'ui',
   'icon',
   'noHeader',
   'noFooter',
-  'mode',
-  'class'
+  'mode'
 ])
   
 
@@ -90,70 +90,24 @@ const isFullScreen = computed(() => props.isFullScreen)
 const noClose = computed(() => props.noClose)
 const icon = computed(() => props.icon)
 const mode = computed(() => props.mode)
-const modalClass = computed(() => props.class ?? '')
+const modalWidth = computed(() => props.modalWidth)
+const modalWidthValue = computed(() => modalWidth.value ?? 'fit-content')
 const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
 };
 const mergedUi = computed(() => ({
-  base: "r-modal__base",
-  content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
+  wrapper: "r-modal__wrapper",
+  content: ["r-modal__content", 'bg-default divide-y divide-default flex flex-col focus:outline-none'],
   header: ["r-modal__header", props.noHeader ? 'hide-header !p-0 !min-h-0' : 'p-0'] ,
   body: "r-modal__body-ui flex-1",
-  footer: ["flex items-center",props.noFooter ? 'hide-footer' :''],
+  footer: ["r-modal__footer flex items-center", props.noFooter ? 'hide-footer !p-0 !min-h-0' : 'p-0'],
   overlay: "r-modal__overlay fixed inset-0",
   rounded: "r-modal__rounded",
   shadow: "r-modal__shadow",
   description: 'mt-1 text-muted text-sm',
   title: 'text-highlighted font-semibold',
   close: 'absolute top-4 end-4',
-  variants: {
-    transition: {
-      true: {
-        overlay: 'data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
-        content: 'data-[state=open]:animate-[scale-in_200ms_ease-out] data-[state=closed]:animate-[scale-out_200ms_ease-in]'
-      }
-    },
-    fullscreen: {
-      true: {
-        content: 'inset-0'
-      },
-      false: {
-        content: 'w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default'
-      }
-    },
-    overlay: {
-      true: {
-        overlay: 'bg-elevated/75'
-      }
-    },
-    scrollable: {
-      true: {
-        overlay: 'overflow-y-auto',
-        content: 'relative'
-      },
-      false: {
-        content: 'fixed',
-        body: 'overflow-y-auto'
-      }
-    }
-  },
-  compoundVariants: [
-    {
-      scrollable: true,
-      fullscreen: false,
-      class: {
-        overlay: 'grid place-items-center p-4 sm:py-8'
-      }
-    },
-    {
-      scrollable: false,
-      fullscreen: false,
-      class: {
-        content: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-hidden'
-      }
-    }
-  ],
 }))
 
 const defaultUI = computed(() => ({
@@ -161,7 +115,7 @@ const defaultUI = computed(() => ({
 }))
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .btn-close{
   display: flex;
   justify-content: center;
@@ -175,20 +129,18 @@ const defaultUI = computed(() => ({
   }
 }
 
+
 /* ===== Overlay ===== */
-.r-modal__base{  
-  width: var(--modal-width,80%);
-  button{
-    width: 20px !important;
-    height: 20px !important;
-  }
-  
+.r-modal__content{ //
+  width: 100%;
+  // min-width: 1900px;
+  // min-width: v-bind(modalWidthValue);
   :deep(.r-modal__overlay) {
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
   }
   
-  /* ===== Modal container ===== */
+/* ===== Modal container ===== */
   :deep(.r-modal__content) {
     background: #ffffff;
     border-radius: 12px;
@@ -204,6 +156,7 @@ const defaultUI = computed(() => ({
 .r-modal__header{
     width: 100%;
     // min-height: 40px;
+    padding: 5px 0;
     display: flex;
     align-items: center;
     justify-content: start;
@@ -231,6 +184,7 @@ const defaultUI = computed(() => ({
   display: flex;
   justify-content: flex-end;
   gap: 6px;
+  padding: 5px 10px;
 }
 
 /* buttons */

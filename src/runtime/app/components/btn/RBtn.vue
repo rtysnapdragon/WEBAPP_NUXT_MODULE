@@ -244,6 +244,21 @@ const icon = computed(() => {
     props.icon?.toLowerCase() == "cash"
   )
     return "ri-cash-line";
+  else if (
+    props.type?.toLowerCase() == "closeModal" ||
+    props.icon?.toLowerCase() == "closeModal"
+  )
+    return "ri-close-line";
+  else if (
+    props.type?.toLowerCase() == "next" ||
+    props.icon?.toLowerCase() == "next"
+  )
+    return "ri-arrow-right-s-line";
+  else if (
+    props.type?.toLowerCase() == "previous" ||
+    props.icon?.toLowerCase() == "previous"
+  )
+    return "ri-arrow-left-s-line";
   else return props.icon;
 });
 const typeButton = computed(() => props.typeButton ?? "button");
