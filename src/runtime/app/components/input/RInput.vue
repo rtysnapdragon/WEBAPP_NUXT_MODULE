@@ -128,16 +128,53 @@ const isPinInput = computed(() => !!props.pininput)
 const aiIconName = computed(() =>
   aiLoading.value ? 'i-lucide-loader-2' : aiSuccess.value ? 'i-lucide-check' : 'i-lucide-sparkles'
 )
+// const leftPadding = computed(() =>
+//   // (isLeft.value ?? props.leading ?? props.leadingIcon) ? '35px' : '12px'
+//   (isLeft.value ?? ui.leading ?? ui.leadingIcon ?? props.leading ?? props.leadingIcon ?? props.ai) ? '35px' : '12px'
+// )
+
+// const rightPadding = computed(() =>
+//   // (isRight.value ?? props.trailing ?? props.trailingIcon) ? '35px' : '12px'
+//   (isRight.value ?? ui.trailing ?? ui.trailingIcon ?? props.trailing ?? props.trailingIcon ?? props.ai) ? '35px' : '12px'
+// )
+const slots = useSlots() //Even better (automatic slot detection) behave exactly like Nuxt UI <RInput trailing />
+
+const hasLeading = computed(() => {
+  return !!(
+    props.leading ||
+    props.leadingIcon ||
+    props.icon ||
+    props.ai ||
+    slots.leading
+  )
+})
+
+const hasTrailing = computed(() => {
+  return !!(
+    props.trailing ||
+    props.trailingIcon ||
+    props.loading ||
+    slots.trailing
+  )
+})
 const leftPadding = computed(() =>
-  // (isLeft.value ?? props.leading ?? props.leadingIcon) ? '35px' : '12px'
-  (isLeft.value ?? ui.leading ?? (ui.leadingIcon || props.leading || props.leadingIcon || props.ai)) ? '35px' : '12px'
+  hasLeading.value ? '35px' : '12px'
 )
 
 const rightPadding = computed(() =>
-  // (isRight.value ?? props.trailing ?? props.trailingIcon) ? '35px' : '12px'
-  (isRight.value ?? ui.trailing ?? (ui.trailingIcon || props.trailing || props.trailingIcon || props.ai)) ? '35px' : '12px'
+  hasTrailing.value ? '35px' : '12px'
 )
 
+// Now all of these automatically add padding:
+
+// ✅ <RInput leading />
+// ✅ <RInput leading-icon="ri-search-line" />
+// ✅ <RInput icon="ri-user-line" />
+// ✅ <RInput ai />
+// ✅ <template #leading>
+// ✅ <RInput trailing />
+// ✅ <RInput trailing-icon="ri-close-line" />
+// ✅ <template #trailing>
 // ── Number watcher (keep only valid numeric chars) ────────────────────────
 watch(value, (v) => {
   if (props.type === 'number' && typeof v === 'string') {
@@ -384,6 +421,8 @@ defineExpose({
   :deep(textarea) {
     font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
     font-size: 13px !important;
+    padding-left: v-bind(leftPadding);
+    padding-right: v-bind(rightPadding);
     color: var(--c-text, #1a1510) !important;
   }
 
@@ -557,12 +596,14 @@ defineExpose({
 
 .rinp-err-enter-active, .rinp-err-leave-active { transition: all 0.18s ease; }
 .rinp-err-enter-from, .rinp-err-leave-to { opacity: 0; transform: translateY(-4px); }
-</style>
 
-<!-- ─────────────────────────────────────────────────────────
-     GLOBAL — override NuxtUI UInput tokens with SARIKA vars
-────────────────────────────────────────────────────────── -->
-<style lang="scss">
+
+
+// scoped
+.r-inp-ai-score {
+  text-align: end;
+}
+
 // ── Base input ─────────────────────────────────────────────
 
 // .r-inp input,
@@ -614,7 +655,32 @@ defineExpose({
 
   &--score {
     text-align: end !important;
+    
+    // ── Leading / trailing slot spacing ───────────────────────
+    [data-slot="leading"]  { padding-left:  12px !important; }
+    [data-slot="trailing"] {
+      position:  absolute;
+      top:       50%;
+      right:     0;
+      transform: translateY(-50%);
+      padding-right: 12px !important;
+    }
+    [data-slot="base"] {
+      // padding-left:  12px;
+      // padding-right: 12px;
+      // padding-left: v-bind('isLeft ?? ui.leading ?? ui.leadingIcon ? "35px" : "12px"') !important;
+      // padding-right: v-bind('isRight ?? ui.trailing ?? ui.trailingIcon ? "35px" : "12px"') !important;
+      // padding-left: v-bind(leftPadding);
+      // padding-right: v-bind(rightPadding);
+      // padding-left: v-bind('ui.leading ? "30px" : "12px"') !important;
+      // padding-right: v-bind('ui.trailingIcon ? "30px" : "12px"') !important;
+      font-size:     13px;
+      font-family: var(--font-400);
+    }
   }
+
+  // ── Icons ─────────────────────────────────────────────────
+  .trailingIcon, .leadingIcon { font-size: 15px !important; }
 }
 
 // ── PinInput ──────────────────────────────────────────────
@@ -627,31 +693,6 @@ defineExpose({
 
   &:focus { border-color: var(--c-accent, #ff8c42) !important; }
 }
-
-// ── Leading / trailing slot spacing ───────────────────────
-[data-slot="leading"]  { padding-left:  12px !important; }
-[data-slot="trailing"] {
-  position:  absolute;
-  top:       50%;
-  right:     0;
-  transform: translateY(-50%);
-  padding-right: 12px !important;
-}
-[data-slot="base"] {
-  // padding-left:  12px;
-  // padding-right: 12px;
-  // padding-left: v-bind('isLeft ?? ui.leading ?? ui.leadingIcon ? "35px" : "12px"') !important;
-  // padding-right: v-bind('isRight ?? ui.trailing ?? ui.trailingIcon ? "35px" : "12px"') !important;
-  padding-left: v-bind(leftPadding);
-  padding-right: v-bind(rightPadding);
-  // padding-left: v-bind('ui.leading ? "30px" : "12px"') !important;
-  // padding-right: v-bind('ui.trailingIcon ? "30px" : "12px"') !important;
-  font-size:     13px;
-  font-family: var(--font-400);
-}
-
-// ── Icons ─────────────────────────────────────────────────
-.trailingIcon, .leadingIcon { font-size: 15px !important; }
 
 // ── R input wrapper ──────────────────────────────────────
 .r-input-wrapper {

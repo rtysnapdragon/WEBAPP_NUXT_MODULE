@@ -13,7 +13,9 @@
       variant: 'outline',
       class: 'rounded-full'
     }"
+    :class="modalClass"
     :ui="defaultUI"
+    :style="{width: mode == 'fullscreen' ? '100%' : '80%', '--modal-width': modalClass}"
   >
     <!-- HEADER -->
     <template #header>
@@ -75,7 +77,8 @@ const props = defineProps([
   'icon',
   'noHeader',
   'noFooter',
-  'mode'
+  'mode',
+  'class'
 ])
   
 
@@ -87,6 +90,7 @@ const isFullScreen = computed(() => props.isFullScreen)
 const noClose = computed(() => props.noClose)
 const icon = computed(() => props.icon)
 const mode = computed(() => props.mode)
+const modalClass = computed(() => props.class ?? '')
 const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
@@ -157,7 +161,7 @@ const defaultUI = computed(() => ({
 }))
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .btn-close{
   display: flex;
   justify-content: center;
@@ -173,6 +177,7 @@ const defaultUI = computed(() => ({
 
 /* ===== Overlay ===== */
 .r-modal__base{  
+  width: var(--modal-width,80%);
   button{
     width: 20px !important;
     height: 20px !important;
@@ -183,7 +188,7 @@ const defaultUI = computed(() => ({
     backdrop-filter: blur(6px);
   }
   
-/* ===== Modal container ===== */
+  /* ===== Modal container ===== */
   :deep(.r-modal__content) {
     background: #ffffff;
     border-radius: 12px;

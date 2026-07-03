@@ -438,7 +438,7 @@ const mergedUi = computed(() =>
 
   [data-slot="trailing"] {  // not in this for padding-right, use outside instead;
     right: 0 !important;
-    padding-right: 2px !important;
+    padding-right: 5px !important;
     background: transparent !important;
     font-size: 14px !important;
   }
