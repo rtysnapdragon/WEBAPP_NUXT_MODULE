@@ -74,6 +74,7 @@ const props = defineProps([
   'ui',
   'icon',
   'noHeader',
+  'noFooter',
   'mode'
 ])
   
@@ -95,7 +96,7 @@ const mergedUi = computed(() => ({
   content: "r-modal__content bg-default divide-y divide-default flex flex-col focus:outline-none",
   header: ["r-modal__header", props.noHeader ? 'hide-header !p-0 !min-h-0' : 'p-0'] ,
   body: "r-modal__body-ui flex-1",
-  footer: "flex items-center",
+  footer: ["flex items-center",props.noFooter ? 'hide-footer' :''],
   overlay: "r-modal__overlay fixed inset-0",
   rounded: "r-modal__rounded",
   shadow: "r-modal__shadow",
@@ -263,7 +264,7 @@ const defaultUI = computed(() => ({
 
 
 // hide UMoldal header of NuxtUI
-.hide-header{
+.hide-header,.hide-footer{
   display: none !important;
 }
 </style>

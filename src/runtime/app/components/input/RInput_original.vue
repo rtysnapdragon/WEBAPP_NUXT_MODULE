@@ -35,7 +35,7 @@
         <span class="inline-flex bg-default px-1">{{ floatingLabel }}</span>
       </label>
     </UInput>
-    <RBtn v-if="ai" :ui="{ icon: '!inline-flex !h-[16px] !w-[16px]' }" :label="aiLabel" :trailing-icon="mdiBrainCircuit" icon="ri-sparkling-line"/>
+    <!-- <RBtn v-if="ai" :ui="{ icon: '!inline-flex !h-[16px] !w-[16px]' }" :label="aiLabel" :trailing-icon="mdiBrainCircuit" icon="ri-sparkling-line"/> -->
   </div>
 </template>
 <!-- <script setup lang="ts">
@@ -129,6 +129,16 @@ const typePinInput = computed(() => props.typePinInput ?? "number")
 
 const ai = computed(() => props.ai ?? false)
 const aiLabel = computed(() => props.aiLabel ?? t('ai_generate'))
+
+const leftPadding = computed(() =>
+  // (isLeft.value ?? props.leading ?? props.leadingIcon) ? '35px' : '12px'
+  (isLeft.value ?? ui.leading ?? (ui.leadingIcon || props.leading || props.leadingIcon || props.ai)) ? '35px' : '12px'
+)
+
+const rightPadding = computed(() =>
+  // (isRight.value ?? props.trailing ?? props.trailingIcon) ? '35px' : '12px'
+  (isRight.value ?? ui.trailing ?? (ui.trailingIcon || props.trailing || props.trailingIcon || props.ai)) ? '35px' : '12px'
+)
 
 
 watch(value, (newValue) => {
@@ -343,8 +353,10 @@ defineExpose({ ocInput });
 //work for rinput
 //make space for leading icon
 [data-slot="base"] {
-  padding-left: v-bind('isLeft ? "35px" : "12px"');
-  padding-right: v-bind('isRight ? "35px" : "12px"');
+  // padding-left: v-bind('isLeft ? "35px" : "12px"');
+  // padding-right: v-bind('isRight ? "35px" : "12px"');
+    padding-left: v-bind(leftPadding);
+    padding-right: v-bind(rightPadding);
   // padding-left: v-bind('ui.leading ? "30px" : "12px"') !important;
   // padding-right: v-bind('ui.trailingIcon ? "30px" : "12px"') !important;
   font-size: 16px;
