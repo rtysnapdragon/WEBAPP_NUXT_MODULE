@@ -125,18 +125,11 @@ const isLeft    = computed(() => props.isLeft  ?? false)
 const isRight   = computed(() => props.isRight ?? false)
 const showAi    = computed(() => !!props.ai)
 const isPinInput = computed(() => !!props.pininput)
+const floatingLabel = computed(() => props.floatingLabel ?? false)
 const aiIconName = computed(() =>
   aiLoading.value ? 'i-lucide-loader-2' : aiSuccess.value ? 'i-lucide-check' : 'i-lucide-sparkles'
 )
-// const leftPadding = computed(() =>
-//   // (isLeft.value ?? props.leading ?? props.leadingIcon) ? '35px' : '12px'
-//   (isLeft.value ?? ui.leading ?? ui.leadingIcon ?? props.leading ?? props.leadingIcon ?? props.ai) ? '35px' : '12px'
-// )
 
-// const rightPadding = computed(() =>
-//   // (isRight.value ?? props.trailing ?? props.trailingIcon) ? '35px' : '12px'
-//   (isRight.value ?? ui.trailing ?? ui.trailingIcon ?? props.trailing ?? props.trailingIcon ?? props.ai) ? '35px' : '12px'
-// )
 const slots = useSlots() //Even better (automatic slot detection) behave exactly like Nuxt UI <RInput trailing />
 
 const hasLeading = computed(() => {
@@ -157,13 +150,9 @@ const hasTrailing = computed(() => {
     slots.trailing
   )
 })
-const leftPadding = computed(() =>
-  hasLeading.value ? '35px' : '12px'
-)
+const leftPadding = computed(() => hasLeading.value ? '35px' : '12px' )
 
-const rightPadding = computed(() =>
-  hasTrailing.value ? '35px' : '12px'
-)
+const rightPadding = computed(() => hasTrailing.value ? '35px' : '12px' )
 
 // Now all of these automatically add padding:
 
@@ -430,8 +419,15 @@ defineExpose({
   :deep(textarea::placeholder) {
     font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
   }
-}
 
+  :deep(input:focus) + .rinp-float-label,
+  .rinp-input:deep(input:not(:placeholder-shown)) + .rinp-float-label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: .72rem;
+    color: var(--c-accent);
+  }
+}
 // ─────────────────────────────────────────────────────────
 // FLOATING LABEL
 // ─────────────────────────────────────────────────────────
@@ -441,6 +437,9 @@ defineExpose({
   left:           12px;
   transform:      translateY(-50%);
   pointer-events: none;
+  transition: .2s ease;
+  //  background: var(--c-surface);
+  // padding: 0 4px;
   @include transition(fast);
 
   &__text {
@@ -632,7 +631,7 @@ defineExpose({
 
 
   &:focus {
-    border-color: var(--c-accent, #ff8c42) !important;
+    // border-color: var(--c-accent, rgb(255, 140, 66,0.2)) !important;
     box-shadow:   0 0 0 3px rgba(255,140,66,0.12) !important;
     outline:      none !important;
   }
