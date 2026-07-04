@@ -39,10 +39,10 @@
 
       <div v-else class="r-modal__header r-modal__header__custom">
         <div class="flex gap-2 items-center">
-          <div v-if="icon" v-html="`<i class='${icon} text-[16px]'></i>`"></div>
+          <div v-if="icon" v-html="`<i class='${icon} text-[24px]'></i>`"></div>
           <div class="flex flex-col">
             <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
-            <span v-if="description" v-html="description" class="text-[var(--c-muted])]"></span>
+            <span v-if="description" v-html="description" class="sub-text text-sm "></span>
           </div>
         </div>
         <i class="ri-close-large-fill cursor-pointer btn-close" @click="() => { onCloseModal() }" />
