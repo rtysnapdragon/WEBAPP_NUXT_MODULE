@@ -245,7 +245,7 @@ function closed() {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .r-slider-container {
   background-color: var(--bg-wrapper);
   color: var(--c-text);

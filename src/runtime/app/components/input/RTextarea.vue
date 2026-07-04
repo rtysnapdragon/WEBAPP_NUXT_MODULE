@@ -4,7 +4,7 @@
 // No lang="ts" — plain <script setup>
 //
 // AI Translate props:
-//   :ai="true"              → show translate button in trailing
+//   :ai="true"  or ai (<RTextarea ai />)            → show translate button in trailing
 //   :ai-from="'auto'"       → source lang: 'auto'|'en'|'km'
 //   :ai-to="'auto'"         → target lang: 'auto'|'en'|'km'
 //   :ai-context="'medical'" → domain hint for better translation
@@ -62,6 +62,8 @@ const value          = defineModel()
 const textareaRef    = ref(null)
 const nativeTextarea = ref(null)
 const { locale }     = useI18n()
+const slots = useSlots()
+const hasAI = computed(() => slots.ai != null || props.ai != null)
 const { translate, loading: aiLoading, error: aiError, lastResult } = useAiTranslateHugeFace()
 
 // ── Char count ────────────────────────────────────────────────────────────
@@ -200,7 +202,7 @@ const mergedUi = computed(() => ({
         :loading="loading ?? false"
         :loading-icon="loadingIcon"
         :ui="mergedUi"
-        class="w-full"
+        class="w-full "
         @blur="$emit('onBlur', $event)"
         @focus="$emit('onFocus', $event)"
         @input="$emit('onInput', $event)"
@@ -213,9 +215,9 @@ const mergedUi = computed(() => ({
 
         <!-- ── Trailing slot: AI translate OR custom ────── -->
         <template #trailing>
-          <slot name="trailing">
+          <slot name="trailing" :hasAI="hasAI">
             <!-- AI translate button (shown when :ai="true") -->
-            <div v-if="ai" class="rtxt-ai-trail">
+            <div v-if="hasAI" class="rtxt-ai-trail">
               <!-- Target language pill -->
               <span class="rtxt-ai-lang">{{ targetLangLabel }}</span>
 
@@ -323,7 +325,7 @@ const mergedUi = computed(() => ({
   flex-direction: column;
   gap:            var(--space-2, 8px);
   width:          100%;
-  font-family:    var(--font-fallback, 'Inter', system-ui, sans-serif);
+  font-family:    var(--font-400, 'Inter', system-ui, sans-serif);
   position:       relative;
 }
 
@@ -411,7 +413,7 @@ const mergedUi = computed(() => ({
   color:         var(--c-text, #1a1510);
   font-size:     11px;
   font-weight:   600;
-  font-family:   var(--font-fallback, inherit);
+  font-family:   var(--font-400, inherit);
   cursor:        pointer;
   overflow:      hidden;
   white-space:   nowrap;
@@ -506,7 +508,7 @@ const mergedUi = computed(() => ({
     font-size:     10px;
     font-weight:   600;
     color:         var(--c-accent, #ff8c42);
-    font-family:   'Fira Code', monospace;
+    font-family:   var(--font-400, 'Fira Code', monospace);
   }
 
   &__close {
@@ -609,21 +611,19 @@ const mergedUi = computed(() => ({
 
 .rtxt-err-enter-active, .rtxt-err-leave-active { transition: all 0.18s ease; }
 .rtxt-err-enter-from, .rtxt-err-leave-to { opacity: 0; transform: translateY(-4px); }
-</style>
 
-<!-- ─────────────────────────────────────────────────────────
-     GLOBAL — NuxtUI UTextarea SARIKA token overrides
-────────────────────────────────────────────────────────── -->
-<style lang="scss">
+
+
+
 // ── Textarea base ─────────────────────────────────────────
-.r-textarea {
+:deep(.r-textarea) {  // work with scoped style
   color:            var(--c-text, #1a1510) !important;
   box-shadow:       none !important;
   background:       transparent !important;
   border:           1px solid var(--c-border, rgba(255,140,66,0.16)) !important;
   border-radius:    var(--radius-md, 10px) !important;
   font-size:        13px !important;
-  font-family:      var(--font-fallback, 'Inter', system-ui, sans-serif) !important;
+  font-family:      var(--font-400, 'Inter', system-ui, sans-serif) !important;
   width:            100% !important;
   padding:          8px 12px !important;
   resize:           none;
@@ -646,18 +646,18 @@ const mergedUi = computed(() => ({
     color:     var(--c-muted, #8a7f72) !important;
     font-size: 13px !important;
   }
-}
-
-// ── Trailing icon slot: right-align at top ───────────────
-// UTextarea puts trailing at top-right in multiline mode
-[data-slot="trailing"] {
-  position:   absolute !important;
-  top:        8px !important;
-  right:      8px !important;
-  transform:  none !important;
-  padding:    0 !important;
-  bottom:     auto !important;
-  align-items: flex-start !important;
+  
+  // ── Trailing icon slot: right-align at top ───────────────
+  // UTextarea puts trailing at top-right in multiline mode
+  [data-slot="trailing"] {
+    position:   absolute !important;
+    top:        8px !important;
+    right:      8px !important;
+    // transform:  none !important;
+    padding:    0 !important;
+    bottom:     auto !important;
+    align-items: flex-start !important;
+  }
 }
 
 // Dark mode

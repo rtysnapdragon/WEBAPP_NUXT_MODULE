@@ -151,7 +151,7 @@ function updateModelValue(v) {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .input-wrapper{
   padding: 8px;
 }
