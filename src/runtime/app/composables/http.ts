@@ -16,9 +16,6 @@ export const useHttp = async (
 ): Promise<Resp> => {
   const toast = useToast();
   const isOnline = useOnline();
-  console.log("🚀 ~ url:", url);
-  console.log("🚀 ~ options:", options);
-  console.log("🚀 ~ isOnline:", isOnline.value);
   try {
     if (!isOnline.value) {
       throw {
@@ -34,9 +31,7 @@ export const useHttp = async (
     if (!options?.isGlobal) {
       await useRefreshToken();
     }
-    
     const httpConfig = useOptions(url, options);
-    console.log("🚀 ~ httpConfig:", httpConfig);
 
     if (!httpConfig) return { data: ref(null), error: ref(true) };
 
