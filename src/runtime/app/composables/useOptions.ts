@@ -1,5 +1,9 @@
 import type { HttpOptions, HeaderResult } from "../models/http.js";
 import { useCookie, useUserData } from "#imports";
+import helper from "../utils/helper.js";
+import getDeviceId from "../utils/getDeviceId.js";
+import getUrl from "../utils/getUrl.js";
+import isNotEmpty from "../utils/isNotEmpty.js";
 
 export default function useOptions(
   url: string,
@@ -13,18 +17,19 @@ export default function useOptions(
   const dbCookie = useCookie(str.dbCode);
   let authorization = "";
 
-  if (!options?.isGlobal && !userCatch) return;
+  // if (!options?.isGlobal && !userCatch) return;
 
-  if (!options?.isGlobal) {
-    const val: any = useUserData().value;
-    authorization = `${val.token_type} ${val.access_token}`;
-  } else {
-    // Prefer JWT from access_token cookie (CEREMONY_WEBAPP_NUXT pattern);
-    // fall back to basic key for other apps that don't use JWT cookies.
+  // if (!options?.isGlobal) {
+  //   const val: any = useUserData().value;
+  //   authorization = `${val.token_type} ${val.access_token}`;
+  // } else {
+  //   // Prefer JWT from access_token cookie (CEREMONY_WEBAPP_NUXT pattern);
+  //   // fall back to basic key for other apps that don't use JWT cookies.
+  //   const jwtToken = useCookie('access_token').value;
+  //   authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
+  // }
     const jwtToken = useCookie('access_token').value;
     authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
-  }
-
   let newHeader;
 
   if (isNotEmpty(options?.headers)) {
