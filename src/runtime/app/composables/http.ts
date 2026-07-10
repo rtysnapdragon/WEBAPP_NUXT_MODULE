@@ -16,9 +16,6 @@ export const useHttp = async (
 ): Promise<Resp> => {
   const toast = useToast();
   const isOnline = useOnline();
-  console.log("🚀 ~ url:", url);
-  console.log("🚀 ~ options:", options);
-  console.log("🚀 ~ isOnline:", isOnline.value);
   try {
     if (!isOnline.value) {
       throw {
@@ -36,7 +33,6 @@ export const useHttp = async (
     }
     
     const httpConfig = useOptions(url, options);
-    console.log("🚀 ~ httpConfig:", httpConfig);
 
     if (!httpConfig) return { data: ref(null), error: ref(true) };
 
@@ -48,7 +44,7 @@ export const useHttp = async (
         ? { data: httpConfig.options?.data }
         : { params: httpConfig.options?.data };
 
-    const response = await axios({
+    const response = await axios({  
       ...{
         url: httpConfig.url,
         signal: options.signal,
