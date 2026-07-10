@@ -246,7 +246,7 @@ function closed() {
 </script>
 
 <style lang="scss" scoped>
-.r-slider-container {
+:deep(.r-slider-content) {
   background-color: var(--bg-wrapper);
   color: var(--c-text);
   width: 100%;
@@ -262,7 +262,7 @@ function closed() {
     justify-content: space-between;
     align-items: center;
     gap: 4px;
-    min-height: 40px;
+    min-height: 100px;
     // padding: 5px 15px;
     font-size: 14px;
     font-family: var(--font-500);
@@ -312,20 +312,48 @@ function closed() {
   }
 }
 
-.r-slider-content{ //work all if no scoped
-  [data-slot="body"],[data-slot="header"],[data-slot="footer"]{
-    padding: 10px 15px !important;
+:deep(.r-slider-content){ //work all if no scoped
+  &[data-slot="body"],&[data-slot="header"],&[data-slot="footer"]{
+    padding: 0;
   }
 
-  [data-slot="body"]{
+  &[data-slot="body"]{
     .hasScroll{
-      padding:0 !important;
+      padding:40px;
     }
   }
 }
 
+:deep(.r-wrapper-container){
+   max-width: 100%;
+  &.r-slider-bottom-mobile{
+    max-width: 100% !important;
+    padding: 7px !important;
+    border-radius: 20px 20px 0px 0px !important;
+    min-height: 500px;
+  }
+
+}
+
+:deep([data-slot="body"]){
+  padding: 0 !important;
+}
+
 .r-drawer-overlay {
   background: var(--bg-wrapper-50) !important;
+}
+
+
+:deep([data-slot="body"]) {
+  padding: 0 !important;
+}
+
+:deep(.r-slider-content[data-slot="header"]) {
+  padding: 0 !important;
+}
+
+:deep(.r-slider-content[data-slot="footer"]) {
+  padding: 0 !important;
 }
 
 .r-slider-bottom-mobile {
