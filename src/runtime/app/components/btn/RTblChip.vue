@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-const ocChipStore = useOCChipDataStore();
+const ocChipStore = useRChipDataStore();
 const items = defineModel();
 const props = defineProps(['stateKey'])
 const emit = defineEmits("onRemove");
