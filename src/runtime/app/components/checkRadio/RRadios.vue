@@ -3,7 +3,7 @@
     v-model="select"
     :ui="ui"
     :ui-radio="uiRadio"
-    :options="options"
+    :items="options"
     :value-attribute="valueAttribute"
     :option-attribute="optionAttribute"
     :disabled="disabled"
