@@ -61,7 +61,7 @@ function onClick(event: Event) {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--c-border);
-  box-shadow: var(--glass-shadow);
+  // box-shadow: var(--glass-shadow);
 }
 
 .r-card {
