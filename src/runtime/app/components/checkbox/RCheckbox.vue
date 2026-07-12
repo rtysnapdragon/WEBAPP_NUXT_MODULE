@@ -83,7 +83,7 @@ $oc-checkbox-padding: 6px;
 .r-checkbox-container {
   display: flex;
   align-items: center;
-  gap: 6px;
+  // gap: 6px;
   min-width: fit-content;
 }
 
