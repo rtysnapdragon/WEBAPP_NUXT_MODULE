@@ -101,3 +101,19 @@ npx nuxt upgrade
 [license-href]: https://npmjs.com/package/my-module
 [nuxt-src]: https://img.shields.io/badge/Nuxt-020420?logo=nuxt
 [nuxt-href]: https://nuxt.com
+
+
+
+## REditor
+- Need to install manual packages more
+```bash
+npm install @tiptap/extension-image
+npm install @tiptap/extension-text-align
+npm install @tiptap/extension-emoji
+```
+
+
+Remove-Item -Recurse -Force node_modules
+Remove-Item -Force package-lock.json
+npm cache clean --force
+npm install

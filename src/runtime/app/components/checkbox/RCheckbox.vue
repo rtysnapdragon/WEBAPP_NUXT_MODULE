@@ -1,174 +1,197 @@
-<!-- <RCheckbox
-  v-model="selected"
-  label="Accept Terms"
-  help="You must agree before continuing"
-  required
-/>
-
-<RCheckbox v-model="selected">
-  <template #label>
-    <span>
-      I agree to the <a href="#">Terms & Conditions</a>
-    </span>
-  </template>
-</RCheckbox> -->
-
 <template>
-  <div class="r-checkbox-wrapper">
-    <div class="r-checkbox-root">
-      <div class="r-checkbox-container">
-        <input
-          :id="id"
-          v-model="model"
-          type="checkbox"
-          class="oc-checkbox"
-          :class="[
-            disabled || disabled === '' ? '!cursor-not-allowed' : '',
-            indeterminate && 'minus'
-          ]"
-          :name="name"
-          :value="value"
-          :disabled="disabled"
-          v-bind="$attrs"
-          ref="checkboxRef"
-        />
-
-        <label v-if="label || $slots.label" :for="id" class="r-checkbox-label" >
-          <slot name="label"> {{ label }} </slot>
-          <span  v-if="required" class="r-checkbox-required" > * </span>
-        </label>
-      </div>
-
-      <p v-if="help" class="r-checkbox-help"> {{ help }} </p>
-    </div>
-  </div>
+  <UCheckbox v-model="select" :ui="ui" :label="label" :name="props.name" :help="help" :required="props.required"  :indeterminate="indeterminate"
+    :disabled="disabled" :value="value" v-bind="$attrs" :id="id"
+    :inputClass="['oc-checkbox  ', disabled || disabled == '' ? '!cursor-not-allowed' : '', indeterminate && 'minus']">
+    <template #label v-if="$slots.label">
+      <slot name="label" />
+    </template>
+  </UCheckbox>
 </template>
 
 <script setup>
-const model = defineModel()
+const select = defineModel()
+const props = defineProps(['ui', 'label', 'name', 'help', 'required', 'value', 'disabled', 'id',   'indeterminate'])
 
-const props = defineProps({
-  label: String,
-  name: String,
-  help: String,
-  required: Boolean,
-  value: null,
-  disabled: Boolean,
-  id: String,
-  indeterminate: Boolean
+const ui = computed(() => {
+  const defaultUI = {
+    wrapper: 'w-full relative flex items-center gap-1.5',
+    container: 'flex items-center h-5',
+    base: 'r-checkbox-base rounded-sm ring ring-inset ring-accented overflow-hidden focus-visible:outline-3 h-4 w-4 focus-visible:!ring-0 focus:!ring-0',
+    indicator: 'flex items-center justify-center size-full text-inverted',
+    icon: 'shrink-0 size-full',
+    form: '',
+    color: '',
+    background: '',
+    border: '',
+    ring: '',
+    inner: 'ms-0 flex flex-col',
+    label: 'block font-medium text-default text-xs font-normal color-w-b-1 line-clamp-1 cursor-pointer',
+    required: 'text-xs text-red-500 dark:text-red-400',
+    help: 'text-xs text-gray-500 dark:text-gray-400',
+    root: 'relative flex items-start',
+    description: 'text-muted',
+    default: {
+      color: '',
+    },
+  }
+  const resultUI = { ...defaultUI, ...props.ui }
+
+  return resultUI
 })
 
-const checkboxRef = ref()
+const label = computed(() => props.label)
+const help = computed(() => props.help)
+const value = computed(() => props.value)
+const disabled = computed(() => props.disabled)
+// const name = computed(() => props.name)
+const id = computed(() => props.id)
 
-watchEffect(() => {
-  if (checkboxRef.value) {
-    checkboxRef.value.indeterminate = props.indeterminate
-  }
+mounted(() => {
+
 })
 </script>
 
 <style lang="scss">
 $oc-checkbox-padding: 6px;
 
-.r-checkbox-wrapper {
-  width: 100%;
+.r-checkbox-base{
+  border: 2px solid #c3c3c3 !important;
+  width: 15px ! important;
+  height: 15px !important;
 }
 
-.r-checkbox-root {
-  display: flex;
-  flex-direction: column;
-  min-width: fit-content !important;
-}
-
-.r-checkbox-container {
-  display: flex;
-  align-items: center;
-  // gap: 6px;
-  min-width: fit-content;
-}
-
-.r-checkbox-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 400;
-  cursor: pointer;
-  line-height: 1.4;
-}
-
-.r-checkbox-required {
-  color: red;
-  margin-left: 2px;
-}
-
-.r-checkbox-help {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 2px;
-  margin-left: 21px;
-}
-
-input[type='checkbox'].oc-checkbox {
-  all: unset;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  border: 2px solid #c3c3c3;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-
-  // &:focus::after {
-  //   content: '';
-  //   position: absolute;
-  //   top: -$oc-checkbox-padding;
-  //   bottom: -$oc-checkbox-padding;
-  //   left: -$oc-checkbox-padding;
-  //   right: -$oc-checkbox-padding;
-  //   border: 2px solid var(--color-primary);
-  //   border-radius: 9px;
-  //   box-sizing: content-box;
-  // }
-
-  &:checked {
-    background-color: transparent;
-    border-color: var(--color-primary) !important;
-    color: var(--color-primary);
-  }
-
-  &:checked::before {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-
-  &::before {
-    content: '\eb7a';
-    font-family: 'remixicon';
-    font-size: 9px;
-    position: absolute;
-    inset: 0;
-    display: flex;
+input[type='checkbox'] {
+  &.oc-checkbox {
+    all: unset;
+    position: relative;
+    margin: unset;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0);
+    box-sizing: border-box;
+    position: relative;
+    border: 2px solid;
+    border-color: #c3c3c3;
+    border-radius: 5px;
+    outline: 0;
+    cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--color-primary);
-    font-weight: bold;
-  }
+    height: 15px;
+    width: 15px;
+    margin-top: 0;
 
-  &.minus::before {
-    content: '\f1ae';
-    opacity: 1;
-    transform: scale(1);
-  }
+    &:focus::after {
+      content: '';
+      position: absolute;
+      top: -$oc-checkbox-padding;
+      bottom: -$oc-checkbox-padding;
+      left: -$oc-checkbox-padding;
+      right: -$oc-checkbox-padding;
+      border: 2px solid var(--color-primary);
+      border-radius: 9px;
+      box-sizing: content-box;
+    }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    &:checked {
+      background-color: transparent;
+      color: var(--color-primary) !important;
+      border-color: var(--color-primary) !important;
+    }
+
+    &:checked::before {
+      color: var(--color-primary) !important;
+      transform: scale(1.1);
+      font-weight: bold;
+      opacity: 1;
+    }
+
+    &::before {
+      content: '\eb7a' !important;
+      font-family: 'remixicon' !important;
+      font-size: 9px;
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      left: 2px;
+      right: 2px;
+      border-radius: 5px;
+      background: 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.2s var(--ocs-curve);
+      transform: scale(0);
+      line-height: 16px;
+      font-weight: bold !important;
+    }
+
+    &.minus {
+      &::before {
+        content: '\f1ae' !important;
+      }
+    }
   }
 }
 </style>
+<!-- 
+<style scoped lang="scss">
+:deep([data-slot="base"]) {
+  width: 15px !important;
+  height: 15px !important;
+
+  border: 2px solid #c3c3c3 !important;
+  border-radius: 5px !important;
+
+  position: relative;
+  overflow: visible;
+}
+
+:deep([data-slot="base"][data-state="checked"]) {
+  border-color: var(--c-accent) !important;
+}
+
+:deep([data-slot="indicator"]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--c-accent) !important;
+}
+
+:deep([data-slot="indicator"] svg) {
+  width: 10px;
+  height: 10px;
+}
+
+
+// :deep([data-slot="base"])
+// :deep([data-slot="indicator"])
+// :deep([data-slot="label"])
+// :deep([data-state="checked"])
+// :deep([data-state="indeterminate"])
+</style> -->
+<!-- 
+<style scoped lang="scss">
+:deep([data-slot="base"]) {
+  width: 16px !important;
+  height: 16px !important;
+
+  border: 2px solid #c3c3c3 !important;
+  border-radius: 4px !important;
+
+  transition: all .2s;
+}
+
+:deep([data-slot="base"][data-state="checked"]) {
+  border-color: var(--c-accent) !important;
+}
+
+:deep([data-slot="indicator"]) {
+  color: var(--c-accent) !important;
+}
+
+:deep([data-slot="label"]) {
+  font-size: 12px;
+  color: var(--color-w-b-1);
+}
+</style> -->

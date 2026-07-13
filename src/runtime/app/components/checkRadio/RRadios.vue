@@ -47,6 +47,10 @@ const uiRadio = computed(() => {
     container: "flex items-center h-5",
     base: "h-4 w-4",
     form: "form-radio",
+    // legend: 'text-sm font-medium text-gray-700 dark:text-gray-200 mb-1',
+    // default: {
+    //   color: 'primary'
+    // },
     background: "bg-transparent dark:bg-transparent",
     border: "border-color-input",
     ring: "",
@@ -68,6 +72,7 @@ const uiRadio = computed(() => {
 });
 
 const options = computed(() => props.options);
+console.log("Option ===================> s", options.value);
 const disabled = computed(() => props.disabled);
 const optionAttribute = computed(() => props.optionAttribute);
 const valueAttribute = computed(() => props.valueAttribute);
