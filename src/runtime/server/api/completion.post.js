@@ -1,16 +1,20 @@
+// server/api/completion.post.js
+// Ported to plain JS from Nuxt UI's official "With AI completion" example.
+// Requires: npm install ai @ai-sdk/gateway @ai-sdk/vue
+// Requires an AI_GATEWAY_API_KEY (or per-provider key) configured — see
+// https://ai-sdk.dev/docs/getting-started/nuxt
+
 import { streamText, createTextStreamResponse } from 'ai'
 import { gateway } from '@ai-sdk/gateway'
-import { createError, readBody } from 'nuxt/app'
 
-export default defineEventHandler(async (event: any) => {
+export default defineEventHandler(async (event) => {
   const { prompt, mode, language } = await readBody(event)
   if (!prompt) {
     throw createError({ statusCode: 400, message: 'Prompt is required' })
   }
-console.log('Completion request==========>:', { mode, language, promptLength: prompt.length }) // for debugging
 
-  let instructions: string
-  let maxOutputTokens: number
+  let instructions
+  let maxOutputTokens
 
   const preserveMarkdown = 'IMPORTANT: Preserve all markdown formatting (bold, italic, links, etc.) exactly as in the original.'
 
@@ -56,16 +60,8 @@ CRITICAL RULES:
     model: gateway('anthropic/claude-haiku-4.5'),
     instructions,
     prompt,
-    maxOutputTokens
+    maxOutputTokens,
   })
 
   return createTextStreamResponse({ stream: result.textStream })
 })
-function defineEventHandler(arg0: (event: any) => Promise<Response>) {
-    throw new Error('Function not implemented.')
-}
-
-function readBody(event: any): { prompt: any; mode: any; language: any } | PromiseLike<{ prompt: any; mode: any; language: any }> {
-    throw new Error('Function not implemented.')
-}
-
