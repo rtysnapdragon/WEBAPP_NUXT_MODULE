@@ -268,40 +268,6 @@ function closed() {
     font-family: var(--font-500);
     width: 100%;
   }
-
-  .r-slider-body {
-    // overflow-y: auto !important;
-    // overflow-x: hidden !important;
-    // min-height: calc(100vh - 80px); // cause style padding body
-    height: 100% !important;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    max-height: 100%;
-    // padding:5px 15px ;
-
-    &.isScroll {
-      // this class add auto
-      overflow-y: auto;
-
-      &::-webkit-scrollbar-thumb {
-        border: 1px solid var(--bg-content);
-      }
-
-      &:hover::-webkit-scrollbar-thumb {
-        background-color: var(--color-w-b-3) !important;
-      }
-
-      &::-webkit-scrollbar-thumb:hover {
-        background-color: var(--color-w-b-2) !important;
-      }
-    }
-
-    &.r-slider-has-scroll {
-      padding-right: 0 !important; // reduced from 15px
-      overflow-y: auto;
-    }
-  }
   
   .r-slider-footer {
     display: flex;
@@ -333,6 +299,36 @@ function closed() {
     min-height: 500px;
   }
 
+}
+
+:deep(.r-slider-body) {
+  // overflow-y: auto !important;
+  // overflow-x: hidden !important;
+  // min-height: calc(100vh - 80px); // cause style padding body
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  padding: 0 !important;
+  // padding:5px 15px ;
+  &.isScroll {
+    // this class add auto
+    overflow-y: auto;
+    &::-webkit-scrollbar-thumb {
+      border: 1px solid var(--bg-content);
+    }
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: var(--color-w-b-3) !important;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-w-b-2) !important;
+    }
+  }
+  &.r-slider-has-scroll {
+    padding-right: 0 !important; // reduced from 15px
+    overflow-y: auto;
+  }
 }
 
 :deep([data-slot="body"]){

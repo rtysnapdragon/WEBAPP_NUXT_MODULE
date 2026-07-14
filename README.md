@@ -107,11 +107,16 @@ npx nuxt upgrade
 ## REditor
 - Need to install manual packages more
 ```bash
+//For REEditor
 npm install @tiptap/extension-image
 npm install @tiptap/extension-text-align
 npm install @tiptap/extension-emoji
-```
 
+
+//For RAi
+npm install ai @ai-sdk/gateway @ai-sdk/vue
+```
+npm install --legacy-peer-deps
 
 Remove-Item -Recurse -Force node_modules
 Remove-Item -Force package-lock.json

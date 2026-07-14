@@ -8,6 +8,8 @@ import {
   addImports,
   addLayout,
   addRouteMiddleware,
+  addServerHandler,
+  addServerImportsDir
 } from "@nuxt/kit";
 
 import fs from "fs";
@@ -28,22 +30,45 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {},
   async setup(options: Record<any, any>, nuxt) {
     const { resolve } = createResolver(import.meta.url);
-    const runtimeDir = resolve("./runtime/app");
+    const runtimeAppDir = resolve("./runtime/app"); // Client-side
+    const runtimeServerDir = resolve("./runtime/server"); // Server-side
+
+    console.log('🚀 [WebApp Module] Initializing...');
+
+    // Transpile
+    nuxt.options.build.transpile.push(runtimeAppDir);
+    nuxt.options.build.transpile.push(runtimeServerDir);
+    
     const layers: string[] = options.layers || [];
     // Add the runtime directory to the transpile array
-    nuxt.options.build.transpile.push(runtimeDir);
+    // nuxt.options.build.transpile.push(runtimeAppDir);
     // // Add global.scss to the global CSS array
     nuxt.options.css = nuxt.options.css || [];
     nuxt.options.css.push(
-      resolve(runtimeDir, "assets", "styles", "tailwind.css")
+      resolve(runtimeAppDir, "assets", "styles", "tailwind.css")
     );
     nuxt.options.css.push(
-      resolve(runtimeDir, "assets", "styles", "global.scss")
+      resolve(runtimeAppDir, "assets", "styles", "global.scss")
     ); 
 
     nuxt.options.css.push(
-      resolve(runtimeDir, "assets", "styles", "date.scss")
+      resolve(runtimeAppDir, "assets", "styles", "date.scss")
     ); 
+    nuxt.options.serverHandlers.push({
+      route: '/api/completion',
+      handler: resolve(runtimeServerDir, 'api/completion.post.js')
+    });
+    //  nuxt.options.serverHandlers.push({
+    //   route: "/api/completion",
+    //   handler: resolver.resolve("./runtime/server/api/completion.post")
+    // });
+
+    // CSS (client only)
+    // nuxt.options.css = nuxt.options.css || [];
+    // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/tailwind.css"));
+    // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/global.scss"));
+    // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/date.scss"));
+
     // Install external modules
     const modulesToInstall = [
       "@nuxt/ui",
@@ -57,6 +82,11 @@ export default defineNuxtModule<ModuleOptions>({
     for (const mod of modulesToInstall) {
       await installModule(mod);
     }
+// ====================== SERVER API ======================
+
+    // addServerImportsDir(runtimeServerDir);   // Only server directory
+
+    console.log('✅ [WebApp Module] AI Completion API registered at /api/completion');
 
     addImports([
       { name: "ref", from: "vue" },
@@ -79,11 +109,11 @@ export default defineNuxtModule<ModuleOptions>({
     // add import utils, stores, composables
     const dirsToAdd = ["utils", "composables", "stores"];
     for (const dir of dirsToAdd) {
-      addImportsDir(resolve(runtimeDir, dir));
+      addImportsDir(resolve(runtimeAppDir, dir));
     }
 
     // add middleware
-    const middlewareDir = resolve(runtimeDir, "middlewares");
+    const middlewareDir = resolve(runtimeAppDir, "middlewares");
     if (fs.existsSync(middlewareDir)) {
       const middlewareFiles = fs
         .readdirSync(middlewareDir)
@@ -108,7 +138,7 @@ export default defineNuxtModule<ModuleOptions>({
     });
 
     // add layouts
-    const layoutsDir = resolve(runtimeDir, "layouts");
+    const layoutsDir = resolve(runtimeAppDir, "layouts");
     if (fs.existsSync(layoutsDir)) {
       const layoutFiles = fs
         .readdirSync(layoutsDir)
@@ -121,11 +151,11 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Add components and recursively
     addComponentsDir({
-      path: resolve(runtimeDir, "components"),
+      path: resolve(runtimeAppDir, "components"),
       prefix: options.prefix || "",
       pathPrefix: false,
     });
-    const componentsDir = path.join(runtimeDir, "components");
+    const componentsDir = path.join(runtimeAppDir, "components");
     function addComponentsFromDir(
       directory: string,
       baseDir: string = componentsDir
@@ -136,7 +166,7 @@ export default defineNuxtModule<ModuleOptions>({
         if (item.isDirectory()) {
           addComponentsDir({
             path: resolve(
-              runtimeDir,
+              runtimeAppDir,
               "components",
               path.relative(baseDir, itemPath).replace(/\\/g, "/")
             ),
@@ -151,8 +181,8 @@ export default defineNuxtModule<ModuleOptions>({
     addComponentsFromDir(componentsDir);
 
     // // Add plugin
-    addPlugin(resolve(runtimeDir, "plugins", "plugin"));
-    addPlugin(resolve(runtimeDir, "plugins", "assets"));
+    addPlugin(resolve(runtimeAppDir, "plugins", "plugin"));
+    addPlugin(resolve(runtimeAppDir, "plugins", "assets"));
 
     // Merge lang JSON files to app locales
     const lang = ["km", "en"];
