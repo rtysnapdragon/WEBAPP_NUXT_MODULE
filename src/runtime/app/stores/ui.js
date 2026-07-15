@@ -1,5 +1,5 @@
 // stores/ui.ts
-import { defineStore } from 'pinia'
+import { defineStore,acceptHMRUpdate } from 'pinia'
 
 /*
 FULL PRODUCTION VERSION
@@ -253,3 +253,9 @@ export const useUIStore = defineStore('ui', {
     },
   }
 })
+
+
+// make sure to pass the right store definition, `useAuth` in this case.
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useUIStore, import.meta.hot))
+}

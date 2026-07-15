@@ -1,35 +1,53 @@
-// server/api/completion.post.js
-// Ported to plain JS from Nuxt UI's official "With AI completion" example.
-// Requires: npm install ai @ai-sdk/gateway @ai-sdk/vue
-// Requires an AI_GATEWAY_API_KEY (or per-provider key) configured — see
-// https://ai-sdk.dev/docs/getting-started/nuxt
-
 import { streamText, createTextStreamResponse } from 'ai'
 import { gateway } from '@ai-sdk/gateway'
+// import { googleGenAI } from '@ai-sdk/google-genai'
+import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
+import { generateText } from 'ai'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event:any) => {
+    // const config = useRuntimeConfig()
   const { prompt, mode, language } = await readBody(event)
   if (!prompt) {
     throw createError({ statusCode: 400, message: 'Prompt is required' })
   }
+
+console.log('API called')
+
+  const body = await readBody(event)
+
+  console.log('Payload:', body)
+
   const config = useRuntimeConfig()
-  
-  if (!config.googleApiKey) {
-    throw createError({ 
-      statusCode: 500, 
-      message: 'Google API key is required. Get one from Google AI Studio.' 
-    })
-  }
+  console.log("Runtime config -------------> ", config)
 
+  console.log(
+    'API key exists ------------->:',
+    !config.anthropicApiKey
+  )
 
-  let instructions
-  let maxOutputTokens
+  let instructions: string
+  let maxOutputTokens: number
+  const model1 = gateway('anthropic/claude-haiku-4.5')
+  // const modelGoogleAIStudio =  google('gemini-2.5-flash-lite')
 
+  const modelGoogleAIStudio = google(
+    'gemini-2.5-flash',
+    {
+      apiKey: config.googleApiKey
+    }
+  )
+
+  const modelAnthropic = anthropic('claude-sonnet-4-5')
+    // const model1 = anthropic('claude-sonnet-4-5', {
+    //     apiKey: config.anthropicApiKey
+    // })
+// Using gateway with a lightweight model (good for translation, often cheaper)
+  const model = gateway('anthropic/claude-haiku-4.5') // or 'google/gemini-2.5-flash-lite' etc.
+
+//   const model = gateway('anthropic/claude-haiku-4.5')
+//   const modelGemini = googleGenAI('gemini-3-pro-preview')
   const preserveMarkdown = 'IMPORTANT: Preserve all markdown formatting (bold, italic, links, etc.) exactly as in the original.'
-  const model = google('gemini-2.0-flash-lite', {
-    apiKey: config.googleApiKey
-  })
 
   switch (mode) {
     case 'fix':
@@ -59,21 +77,22 @@ export default defineEventHandler(async (event) => {
     case 'continue':
     default:
       instructions = `You are a writing assistant providing inline autocompletions.
-      CRITICAL RULES:
-      - Output ONLY the NEW text that comes AFTER the user's input
-      - NEVER repeat any words from the end of the user's text
-      - Keep completions short (1 sentence max)
-      - Match the tone and style of the existing text
-      - ${preserveMarkdown}`
+CRITICAL RULES:
+- Output ONLY the NEW text that comes AFTER the user's input
+- NEVER repeat any words from the end of the user's text
+- Keep completions short (1 sentence max)
+- Match the tone and style of the existing text
+- ${preserveMarkdown}`
       maxOutputTokens = 25
       break
   }
 
   const result = streamText({
     model: model,
+    // model: googleGenAI('claude-haiku-4.5'),
     instructions,
     prompt,
-    maxOutputTokens,
+    maxOutputTokens
   })
 
   return createTextStreamResponse({ stream: result.textStream })

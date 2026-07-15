@@ -95,7 +95,7 @@ Rules:
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model:      'claude-haiku-4-5',
+          model:      'anthropic/claude-haiku-4-5',
           max_tokens: 120,
           system:     'You are a smart form assistant that generates realistic sample values for input fields. Always return just the value, nothing else. No quotes, no explanations.',
           messages: [

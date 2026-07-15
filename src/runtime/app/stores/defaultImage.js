@@ -54,8 +54,7 @@
 //   import.meta.hot.accept(acceptHMRUpdate(UseDefaultImageStore, import.meta.hot))
 // }
 
-import { defineStore } from 'pinia'
-import { acceptHMRUpdate } from 'pinia'
+import { defineStore,acceptHMRUpdate } from 'pinia'
 
 export const UseDefaultImageStore = defineStore('defaultImageStore', {
   actions: {

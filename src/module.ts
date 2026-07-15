@@ -28,6 +28,9 @@ export default defineNuxtModule<ModuleOptions>({
   },
 
   defaults: {},
+  // defaults: {
+  //   anthropicApiKey: ''
+  // },
   async setup(options: Record<any, any>, nuxt) {
     const { resolve } = createResolver(import.meta.url);
     const runtimeAppDir = resolve("./runtime/app"); // Client-side
@@ -58,6 +61,7 @@ export default defineNuxtModule<ModuleOptions>({
       route: '/api/completion',
       handler: resolve(runtimeServerDir, 'api/completion.post.js')
     });
+    nuxt.options.runtimeConfig.anthropicApiKey = options.anthropicApiKey
     //  nuxt.options.serverHandlers.push({
     //   route: "/api/completion",
     //   handler: resolver.resolve("./runtime/server/api/completion.post")

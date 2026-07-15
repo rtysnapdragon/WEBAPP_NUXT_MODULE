@@ -1,36 +1,51 @@
-// EditorCompletionExtension.js
-// Ported to plain JS from Nuxt UI's official "With AI completion" example.
-// Handles inline ghost-text suggestions (Tab to accept, Esc to dismiss, Mod-J to trigger).
-//
-// NOTE ON THE "Adding different instances of a keyed plugin" ERROR:
-// This extension registers a ProseMirror Plugin with a fixed PluginKey. That
-// error happens when Vite ends up bundling two separate copies of
-// prosemirror-state/prosemirror-view (one pulled in by @nuxt/ui, one pulled
-// in by this file's direct '@tiptap/pm/*' imports) — the two copies' Plugin
-// classes are different identities, so PM thinks it's a duplicate key.
-// Fix (in nuxt.config.ts, see project notes) — NOT something this file can
-// work around on its own:
-//
-//   vite: {
-//     optimizeDeps: {
-//       include: [
-//         '@nuxt/ui > prosemirror-state',
-//         '@nuxt/ui > prosemirror-transform',
-//         '@nuxt/ui > prosemirror-model',
-//         '@nuxt/ui > prosemirror-view',
-//         '@nuxt/ui > prosemirror-gapcursor'
-//       ]
-//     }
-//   }
-
 import { Extension } from '@tiptap/core'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
+import type { Editor } from '@tiptap/vue-3'
 import { useDebounceFn } from '@vueuse/core'
+
+export interface CompletionOptions {
+  /**
+   * Debounce delay in ms before triggering completion
+   * @defaultValue 250
+   */
+  debounce?: number
+  /**
+   * Whether to automatically trigger completion while typing
+   * @defaultValue false
+   */
+  autoTrigger?: boolean
+  /**
+   * Characters that should prevent completion from triggering
+   * @defaultValue ['/', ':', '@']
+   */
+  triggerCharacters?: string[]
+  /**
+   * Called when completion should be triggered, receives the editor instance
+   */
+  onTrigger?: (editor: Editor) => void
+  /**
+   * Called when suggestion is accepted
+   */
+  onAccept?: () => void
+  /**
+   * Called when suggestion is dismissed
+   */
+  onDismiss?: () => void
+}
+
+export interface CompletionStorage {
+  suggestion: string
+  position: number | undefined
+  visible: boolean
+  debouncedTrigger: ((editor: Editor) => void) | null
+  setSuggestion: (text: string) => void
+  clearSuggestion: () => void
+}
 
 export const completionPluginKey = new PluginKey('completion')
 
-export const Completion = Extension.create({
+export const Completion = Extension.create<CompletionOptions, CompletionStorage>({
   name: 'completion',
 
   addOptions() {
@@ -40,24 +55,24 @@ export const Completion = Extension.create({
       triggerCharacters: ['/', ':', '@'],
       onTrigger: undefined,
       onAccept: undefined,
-      onDismiss: undefined,
+      onDismiss: undefined
     }
   },
 
   addStorage() {
     return {
       suggestion: '',
-      position: undefined,
+      position: undefined as number | undefined,
       visible: false,
-      debouncedTrigger: null,
-      setSuggestion(text) {
+      debouncedTrigger: null as ((editor: Editor) => void) | null,
+      setSuggestion(text: string) {
         this.suggestion = text
       },
       clearSuggestion() {
         this.suggestion = ''
         this.position = undefined
         this.visible = false
-      },
+      }
     }
   },
 
@@ -82,20 +97,22 @@ export const Completion = Extension.create({
             }, { side: 1 })
 
             return DecorationSet.create(state.doc, [widget])
-          },
-        },
-      }),
+          }
+        }
+      })
     ]
   },
 
   addKeyboardShortcuts() {
     return {
       'Mod-j': ({ editor }) => {
+        // Clear any existing suggestion first to avoid flickering
         if (this.storage.visible) {
           this.storage.clearSuggestion()
           this.options.onDismiss?.()
         }
-        this.storage.debouncedTrigger?.(editor)
+        // Manually trigger completion
+        this.storage.debouncedTrigger?.(editor as Editor)
         return true
       },
       'Tab': ({ editor }) => {
@@ -103,11 +120,17 @@ export const Completion = Extension.create({
           return false
         }
 
+        // Store values before clearing
         const suggestion = this.storage.suggestion
         const position = this.storage.position
 
+        // Clear suggestion first
         this.storage.clearSuggestion()
+
+        // Force decoration update
         editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
+
+        // Insert the suggestion text
         editor.chain().focus().insertContentAt(position, suggestion).run()
 
         this.options.onAccept?.()
@@ -116,30 +139,35 @@ export const Completion = Extension.create({
       'Escape': ({ editor }) => {
         if (this.storage.visible) {
           this.storage.clearSuggestion()
+          // Force decoration update
           editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
           this.options.onDismiss?.()
           return true
         }
         return false
-      },
+      }
     }
   },
 
   onUpdate({ editor }) {
+    // Clear suggestion on any edit
     if (this.storage.visible) {
       this.storage.clearSuggestion()
+      // Force decoration update
       editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
       this.options.onDismiss?.()
     }
 
+    // Debounced trigger check (only if autoTrigger is enabled)
     if (this.options.autoTrigger) {
-      this.storage.debouncedTrigger?.(editor)
+      this.storage.debouncedTrigger?.(editor as Editor)
     }
   },
 
   onSelectionUpdate({ editor }) {
     if (this.storage.visible) {
       this.storage.clearSuggestion()
+      // Force decoration update
       editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
       this.options.onDismiss?.()
     }
@@ -149,18 +177,23 @@ export const Completion = Extension.create({
     const storage = this.storage
     const options = this.options
 
-    this.storage.debouncedTrigger = useDebounceFn((editor) => {
+    // Create debounced trigger function for this instance
+    this.storage.debouncedTrigger = useDebounceFn((editor: Editor) => {
       if (!options.onTrigger) return
 
       const { state } = editor
       const { selection } = state
       const { $from } = selection
 
+      // Only suggest at end of block with content
       const isAtEndOfBlock = $from.parentOffset === $from.parent.content.size
       const hasContent = $from.parent.textContent.trim().length > 0
       const textContent = $from.parent.textContent
 
+      // Don't trigger if sentence is complete (ends with punctuation)
       const endsWithPunctuation = /[.!?]\s*$/.test(textContent)
+
+      // Don't trigger if text ends with trigger characters
       const triggerChars = options.triggerCharacters || []
       const endsWithTrigger = triggerChars.some(char => textContent.endsWith(char))
 
@@ -168,15 +201,19 @@ export const Completion = Extension.create({
         return
       }
 
+      // Set position and mark as visible
       storage.position = selection.from
       storage.visible = true
+
+      // Pass editor to let the handler extract content (e.g., as markdown)
       options.onTrigger(editor)
     }, options.debounce || 250)
   },
 
   onDestroy() {
     this.storage.debouncedTrigger = null
-  },
+  }
 })
 
-export default Completion1
+export default Completion
+

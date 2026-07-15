@@ -1,31 +1,19 @@
 import { defineNuxtPlugin } from '#app'
 import { useScreenStore } from '../stores/screen.js'
+import { onMounted, onUnmounted } from 'vue'
+
 export default defineNuxtPlugin((_nuxtApp) => {
-  console.log('Plugin injected by my-module!')
-
-  const screen = useScreenStore()
-
-  const updateSize = () => {
-    screen.setSize(window.innerWidth, window.innerHeight)
-  }
-
-  updateSize()
-
-  window.addEventListener('resize', updateSize)
+  // Plugin runs after Pinia is installed. Use lifecycle hooks to access the store safely.
+  onMounted(() => {
+    const screen = useScreenStore()
+    const updateSize = () => {
+      screen.setSize(window.innerWidth, window.innerHeight)
+    }
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    // Cleanup on unmount
+    onUnmounted(() => {
+      window.removeEventListener('resize', updateSize)
+    })
+  })
 })
-
-// const screen = useScreenStore()
-
-// const updateSize = () => {
-//   screen.setSize(window.innerWidth, window.innerHeight)
-// }
-
-// onMounted(() => {
-//   updateSize()
-
-//   window.addEventListener('resize', updateSize)
-// })
-
-// onUnmounted(() => {
-//   window.removeEventListener('resize', updateSize)
-// })

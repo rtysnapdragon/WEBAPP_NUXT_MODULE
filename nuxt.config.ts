@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     "@nuxtjs/i18n",
     "@nuxtjs/prismic",
     "@pinia/nuxt",
-    "@vueuse/nuxt"
+    "@vueuse/nuxt",
   ],
   
   // ── NuxtUI v4 ──
@@ -29,6 +29,9 @@ export default defineNuxtConfig({
 
     // }
   },
+  // ai: {
+  //   gateway: true
+  // },
  app: {
     rootAttrs: {
       'data-vaul-drawer-wrapper': '',

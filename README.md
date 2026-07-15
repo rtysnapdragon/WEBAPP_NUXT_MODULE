@@ -115,6 +115,13 @@ npm install @tiptap/extension-emoji
 
 //For RAi
 npm install ai @ai-sdk/gateway @ai-sdk/vue
+
+npm install ai @ai-sdk/anthropic  // AI SDK is using Anthropic API free
+
+npm install ai @ai-sdk/google
+
+
+The AI SDK makes it easy to support Anthropic, OpenAI, Gemini, etc., by creating a provider registry. That lets you switch models without rewriting your application.
 ```
 npm install --legacy-peer-deps
 

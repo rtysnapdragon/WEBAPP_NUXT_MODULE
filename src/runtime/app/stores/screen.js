@@ -1,4 +1,4 @@
-import { defineStore } from '#imports'
+import { defineStore,acceptHMRUpdate } from '#imports'
 
 export const useScreenStore = defineStore('ScreenStore', {
   state: () => ({
@@ -97,3 +97,9 @@ export const useScreenStore = defineStore('ScreenStore', {
       window.removeEventListener('resize', this._update.bind(this))
     },
 })
+
+
+// make sure to pass the right store definition, `useAuth` in this case.
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useScreenStore, import.meta.hot))
+}

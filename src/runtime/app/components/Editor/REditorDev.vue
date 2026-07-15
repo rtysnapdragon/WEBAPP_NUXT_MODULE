@@ -210,7 +210,7 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { Emoji, gitHubEmojis } from '@tiptap/extension-emoji'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Image } from '@tiptap/extension-image'
-import { useEditorCompletion } from '../../composables/EditorUseCompletion'
+import { useEditorCompletion } from '../../composables/useEditorCompletion.ts'
 
 // ════════════════════════════════════════════════════════════════════════
 // MODULE-SCOPE HELPERS + CUSTOM NODES
