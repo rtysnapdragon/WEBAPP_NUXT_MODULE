@@ -81,7 +81,7 @@ const props = defineProps([
   'mode'
 ])
   
-
+const slot = useSlots()
 const emit = defineEmits(["submit",'onClose'])
 
 const title = computed(() => props.title)
@@ -92,6 +92,15 @@ const icon = computed(() => props.icon)
 const mode = computed(() => props.mode)
 const modalWidth = computed(() => props.modalWidth)
 const modalWidthValue = computed(() => modalWidth.value ?? 'fit-content')
+
+// const hasFooter = computed(() => slot.footer?.()?.length > 0 || !props.noFooter)
+// const hasHeader = computed(() => slot.header?.()?.length > 0 || !props.noHeader)
+
+// const hasFooter = computed(() => slot.noFooter || props.noFooter)
+// const hasHeader = computed(() => slot.noHeader || props.noHeader)
+const hasHeader = computed(() => !props.noHeader ?? false)
+const hasFooter = computed(() => !props.noFooter ?? false)
+
 const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
@@ -99,9 +108,9 @@ const onCloseModal = () => {
 const mergedUi = computed(() => ({
   wrapper: "r-modal__wrapper",
   content: ["r-modal__content", 'bg-default divide-y divide-default flex flex-col focus:outline-none'],
-  header: ["r-modal__header", props.noHeader ? 'hide-header !p-0 !min-h-0' : 'p-0'] ,
+  header: ["r-modal__header", !hasHeader.value ? 'hide-header !p-0 !min-h-0' : 'p-0'] , // p-0 is lock to override style with scss scoped
   body: "r-modal__body-ui flex-1",
-  footer: ["r-modal__footer flex items-center", props.noFooter ? 'hide-footer !p-0 !min-h-0' : 'p-0'],
+  footer: ["r-modal__footer flex items-center", !hasFooter.value ? 'hide-footer !p-0 !min-h-0' : 'p-0'], // p-0 is lock to override style with scss scoped
   overlay: "r-modal__overlay fixed inset-0",
   rounded: "r-modal__rounded",
   shadow: "r-modal__shadow",
@@ -115,20 +124,37 @@ const defaultUI = computed(() => ({
 }))
 </script>
 
-<style lang="scss">
-.btn-close{
-  display: flex;
-  justify-content: center;
+<style lang="scss" scoped>
+// .btn-close{
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   width: 20px !important;
+//   height: 20px !important;
+//   padding: 5px;
+//   border-radius: 999px !important;
+//   :hover{
+//     background-color: red !important;
+//   }
+// }
+
+
+.btn-close {
+  display: inline-flex;
   align-items: center;
-  width: 20px !important;
-  height: 20px !important;
-  padding: 5px;
-  border-radius: 999px !important;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--c-border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--c-muted);
+  cursor: pointer;
   :hover{
-    background-color: red !important;
+    border-color: var(--c-accent);
+    color: var(--c-accent);
   }
 }
-
 
 /* ===== Overlay ===== */
 .r-modal__content{ //
@@ -153,7 +179,7 @@ const defaultUI = computed(() => ({
   }
 }
 
-.r-modal__header{
+.r-modal__header {
     width: 100%;
     // min-height: 40px;
     padding: 5px 0;
@@ -169,6 +195,33 @@ const defaultUI = computed(() => ({
     }
 }
 
+:deep(.r-modal__content [data-slot="header"]) {
+  padding: 5px 150px !important;
+  min-height: 50px !important;
+  height: auto !important;
+}
+
+:deep(.r-modal__content [data-slot="header"].r-modal__header) {
+  padding: 5px 15px !important;
+  min-height: 500px !important;
+}
+
+:deep(.r-modal__header) {
+  width: 100%;
+  padding: 50px 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+}
+
+// :deep(.r-modal__header__custom) {
+//   width: 100%;
+//   display: flex;
+//   flex-direction: row;
+//   align-items: center;
+//   justify-content: space-between;
+// }
 /* ===== Body ===== */
 .r-modal__body {
   font-size: 13px;

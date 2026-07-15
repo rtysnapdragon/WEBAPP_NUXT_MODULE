@@ -105,7 +105,7 @@
             :modal="false"
             :items="turnIntoItems(editor)"
             :content="{ side: 'left' }"
-            :ui="{ content: 'w-48', label: 'text-xs' }"
+            :ui="dropMenuUI"
             @update:open="editor.chain().setMeta('lockDragHandle', $event).run()"
           >
             <UButton
@@ -123,14 +123,14 @@
       </UEditor>
 
       <!-- ── Media insert / replace picker (RFileUpload in a modal) ───────── -->
-      <RModal v-model="pickerOpen" :no-header="true">
+      <RModal v-model="pickerOpen" :title="pickerTitle" >
         <div class="r-editor__picker">
-          <div class="r-editor__picker-head">
+          <!-- <div class="r-editor__picker-head">
             <span>{{ pickerTitle }}</span>
             <button type="button" class="r-editor__picker-close" aria-label="Close" @click="pickerOpen = false">
-              <i class="i-lucide-x" />
+              <i class="ri-close-line" />
             </button>
-          </div>
+          </div> -->
           <RFileUpload
             :key="pickerKey"
             v-model="pickerFiles"
@@ -157,17 +157,17 @@
       </RModal>
 
       <!-- ── Media library (every file uploaded through this editor) ──────── -->
-      <RModal v-model="libraryOpen" :no-header="true">
+      <RModal v-model="libraryOpen" :title="`${tBy({en:'Uploaded files',km:'ឯកសារបានបង្ហោះ'})} (${uploadedFiles.length})`">
         <div class="r-editor__library">
-          <div class="r-editor__picker-head">
+          <!-- <div class="r-editor__picker-head">
             <span>Uploaded files ({{ uploadedFiles.length }})</span>
             <button type="button" class="r-editor__picker-close" aria-label="Close" @click="libraryOpen = false">
               <i class="i-lucide-x" />
             </button>
-          </div>
+          </div> -->
 
           <div v-if="!uploadedFiles.length" class="r-editor__library-empty">
-            No files uploaded in this session yet.
+            {{ tBy({en:"No files uploaded in this session yet.", km:"មិនទាន់មានឯកសារត្រូវបានបង្ហោះក្នុងវគ្គនេះទេ"}) }}
           </div>
 
           <div v-else class="r-editor__library-grid">
@@ -1068,6 +1068,17 @@ const REditorLinkPopover = defineComponent({
   },
 })
 
+// const dropMenuUI = () => h(resolveComponent('UDropdownMenu'), {
+//   content: { side: 'left' },
+//   ui: { content: 'w-48 max-h-80 overflow-y-auto r-scrollbar', label: 'text-xs' },
+// })
+
+const dropMenuUI = computed(() => ({
+  content: 'w-48 max-h-80 overflow-y-auto r-scrollbar',
+  label: 'text-xs',
+  viewport:'w-48 max-h-80 overflow-y-auto r-scrollbar'
+}))
+
 // ─── Expose (parent ref API) ─────────────────────────────────────────────────
 defineExpose({
   getEditor: () => editorRef.value?.editor,
@@ -1088,7 +1099,7 @@ defineExpose({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* ─── Theme bridge: map Sarika design tokens onto NuxtUI theme vars ─────── */
 .r-editor {
   --ui-primary: var(--c-accent);
@@ -1157,7 +1168,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.75rem;
+  padding: 100px !important;
   width: 260px;
 }
 
@@ -1171,7 +1182,7 @@ defineExpose({
 .r-editor__picker,
 .r-editor__library {
   width: min(480px, 90vw);
-  padding: 1rem;
+  /* // padding: 1rem; */
 }
 
 .r-editor__picker-head {
@@ -1406,5 +1417,45 @@ defineExpose({
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+::deep(.r-scrollbar) {
+  overflow-y: auto;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+
+  /* Chrome, Edge, Safari */
+  &::-webkit-scrollbar {
+    width:50px !important;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+}
+
+:deep([data-slot="dropdown-menu-viewport"]) {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 9999px;
+  }
 }
 </style>
