@@ -276,7 +276,7 @@ mounted(async () => {
     if (props.searchInput ?? true) query.value = " ";
     fnBindScroll();
   } else {
-    listData.value = [...localData.value?.data];
+    listData.value = [...(localData.value?.data ?? [])];
     emit("mapData", listData.value);
 
     // add item clear when hes props required
@@ -433,9 +433,8 @@ watch(apiUrl, (n) => {
 });
 
 watch(localData, (n) => {
-  console.log("Local DATA =========================> ", n)
   if (isNotEmpty(n)) {
-    listData.value = [...n?.data];
+    listData.value = [...(n?.data ?? [])];
     if (!multiple.value && !n.defaultSelect) {
       if (!props.isNotAllowClear) listData.value.unshift({ ...{ [pk.value]: '' }, isDefault: true });
     }
