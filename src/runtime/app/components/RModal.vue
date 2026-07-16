@@ -9,6 +9,7 @@
     closeIcon="ri-close-line"
     :hide-header="noHeader"
     :hide-footer="noFooter"
+    :mode="mode"
     :close="{
       color: 'primary',
       variant: 'outline',
@@ -89,7 +90,7 @@ const description = computed(() => props.description)
 const isFullScreen = computed(() => props.isFullScreen)
 const noClose = computed(() => props.noClose)
 const icon = computed(() => props.icon)
-const mode = computed(() => props.mode)
+const mode = computed(() => props.mode ?? 'right')
 const modalWidth = computed(() => props.modalWidth)
 const modalWidthValue = computed(() => modalWidth.value ?? 'fit-content')
 

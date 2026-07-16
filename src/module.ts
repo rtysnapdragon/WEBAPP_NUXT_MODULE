@@ -183,9 +183,14 @@ export default defineNuxtModule<ModuleOptions>({
       });
     }
     addComponentsFromDir(componentsDir);
-
     // // Add plugin
-    addPlugin(resolve(runtimeAppDir, "plugins", "plugin"));
+    const pluginsDir = resolve(runtimeAppDir, "plugins")
+    for (const file of fs.readdirSync(pluginsDir)) {
+      if (/\.(js|ts|mjs)$/.test(file)) {
+        addPlugin(resolve(pluginsDir, file))
+      }
+    }
+    // addPlugin(resolve(runtimeAppDir, "plugins", "plugin"));
     addPlugin(resolve(runtimeAppDir, "plugins", "assets"));
 
     // Merge lang JSON files to app locales

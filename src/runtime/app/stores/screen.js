@@ -1,18 +1,9 @@
-import { defineStore,acceptHMRUpdate } from '#imports'
+import { defineStore, acceptHMRUpdate } from '#imports'
 
 export const useScreenStore = defineStore('ScreenStore', {
   state: () => ({
     width: 0,
     height: 0,
-    device:    'desktop',
-    isMobile:  false,
-    isTablet:  false,
-    isDesktop: true,
-    sm:        false,
-    md:        false,
-    lg:        false,
-    xl:        false,
-    xxl:       false,
   }),
 
   getters: {
@@ -24,25 +15,6 @@ export const useScreenStore = defineStore('ScreenStore', {
       if (state.width < 1024) return 'tablet'
       return 'desktop'
     },
-
-    // Drawer direction auto-resolved from device
-    defaultDrawerDirection: (state) => {
-      return state.isMobile ? 'bottom' : 'right'
-    },
- 
-    // Drawer width for lateral directions
-    drawerWidth: (state) => {
-      if (state.isMobile)  return '100%'
-      if (state.isTablet)  return '400px'
-      return '520px'
-    },
- 
-    // Drawer height for top/bottom directions (mobile)
-    drawerHeight: (state) => {
-      if (state.isMobile) return '85dvh'
-      return '50dvh'
-    },
-
   },
 
   actions: {
@@ -51,51 +23,6 @@ export const useScreenStore = defineStore('ScreenStore', {
       this.height = h
     },
   },
-
-  _update() {
-      if (typeof window === 'undefined') return
-      const w = window.innerWidth
-      const h = window.innerHeight
- 
-      this.width  = w
-      this.height = h
- 
-      // Device
-      if (w < 768) {
-        this.device    = 'mobile'
-        this.isMobile  = true
-        this.isTablet  = false
-        this.isDesktop = false
-      } else if (w < 1024) {
-        this.device    = 'tablet'
-        this.isMobile  = false
-        this.isTablet  = true
-        this.isDesktop = false
-      } else {
-        this.device    = 'desktop'
-        this.isMobile  = false
-        this.isTablet  = false
-        this.isDesktop = true
-      }
- 
-      // Breakpoints
-      this.sm  = w >= 640
-      this.md  = w >= 768
-      this.lg  = w >= 1024
-      this.xl  = w >= 1280
-      this.xxl = w >= 1536
-    },
- 
-    init() {
-      if (typeof window === 'undefined') return
-      this._update()
-      window.addEventListener('resize', this._update.bind(this), { passive: true })
-    },
- 
-    destroy() {
-      if (typeof window === 'undefined') return
-      window.removeEventListener('resize', this._update.bind(this))
-    },
 })
 
 
@@ -103,3 +30,36 @@ export const useScreenStore = defineStore('ScreenStore', {
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useScreenStore, import.meta.hot))
 }
+
+
+// import { defineStore, ref, computed } from "#imports";
+
+// export const useScreenStore = defineStore("ScreenStore", () => {
+//   const width = ref(0);
+//   const height = ref(0);
+
+//   const isMobile = computed(() => width.value < 768);
+//   const isTablet = computed(() => width.value >= 768 && width.value < 1024);
+//   const isDesktop = computed(() => width.value >= 1024);
+
+//   const breakpoint = computed(() => {
+//     if (isMobile.value) return "mobile";
+//     if (isTablet.value) return "tablet";
+//     return "desktop";
+//   });
+
+//   function setSize(w, h) {
+//     width.value = w;
+//     height.value = h;
+//   }
+
+//   return {
+//     width,
+//     height,
+//     isMobile,
+//     isTablet,
+//     isDesktop,
+//     breakpoint,
+//     setSize,
+//   };
+// });

@@ -231,6 +231,9 @@ function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }
 
+// SSR-safe function to append menus to body (avoids z-index issues in docs)
+const appendToBody = import.meta.client ? () => document.body : undefined
+
 // ── ResizableImage — base Image node + a drag handle to resize the frame ──
 const ResizableImage = Image.extend({
   name: 'image',
@@ -486,6 +489,19 @@ const mergedUi = computed(() => ({
 // ════════════════════════════════════════════════════════════════════════
 const aiEnabled = computed(() => opts.value.ai !== false)
 
+
+// ─── Emoji menu ─────────────────────────────────────────────────────────────
+const emojiItems = gitHubEmojis.filter(e => !e.name.startsWith('regional_indicator_'))
+
+const emojiOnUpdate = ({ editor }) => {
+  if (editor.storage.visible) {
+    editor.storage.clearSuggestion()
+    editor.view.dispatch(
+      editor.state.tr.setMeta('completionUpdate', true)
+    )
+  }
+}
+
 const {
   extension: completionExtension,
   handlers: aiHandlers,
@@ -498,7 +514,8 @@ const {
 // EditorCompletionExtension.js for the Vite-config half). ──────────────────
 function buildExtensions() {
   const list = []
-  if (opts.value.emojiMenu) list.push(Emoji)
+  // if (opts.value.emojiMenu) list.push(Emoji)
+  // if (opts.value.emojiMenu) list.push(Emoji.configure({ emojis: gitHubEmojis }))
   if (opts.value.textAlign) list.push(TextAlign.configure({ types: ['heading', 'paragraph'] }))
   if (opts.value.imageUpload) list.push(ResizableImage)
   if (opts.value.videoUpload) list.push(VideoBlock)
@@ -962,9 +979,6 @@ const suggestionItems = computed(() => {
   return groups
 })
 
-// ─── Emoji menu ─────────────────────────────────────────────────────────────
-const emojiItems = gitHubEmojis.filter(e => !e.name.startsWith('regional_indicator_'))
-
 // ─── Drag handle → "turn into" dropdown ─────────────────────────────────────
 const turnIntoItems = (editor) => {
   if (!selectedNode.value?.node?.type) return []
@@ -1079,6 +1093,14 @@ const dropMenuUI = computed(() => ({
   viewport:'w-48 max-h-80 overflow-y-auto r-scrollbar'
 }))
 
+function getMarkdown() {
+  return editorRef.value?.getMarkdown?.() ?? ''
+}
+
+function clearContent() {
+  editorRef.value?.commands.clearContent()
+}
+
 // ─── Expose (parent ref API) ─────────────────────────────────────────────────
 defineExpose({
   getEditor: () => editorRef.value?.editor,
@@ -1087,8 +1109,12 @@ defineExpose({
   getHTML: () => editorRef.value?.editor?.getHTML(),
   getJSON: () => editorRef.value?.editor?.getJSON(),
   getText: () => editorRef.value?.editor?.getText(),
+  getMarkdown: () => editorRef.value?.editor?.getMarkdown(),
   setContent: (v, emitUpdate = false) => editorRef.value?.editor?.commands.setContent(v, emitUpdate),
   insertContent: (v) => editorRef.value?.editor?.chain().focus().insertContent(v).run(),
+
+  // getMarkdown,
+  clearContent,
 
   // ── File management ───────────────────────────────────────────────────
   getUploadedFiles: () => uploadedFiles.value,

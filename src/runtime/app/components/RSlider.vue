@@ -6,8 +6,8 @@
       color: 'neutral',
       variant: 'ghost'
     }"
-    :class="['r-slider-container', `r-slider-${sliderScreenMode}-mobile`]"
     >
+    <!-- :class="['r-slider-container', `r-slider-${sliderScreenMode}-mobile`]" -->
       <template #header>
         <div class="r-slider-header flex items-center justify-between w-full">
           <slot name="header">
@@ -60,7 +60,6 @@ const isOpen = defineModel();
 const props = defineProps([
   "title",
   "description",
-  "subtitle",
   "icon",
   "ui",
   "transition",
@@ -78,7 +77,6 @@ const emit = defineEmits(["closed"]);
 
 const title = computed(() => props.title)
 const description = computed(() => props.description)
-const subtitle = computed(() => props.subtitle)
 const icon = computed(() => props.icon)
 const transition = computed(() => props.transition);
 const overlay = computed(() => props.overlay);
@@ -96,76 +94,35 @@ const hasScroll = ref(false);
 /* -----------------------------
    UI Helpers
 ----------------------------- */
+console.log("Screen mobile =========> ", screen.isMobile)
+
 const sliderScreenMode = computed(() => {
   return screen.isMobile ? 'bottom' : side.value
 })
 
-watch(() => screen.isMobile, (n) => {
-})
-
 const ui = computed(() => {
   const defaultUI = {
-    content: 'r-slider-content',
-    base: `r-wrapper-container relative flex-1 flex flex-col w-full focus:outline-none ${props.class}`,
-    background: "color-bg-content",
+    // content: 'r-slider-content',
+    content: [
+      'r-slider-content',
+      {
+        'max-w-full rounded-t-xl': screen.isMobile
+      }
+    ],
+    header:[
+      'r-slider-header',
+      {
+        'flex items-center justify-between w-full': screen.isMobile
+      }
+    ],
+    wrapper: `r-wrapper-container relative flex-1 flex flex-col w-full focus:outline-none ${props.class}`,
+    overlay:'',
     body: 'r-slider-body',
-    ring: "",
-    rounded: "",
-    padding: "",
-    shadow: "shadow-none",
-    width: `w-full max-w-md max-w-sm ${props.class}`,
-    closeButton: {
-      base: 'absolute top-4 right-4',
-      padding: 'p-1',
-      rounded: 'rounded-md',
-      color: 'text-neutral-400 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-50',
-      icon: 'i-ri-close-line',
-      ring: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:focus-visible:ring-primary-400',
-      transition: 'transition-colors',
-      body:'bg-red-500'
-    },
-    slots: {
-      close: `
-        absolute top-4 right-4
-        w-8 h-8
-        rounded-lg
-        bg-transparent
-        hover:bg-accented
-        text-muted
-      `
-    },
-    overlay: {
-      base: "!transition-transform",
-      background: "bg-overlay",
-      transition: {
-        enter: "!ease-in-out !duration-[400ms]",
-        enterFrom: "opacity-0",
-        enterTo: "opacity-100",
-        leave: "!ease-in-out !duration-[400ms]",
-        leaveFrom: "opacity-100",
-        leaveTo: "opacity-0",
-      },
-    },
-    transition: {
-      enter: "!transform !transition !duration-[250ms]",
-      leave: "!transform !transition !duration-200",
-    },
-    translate: {
-      base: "translate-x-0",
-      left: "-translate-x-full rtl:translate-x-full",
-      right: "translate-x-full rtl:-translate-x-full",
-    },
-    close: [
-      'absolute',
-      'top-4',
-      'right-4',
-      '!bg-transparent',
-      '!shadow-none',
-      '!border-none',
-      'hover:bg-muted'
-    ]
-  };
-
+    footer:{
+      class:'w-full'
+    }
+    // width: `w-full max-w-md max-w-sm ${props.class}`,
+  }
   const resultUI = {
     ...defaultUI,
     ...props.ui,
@@ -352,11 +309,38 @@ function closed() {
   padding: 0 !important;
 }
 
-.r-slider-bottom-mobile {
+// .r-slider-bottom-mobile {
+//   max-width: 100% !important;
+//   padding: 7px !important;
+//   border-radius: 20px 20px 0px 0px !important;
+//   min-height: 500px;
+// }
+:deep(.r-slider-bottom-mobile) {
   max-width: 100% !important;
   padding: 7px !important;
   border-radius: 20px 20px 0px 0px !important;
   min-height: 500px;
+}
+
+:deep([data-slot="content"]) {
+  background-color: var(--bg-wrapper);
+  color: var(--c-text);
+  max-width: 500px !important;
+  border-radius: var(--r-xl);
+}
+
+:deep([data-slot="header"]) {
+  padding: 0 !important;
+  min-height: 100px;
+}
+
+:deep([data-slot="body"]) {
+  padding: 0 !important;
+  overflow-y: auto;
+}
+
+:deep([data-slot="footer"]) {
+  padding: 0 !important;
 }
 
 </style>
