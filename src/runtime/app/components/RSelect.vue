@@ -3,8 +3,8 @@
 
   <div ref="refOCSelect" class="r-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
-    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base"
-      :loading="isLoading" loadingIcon="ri-loader-4-line" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen"
+    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" selected-icon="i-lucide-flame" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base" 
+      :loading="isLoading" loadingIcon="ri-loader-4-line" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen" 
       :searchInput="isNotEmpty(props.api)
         ? props.searchInput ?? true
           ? fnSearch
@@ -172,7 +172,6 @@ const props = defineProps([
   'fullWidth'
 ]);
 const emit = defineEmits("selected", "mapData", "onSearch",'onOpen');
-const slot = useSlots()
 const localData = computed(() => props.localData);
 const selectType = computed(() => props.selectType || "");
 const required = computed(() => isNotEmpty(props.required));
@@ -203,7 +202,7 @@ const selectIfOne = computed(
   () => props.selectIfOne === "" || (props.selectIfOne ?? false)
 );
 const apiUrl = computed(() => props.api?.url ?? ""); //sinh
-const multiple = computed(() => isNotEmpty(slot.multiple || props.multiple));
+const multiple = computed(() => props.multiple)
 const templateLeading = computed(() => {
   const defautLeading = {
     valueKey:'',
@@ -617,6 +616,7 @@ let api = {
   where: "",
   filter: {},
 };
+//where is api return list from api as like : { data: [{}] } so where:'data'
 
 const result = ref([]);
 let controller;
