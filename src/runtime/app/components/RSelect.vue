@@ -16,8 +16,11 @@
       <template #default="{ modelValue,open,ui }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(modelValue) && !modelValue.isDefault" name="leading" :data="modelValue" />
-        <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1"
+        <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1 flex-1 w-full text-left"
           v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
+        <!-- <div v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)"  class="flex-1 min-w-0">
+          <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1" />
+          </div> -->
         <RProfileInfo size="2xs" border="s" :src="modelValue[templateLeading.imagePath]"
           :errorType="templateLeading.imageType" :gender="modelValue[templateLeading?.gender]"
           v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
@@ -169,6 +172,7 @@ const props = defineProps([
   'fullWidth'
 ]);
 const emit = defineEmits("selected", "mapData", "onSearch",'onOpen');
+const slot = useSlots()
 const localData = computed(() => props.localData);
 const selectType = computed(() => props.selectType || "");
 const required = computed(() => isNotEmpty(props.required));
@@ -199,7 +203,7 @@ const selectIfOne = computed(
   () => props.selectIfOne === "" || (props.selectIfOne ?? false)
 );
 const apiUrl = computed(() => props.api?.url ?? ""); //sinh
-const multiple = computed(() => isNotEmpty(props.multiple));
+const multiple = computed(() => isNotEmpty(slot.multiple || props.multiple));
 const templateLeading = computed(() => {
   const defautLeading = {
     valueKey:'',
@@ -686,12 +690,17 @@ async function getData(filter, isFromSelect = false) {
 const ui = computed(() => {
   const defaultUI = {
     // container: "r-customer-select",
-    base: `ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
-    content:'min-w-fit',
+    base: `justify-between ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
+    // content:'min-w-fit',
+    content: 'flex-1 min-w-0',
+    leading: 'hidden',
+    trailing: '',
+    input:'!px-2.5 !py-2.5',
     ring: "",
     rounded: "",
     itemLabel: 'truncate',
     size: {},
+    value: 'text-left flex-1',
     option: {
       active: "color-bg-wrapper",
       container: `flex items-center gap-1.5 w-full min-w-full`,
@@ -743,10 +752,63 @@ function fnGenerateTextSubLabel(data, template) {
   width: 100%;
   min-width: fit-content !important;
 
+ display: flex !important; 
+  flex-direction: row !important;
+  justify-content: start !important;
+  align-items: center !important; 
+  overflow: hidden !important;
+
   [data-slot="trailing"]{
     padding-right: 2px !important;
   }
+  [data-slot=""]{
+    // margin-left: var(--spacing-1);
+    // margin-right: var(--spacing-1);
+    height: 100px;
+  }
 }
+// [data-slot="trigger"] {
+//   justify-content: space-between !important;
+// }
+
+// [data-slot="trigger"] > *:first-child {
+//   flex: 1;
+//   text-align: left;
+// }
+
+// .ui-select-base > .w-full {
+//   flex: 1 !important;
+//   min-width: 0;
+// }
+
+// .ui-select-base .r-text {
+//   display: block;
+//   width: 100%;
+//   text-align: left !important;
+// }
+
+// [data-slot="select-value"] {
+//   flex: 1 !important;
+//   text-align: left !important;
+//   display: flex !important;
+//   align-items: center !important;
+//   justify-content: flex-start !important;
+//   padding-left: 2px !important;
+// }
+
+// Fix for the closed state - remove max-width: 0px
+// [data-slot="listbox"][data-state="closed"] {
+//   display: flex !important;
+//   flex-direction: row !important;
+//   justify-content: flex-start !important;
+//   align-items: center !important;
+//   overflow: hidden !important;
+//   padding: 0 !important;
+//   // REMOVED: max-width: 0px !important; - THIS WAS THE PROBLEM
+//   white-space: nowrap;
+//   overflow-x: auto;
+// }
+
 .r-customer-select {
   &.have-selected-value {
     .height-btn-select-all {
@@ -778,7 +840,7 @@ function fnGenerateTextSubLabel(data, template) {
     box-shadow: unset !important;
     border: 1px solid var(--color-w-b-4);
     border-radius: 10px !important;
-
+    
     &:focus {
       border: 1px solid var(--color-primary);
     }
@@ -901,7 +963,8 @@ function fnGenerateTextSubLabel(data, template) {
       }
 
       &:hover {
-        background: var(--bg-wrapper) !important;
+        background: blue !important;
+        // background: var(--bg-wrapper) !important;
       }
 
       .select-clear-container {

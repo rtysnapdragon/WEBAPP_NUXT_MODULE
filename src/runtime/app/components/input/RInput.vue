@@ -409,14 +409,14 @@ defineExpose({
 
   :deep(input),
   :deep(textarea) {
-    min-height: 38px !important;
+    min-height: 38px;
     padding: 1px 0;
     font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
     font-size: 13px !important;
     padding-left: v-bind(leftPadding);
     padding-right: v-bind(rightPadding);
     color: var(--c-text, #1a1510) !important;
-    border-radius: var(--rounded) !important;
+    border-radius: var(--rounded);
   }
 
   :deep(input::placeholder),
