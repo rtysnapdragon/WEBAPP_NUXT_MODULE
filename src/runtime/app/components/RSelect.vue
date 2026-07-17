@@ -1,32 +1,35 @@
 <template>
-  <div ref="refOCSelect" class="ocs-customer-select"
+        <!-- :search-input="props.localData?.keySearch" -->
+
+  <div ref="refOCSelect" class="r-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
-    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" :uiMenu="uiMenu" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base"
+    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base"
       :loading="isLoading" loadingIcon="ri-loader-4-line" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen"
       :searchInput="isNotEmpty(props.api)
         ? props.searchInput ?? true
           ? fnSearch
           : false
         : props.searchInput ?? true
-        " :search-input="props.localData?.keySearch" :clear-search-on-close="true" trailing :required="true" :leadingIcon="leadingIcon"
+        " 
+        :clear-search-on-close="true" trailing :required="true" :leadingIcon="leadingIcon"
       size="md" :disabled="props.disabled ?? false" :multiple="multiple" :by="pk" @update:modelValue="fnSelect" :class="fullWidth ? 'w-full' : 'w-[11/12]'">
-      <template #label="{ selected }" v-if="!multiple">
+      <template #default="{ modelValue,open,ui }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
-        <slot v-if="$slots.leading && isNotEmpty(selected) && !selected.isDefault" name="leading" :data="selected" />
-        <RTruncatedText :text="$tBy({ en: selected.NameEnglish, km: selected.Name })" class="text-[13px] color-w-b-1"
-          v-else-if="isNotEmpty(selected) && !selected.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
-        <RProfileInfo size="2xs" border="s" :src="selected[templateLeading.imagePath]"
-          :errorType="templateLeading.imageType" :gender="selected[templateLeading?.gender]"
-          v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
+        <slot v-if="$slots.leading && isNotEmpty(modelValue) && !modelValue.isDefault" name="leading" :data="modelValue" />
+        <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1"
+          v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
+        <RProfileInfo size="2xs" border="s" :src="modelValue[templateLeading.imagePath]"
+          :errorType="templateLeading.imageType" :gender="modelValue[templateLeading?.gender]"
+          v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isNotEmpty(templateLeading) && isNotEmpty(templateLeading?.imagePath)">
           <template #title>
-            <RTruncatedText :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncatedText :text="fnGenerateTextLabel(modelValue, templateLeading)" />
           </template>
         </RProfileInfo>
 
         <RViewInfo
-          v-else-if="isNotEmpty(selected) && !selected.isDefault && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
+          v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isNotEmpty(templateLeading) && isEmpty(templateLeading?.imagePath)">
           <template #title>
-            <RTruncatedText :text="fnGenerateTextLabel(selected, templateLeading)" />
+            <RTruncatedText :text="fnGenerateTextLabel(modelValue, templateLeading)" />
           </template>
         </RViewInfo>
 
@@ -35,10 +38,11 @@
         </div>
       </template>
 
-      <template #label="data" v-else>
+      <template #default="{ modelValue }" v-else>
         <slot name="iconLeading" v-if="$slots.iconLeading"></slot>
         <div v-if="selected?.length" class="nav-multiple-select">
-          <div class="item" v-for="(item, index) in generateSelect(data?.selected)" :key="index">
+          <div class="item" v-for="(item, index) in generateSelect(modelValue)" :key="index">
+          <!-- <div class="item" v-for="(item, index) in generateSelect(modelValue?.selected)" :key="index"> -->
 
             <span v-if="$slots.leading && !(item?.isSelectAll || item?.isDefault)">
               <slot name="leading" :data="item"></slot>
@@ -71,7 +75,7 @@
         </div>
       </template>
 
-      <template #option="{ option: item }">
+      <template #item="{ item,index,ui }">
         <div v-if="multiple && item?.isSelectAll" class="select-clear-container">
           {{ locale == "km" ? "---ជ្រើសរើសទាំងអស់---" : "---Select All---" }}
         </div>
@@ -442,9 +446,10 @@ watch(localData, (n) => {
   }
 }, { deep: true });
 
-watchDebounced(query, async () => {
-    items.value = await search(query.value)
-}, { deep: true })
+// const items = ref([])
+// watchDebounced(query, async () => {
+//     items.value = await search(query.value)
+// }, { deep: true })
 
 function deepEqual(obj1, obj2) {
   if (obj1 === obj2) return true;
@@ -623,7 +628,8 @@ async function getData(filter, isFromSelect = false) {
     controller: controller,
     data: !isFromSelect ? filters : filter,
   });
-  if (error.value) {
+  if (error.value || isEmpty(data.value)) {
+    isLoading.value = false
     return [];
   }
   if (data.value) isLoading.value = false;
@@ -639,7 +645,7 @@ async function getData(filter, isFromSelect = false) {
         result.value.unshift({ ...props.api.fixObjectValue });
       }
     } else result.value = copyWith([]);
-  } else result.value = copyWith(data.value);
+  } else result.value = copyWith(data.value) ?? [];
 
   // custom data everything return of array
   emit("mapData", result.value);
@@ -669,22 +675,23 @@ async function getData(filter, isFromSelect = false) {
   return result.value;
 }
 
-const uiMenu = computed(() => {
-  return {
-    option: {
-      container: `flex items-center gap-1.5 min-w-full`,
-      padding: ''
-    },
-  }
-})
+// const uiMenu = computed(() => {
+//   return {
+//     option: {
+//       container: `flex items-center gap-1.5 min-w-full`,
+//       padding: ''
+//     },
+//   }
+// })
 
 const ui = computed(() => {
   const defaultUI = {
-    container: "ocs-customer-select",
+    // container: "r-customer-select",
     base: `ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
     content:'min-w-fit',
     ring: "",
     rounded: "",
+    itemLabel: 'truncate',
     size: {},
     option: {
       active: "color-bg-wrapper",
@@ -741,7 +748,7 @@ function fnGenerateTextSubLabel(data, template) {
     padding-right: 2px !important;
   }
 }
-.ocs-customer-select {
+.r-customer-select {
   &.have-selected-value {
     .height-btn-select-all {
       padding: 3px 40px 3px 2px;
@@ -762,7 +769,7 @@ function fnGenerateTextSubLabel(data, template) {
   &.disabled {
     pointer-events: none !important;
     color: var(--color-w-b-2) !important;
-    background: var(--oc-b-disabled) !important;
+    background: var(--r-b-disabled) !important;
     border-radius: 8px;
   }
 
@@ -930,7 +937,7 @@ function fnGenerateTextSubLabel(data, template) {
         font-size: 14px;
         cursor: pointer;
         transition: 0.25s ease-in-out;
-        color: var(--ocs-c-red);
+        color: var(--r-c-red);
 
         // &:hover {
         //   color: var(--color-primary);

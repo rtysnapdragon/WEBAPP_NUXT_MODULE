@@ -2,7 +2,7 @@
   <div class="ocs-wrapper-popover">
 
     <!-- use = nuxtui -->
-    <UPopover v-model:open="model" :closeDelay="closeDelay" :mode="mode" :content="content"
+    <UPopover v-model:open="model" :closeDelay="closeDelay" :mode="mode" :content="content" :reference="reference" :open-delay="openDelay" :close-delay="closeDelay" :arrow="arrow"
       :ui="{ wrapper: 'flex', ring: '', background: '' }" :popper="{ placement: placement ?? 'left-start' }"
       v-if="use == 'nuxtui'">
       <slot name="trigger" v-if="$slots.trigger"></slot>
@@ -44,16 +44,21 @@
 <script setup>
 // import { FwbDropdown } from 'flowbite-vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-const props = defineProps(['mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside',
+const props = defineProps(['mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside', 'closeDelay', 'openDelay','arrow',
+'reference', // cutom ref by parent use for uipopup use:"nuxtui"
 'content' // content:{ side: string 'top|bottom|left|right|top-start|top-end|bottom-start|bottom-end|left-start|left-end|right-start|right-end',remak
 ]) // use : nuxtui , flowbite , headless
 const model = defineModel()
-const mode = computed(() => props.mode ?? 'click')
+const mode = computed(() => props.mode ?? 'click') // 'hover', 'click'
 const closeDelay = computed(() => props.closeDelay)
 const use = computed(() => props.use ?? 'nuxtui')
 const placement = computed(() => props.placement)
 const nClass = computed(() => props.class)
 const closeInside = computed(() => props.closeInside)
+const openDelay = computed(() => props.openDelay)
+const reference = computed(() => props.reference)
+const content = computed(() => props.content)
+const arrow = computed(() => props.arrow ?? false)
 const emit = defineEmits(['click'])
 
 </script>

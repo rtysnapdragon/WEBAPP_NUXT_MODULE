@@ -46,7 +46,9 @@ const emit = defineEmits<{
 const { locale } = useI18n()
 
 // ── Internal model ─────────────────────────────────────────────────────────
-const internal = ref<TimeVal>(props.modelValue ?? null)
+// const internal = ref<TimeVal>(props.modelValue ?? null)
+const internal = ref<Time | null>(null)
+const internalRange = ref<RangeTime | null>(null)
 // watch(() => props.modelValue, v => { internal.value = v ?? null })
 watch(internal, v => { emit('update:modelValue', v); emit('change', v) })
 
@@ -264,7 +266,7 @@ type SingleValue = InstanceType<typeof Time>
 type RangeValue = { start: InstanceType<typeof Time>; end: InstanceType<typeof Time> }
   // ─── Model ───────────────────────────────────────────────────────────────────
 const modelValue = defineModel<SingleValue | RangeValue>()
-  const singleValue = computed({
+const singleValue = computed({
   get: () => (props.range ? new Time(0, 0, 0) : (modelValue.value as SingleValue)),
   set: (v: SingleValue) => {
     if (!props.range) modelValue.value = v
@@ -279,7 +281,12 @@ const rangeValue = computed({
     if (props.range) modelValue.value = v
   },
 })
-
+const singleValue1 = computed({
+  get: () =>
+    props.range
+      ? new Time(0,0,0)
+      : modelValue.value as SingleValue
+})
 // Individual range bindings
 const startValue = computed({
   get: () => rangeValue.value?.start,
@@ -329,7 +336,7 @@ const startTime = ref(new Time(12, 30))
       <!-- NuxtUI UInputTime (single) -->
       <UInputTime
         v-if="!range"
-        v-model="singleValue"
+        v-model="internal"
         :granularity="granularity"
         :hour-cycle="hourCycle"
         :disabled="disabled"
@@ -343,7 +350,7 @@ const startTime = ref(new Time(12, 30))
       <!-- NuxtUI UInputTime (range) -->
       <UInputTime
         v-else
-        v-model="startTime"
+        v-model="internalRange"
         range
         :granularity="granularity"
         :hour-cycle="hourCycle"

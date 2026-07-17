@@ -136,7 +136,6 @@ const uid = useId()
         :placeholder="placeholder || undefined"
         :ui="baseUi"
         class="r-time-input__single"
-        v-bind="$attrs"
         @blur="emit('blur', $event)"
         @focus="emit('focus', $event)"
       />
