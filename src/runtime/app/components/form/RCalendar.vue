@@ -18,12 +18,17 @@ interface Props {
   variant?: 'soft' | 'solid' | 'outline' | 'link' | 'ghost' | 'subtle' | 'ringed'
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   disabled?: boolean
-  isDateUnavailable?: boolean
-  isMonthDisabled?: boolean
-  isYearDisabled?: boolean
-  isMonthUnavailable?: boolean
-  isYearUnavailable?: boolean
+  // isDateUnavailable?: boolean
+  // isMonthDisabled?: boolean
+  // isYearDisabled?: boolean
+  // isMonthUnavailable?: boolean
+  // isYearUnavailable?: boolean
   isDayChip?: boolean
+  isDateUnavailable?: (date: DateValue) => boolean
+  isMonthDisabled?: (date: DateValue) => boolean
+  isYearDisabled?: (date: DateValue) => boolean
+  isMonthUnavailable?: (date: DateValue) => boolean
+  isYearUnavailable?: (date: DateValue) => boolean
   
 }
 
@@ -40,12 +45,18 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'soft',
   size: 'md',
   disabled: false,
-  isDateUnavailable: false,
-  isMonthDisabled: false,
-  isYearDisabled: false,
-  isMonthUnavailable: true,
-  isYearUnavailable: false,
+  // isDateUnavailable: false,
+  // isMonthDisabled: false,
+  // isYearDisabled: false,
+  // isMonthUnavailable: true,
+  // isYearUnavailable: false,
   isDayChip: false,
+
+  isDateUnavailable: undefined,
+  isMonthDisabled: undefined,
+  isYearDisabled: undefined,
+  isMonthUnavailable: undefined,
+  isYearUnavailable: undefined,
 })
 
 const emit = defineEmits<{
@@ -63,6 +74,14 @@ const value = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v)
 })
+// const isDateUnavailable = (date: DateValue) => {
+//   return date.day >= 10 && date.day <= 16
+// }
+const isDateUnavailable = computed(() => props.isDateUnavailable ? props.isDateUnavailable : (date: DateValue) => false)
+const isMonthDisabled = computed(() => props.isMonthDisabled ? props.isMonthDisabled : (date: DateValue) => false)
+const isYearDisabled = computed(() => props.isYearDisabled ? props.isYearDisabled : (date: DateValue) => false)
+const isMonthUnavailable = computed(() => props.isMonthUnavailable ? props.isMonthUnavailable : (date: DateValue) => false)
+const isYearUnavailable = computed(() => props.isYearUnavailable ? props.isYearUnavailable : (date: DateValue) => false)
 
 function onUpdate(value: CalendarDate) {
   emit('update:modelValue', value)
@@ -123,10 +142,6 @@ function getColorByDate(date: Date) {
   }
 
   return 'success'
-}
-
-const isDateUnavailable = (date: DateValue) => {
-  return date.day >= 10 && date.day <= 16
 }
 
 const defaultUI = {
@@ -207,7 +222,7 @@ onMounted(() => {
    <!-- Wrap UCalendar to capture navigation events -->
   <div class="rcalendar-wrapper">
    <!-- Navigation slot - will be rendered above the calendar -->
-    <slot 
+    <!-- <slot 
       name="navigation" 
       :prev-year="() => triggerNav('prev-year')"
       :prev-month="() => triggerNav('prev-month')"
@@ -216,7 +231,7 @@ onMounted(() => {
       :month="currentMonth"
       :year="currentYear"
     >
-      <!-- Default navigation (no tooltips) if no slot provided -->
+      Default navigation (no tooltips) if no slot provided
       <div class="default-nav">
         <RTooltip :text="tBy({ en: 'Previous year', km: 'ឆ្នាំមុន' })">
           <button @click="triggerNav('prev-year')">«</button>
@@ -232,7 +247,7 @@ onMounted(() => {
           <button @click="triggerNav('next-year')">»</button>
         </RTooltip>
       </div>
-    </slot>
+    </slot> -->
 
     <!-- UCalendar component -->
     <UCalendar

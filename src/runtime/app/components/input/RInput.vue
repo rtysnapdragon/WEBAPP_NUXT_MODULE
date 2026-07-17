@@ -75,7 +75,7 @@ const { generate, regenerate, loading: aiLoading, error: aiError, last } = useAi
 const aiAnimating = ref(false)   // typewriter effect active
 const aiSuccess   = ref(false)   // brief green flash after fill
 const aiPopover   = ref(false)   // suggestion popover
-
+const focused = ref(false)
 
 // Animate value typewriter style
 async function typewrite(text, target) {
@@ -241,6 +241,8 @@ defineExpose({
       :error="error ?? false"
       :variant="variant"
       :ui="pinUi"
+      @focus="focused = true"
+      @blur="focused = false"
     >
       <template v-if="$slots.separator" #separator>
         <UIcon name="i-lucide-minus" class="size-4" />
@@ -394,7 +396,6 @@ defineExpose({
 
 .rinp-input {
   @include transition(fast);
-
   &--ai-typing :deep(input) {
     border-color: var(--c-accent, #ff8c42) !important;
     box-shadow:   0 0 0 3px rgba(255,140,66,0.12) !important;
@@ -408,11 +409,14 @@ defineExpose({
 
   :deep(input),
   :deep(textarea) {
+    min-height: 38px !important;
+    padding: 1px 0;
     font-family: var(--font-400, 'Inter', system-ui, sans-serif) !important;
     font-size: 13px !important;
     padding-left: v-bind(leftPadding);
     padding-right: v-bind(rightPadding);
     color: var(--c-text, #1a1510) !important;
+    border-radius: var(--rounded) !important;
   }
 
   :deep(input::placeholder),
