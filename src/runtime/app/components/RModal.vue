@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <UModal
     v-model:open="isOpen"
     :title="title"
@@ -37,38 +38,82 @@
         <slot name="headerCenter" />
         <slot name="headerRight" />
       </div>
+=======
+  <!--
+    .rm-host is the only element inside this component's scoped DOM subtree.
+    It carries CSS custom properties (width, etc.) that portal elements inherit
+    via the cascade. All portal styling is in the global <style> block below.
+  -->
+  <div class="rm-host">
+    <UModal
+      ref="ref_content_h"
+      v-model:open="isOpen"
+      :transition="true"
+      :fullscreen="isFullScreen"
+      :dismissible="!noClose"
+      :close-icon="closeIcon || 'ri-close-line'"
+      :hide-header="noHeader"
+      :hide-footer="noFooter"
+      :content="{ style: { minWidth: modalWidthValue } }"
+      :ui="mergedUI"
+>>>>>>> 49725e158b266279e71e0297860676d2befe2a5a
 
-      <div v-else class="r-modal__header r-modal__header__custom">
-        <div class="flex gap-2 items-center">
-          <div v-if="icon" v-html="`<i class='${icon} text-[24px]'></i>`"></div>
-          <div class="flex flex-col">
-            <h2 v-if="title" v-html="title" class="text-lg font-bold"></h2>
-            <span v-if="description" v-html="description" class="sub-text text-sm "></span>
+    >
+      <!-- ── HEADER ── -->
+      <template #header>
+        <slot name="header">
+          <div class="rm-header">
+            <div class="rm-header__left">
+              <i v-if="icon" :class="[icon, 'rm-header__icon']" />
+              <div class="rm-header__text">
+                <h3 v-if="title" class="rm-header__title">{{ title }}</h3>
+                <p v-if="description" class="rm-header__desc">{{ description }}</p>
+              </div>
+            </div>
+
+            <div class="rm-header__actions">
+              <slot name="headerCenter" />
+              <slot name="headerRight" />
+              <button
+                v-if="!noClose"
+                class="rm-btn-close"
+                aria-label="Close"
+                @click="onCloseModal"
+              >
+                <i class="ri-close-line" />
+              </button>
+            </div>
           </div>
+        </slot>
+      </template>
+
+      <!-- ── BODY ── -->
+      <template #body>
+        <div ref="ref_body_h" class="rm-body"   :class="[
+          body_h > content_h - 133 ? 'rty-scroll' : '',
+          props.height,
+          overflowAuto ? 'overflow-auto' : '',
+        ]">
+          <slot />
         </div>
-        <i class="ri-close-large-fill cursor-pointer btn-close" @click="() => { onCloseModal() }" />
-      </div>
-    </template>
+      </template>
 
-    <!-- BODY (IMPORTANT FIX) -->
-    <template #body>
-      <div class="r-modal__body">
-        <slot />
-      </div>
-    </template>
-
-    <!-- FOOTER -->
-    <template  #footer>
-        <div  v-if="$slots.footer" class="r-modal__footer" >
+      <!-- ── FOOTER — only mounts when parent provides content ── -->
+      <template v-if="$slots.footer" #footer>
+        <div class="rm-footer">
           <slot name="footer" />
         </div>
-    </template>
-  </UModal>
+      </template>
+    </UModal>
+  </div>
 </template>
 
 <script setup>
+import { computed } from 'vue';
+
 const isOpen = defineModel()
 
+<<<<<<< HEAD
 const props = defineProps([
   'title',
   'description',
@@ -87,24 +132,39 @@ const props = defineProps([
   
 const slot = useSlots()
 const emit = defineEmits(["submit",'onClose'])
+=======
+onMounted(async () => {
+  await getAllHeight();
+});
+const content_h = ref();
+>>>>>>> 49725e158b266279e71e0297860676d2befe2a5a
 
-const title = computed(() => props.title)
-const description = computed(() => props.description)
-const isFullScreen = computed(() => props.isFullScreen)
-const noClose = computed(() => props.noClose)
-const icon = computed(() => props.icon)
-const mode = computed(() => props.mode ?? 'right')
-const modalWidth = computed(() => props.modalWidth)
-const modalWidthValue = computed(() => modalWidth.value ?? 'fit-content')
+const ref_body_h = ref();
+const body_h = ref();
 
-// const hasFooter = computed(() => slot.footer?.()?.length > 0 || !props.noFooter)
-// const hasHeader = computed(() => slot.header?.()?.length > 0 || !props.noHeader)
+async function getAllHeight() {
+  setTimeout(() => {
+    let content_h_c = document.getElementsByClassName("ref_content_h");
+    if (content_h_c.length > 0) content_h.value = content_h_c[0].offsetHeight;
+    body_h.value = ref_body_h.value?.offsetHeight;
+  }, 100);
+}
 
-// const hasFooter = computed(() => slot.noFooter || props.noFooter)
-// const hasHeader = computed(() => slot.noHeader || props.noHeader)
-const hasHeader = computed(() => !props.noHeader ?? false)
-const hasFooter = computed(() => !props.noFooter ?? false)
+const props = defineProps({
+  title:        { type: String,  default: undefined },
+  description:  { type: String,  default: undefined },
+  icon:         { type: String,  default: undefined },
+  closeIcon:    { type: String,  default: undefined },
+  isFullScreen: { type: Boolean, default: false     },
+  modalWidth:   { type: String,  default: undefined }, // e.g. '600px' or '80vw'
+  noClose:      { type: Boolean, default: false     }, // hide close button + lock dismiss
+  noHeader:     { type: Boolean, default: false     },
+  noFooter:     { type: Boolean, default: false     },
+  overflowAuto: { type: Boolean, default: false     },
+  ui:           { type: Object,  default: () => ({}) },
+})
 
+<<<<<<< HEAD
 const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
@@ -129,165 +189,316 @@ const mergedUi = computed(() => ({
   title: 'text-highlighted font-semibold',
   close: 'absolute top-4 end-4',
 }))
+=======
+const emit = defineEmits(['onClose'])
+>>>>>>> 49725e158b266279e71e0297860676d2befe2a5a
 
-const defaultUI = computed(() => ({
-  ...(props.ui ?? {}), ...mergedUi.value
-}))
+// Bug 8 fix: never use v-html for user-supplied strings — use {{ }} instead.
+// Computed wrappers kept for reactivity but only used as text.
+const modalWidthValue = computed(() => props.modalWidth ?? 'fit-content')
+const overflowAuto = computed(() => props.overflowAuto ?? true)
+/*
+ * Bug 3 / Bug 7 fix: ui slot values must be plain strings for NuxtUI v4 tv().
+ * Bug 6 fix: hide-header / hide-footer toggling done via CSS on our own classes
+ *            (rm-ui-header--hidden etc.) since the scoped .hide-header rule
+ *            never reached the portal anyway.
+ */
+const mergedUI = computed(() => {
+  const base = {
+    overlay:  'rm-overlay',
+    content:  'rm-content ref_content_h', // this class "ref_content_h" use in table for calculate scroll also
+    header:   props.noHeader ? 'rm-ui-header rm-ui-header--hidden' : 'rm-ui-header',
+    body:     'rm-ui-body',
+    footer:   props.noFooter ? 'rm-ui-footer rm-ui-footer--hidden' : 'rm-ui-footer',
+    wrapper:  'rm-ui-wrapper',
+    title:    'rm-ui-title',
+    description: 'rm-ui-desc',
+    close:    'rm-ui-close',
+  }
+
+  // Safe merge with caller's ui overrides
+  const userUI = props.ui && typeof props.ui === 'object' ? props.ui : {}
+  return { ...base, ...userUI }
+})
+
+// Bug 5 fix: dismissible = !noClose (was incorrectly `noClose` — inverted).
+// Already fixed inline on the UModal binding above.
+
+function onCloseModal() {
+  isOpen.value = false
+  emit('onClose')
+}
 </script>
 
+<!--
+  SCOPED — only touches .rm-host (lives in component tree, not portal).
+  Sets CSS custom properties that cascade into portal children via var().
+-->
 <style lang="scss" scoped>
-// .btn-close{
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   width: 20px !important;
-//   height: 20px !important;
-//   padding: 5px;
-//   border-radius: 999px !important;
-//   :hover{
-//     background-color: red !important;
-//   }
-// }
+.rm-host {
+  --rm-min-width: v-bind(modalWidthValue);
+  display: contents; // zero layout impact
+}
+</style>
 
+<!--
+  GLOBAL (non-scoped) — targets teleported portal DOM.
 
-.btn-close {
+  WHY NOT SCOPED?
+  UModal uses <DialogPortal> → content teleports to document.body,
+  outside this component's DOM subtree. Vue's scoped [data-v-xxx]
+  attribute is never stamped on those elements, so every :deep()
+  in a scoped block silently fails to match.
+
+  FIX: Non-scoped block, namespaced by .rm-content / .rm-overlay
+  (our custom classes injected via the ui prop) — no global leakage.
+-->
+<style lang="scss">
+
+/* ── Overlay ── */
+.rm-overlay {
+  background: color-mix(in srgb, var(--c-bg) 55%, transparent) !important;
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
+}
+
+/* ── Content panel (the modal box itself) ── */
+.rm-content {
+  // Layout — min-width driven by prop via CSS custom property
+  min-width: var(--rm-min-width, fit-content);
+  width: calc(100vw - 2rem);
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 4rem);
+
+  // SARIKA glass surface
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  color: var(--c-text) !important;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--glass-shadow) !important;
+  overflow: hidden;
+
+  // Zero out NuxtUI's slot default paddings — we control each slot
+  [data-slot="header"],
+  [data-slot="body"],
+  [data-slot="footer"] {
+    padding: 0 !important;
+  }
+}
+
+/* fullscreen variant */
+.rm-content[data-fullscreen="true"],
+.rm-content.rm-content--fullscreen {
+  width: 100vw  !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  border: none;
+}
+
+/* ── NuxtUI slot wrappers (injected via ui prop strings) ── */
+.rm-ui-header {
+  padding: 0 !important;
+  min-height: 0 !important;
+  border-bottom: 1px solid var(--c-border);
+
+  // Bug 4 fix: one clean value, no conflicting overrides.
+  // Actual height is driven by rm-header padding below.
+}
+
+/* Bug 6 fix: hide via global class that actually reaches the portal */
+.rm-ui-header--hidden,
+.rm-ui-footer--hidden {
+  display: none !important;
+}
+
+.rm-ui-body {
+  flex: 1;
+  padding: 0 !important;
+  overflow: hidden; // scroll controlled inside rm-body
+}
+
+.rm-ui-footer {
+  padding: 0 !important;
+  border-top: 1px solid var(--c-border);
+}
+
+.rm-ui-wrapper {
+  // NuxtUI's inner title+description wrapper — zero extra spacing
+}
+
+.rm-ui-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--c-text);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.rm-ui-desc {
+  font-size: 0.78rem;
+  color: var(--c-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+// NuxtUI's own close button (when we don't use #header slot)
+.rm-ui-close {
+  position: absolute;
+  top: var(--sp-3);
+  inset-inline-end: var(--sp-3);
+}
+
+/* ── Our header markup (inside the #header slot) ── */
+.rm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  min-height: 60px;
+  font-family: var(--font-400,var(--font-fallback));
+  width: 100% !important;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__icon {
+    font-size: 22px;
+    color: var(--c-accent);
+    flex-shrink: 0;
+    filter: drop-shadow(var(--glow-text));
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--c-text);
+    line-height: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-400,var(--font-fallback));
+  }
+
+  &__desc {
+    margin: 2px 0 0;
+    font-size: 0.78rem;
+    color: var(--c-muted);
+    line-height: 1.4;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+  }
+}
+
+/* ── Close button ── */
+.rm-btn-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-full) !important;
   border: 1px solid var(--c-border);
-  border-radius: 0.5rem;
   background: transparent;
   color: var(--c-muted);
+  font-size: 16px;
   cursor: pointer;
-  :hover{
+  flex-shrink: 0;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+
+  // Bug 3 fix: was `.btn-close { :hover { ... } }` — child combinator inside
+  // a class rule, styling children of .btn-close, not the button itself.
+  &:hover {
+    background: var(--c-hover);
     border-color: var(--c-accent);
     color: var(--c-accent);
   }
 }
 
-/* ===== Overlay ===== */
-.r-modal__content{ //
-  width: 100%;
-  // min-width: 1900px;
-  // min-width: v-bind(modalWidthValue);
-  :deep(.r-modal__overlay) {
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(6px);
-  }
-  
-/* ===== Modal container ===== */
-  :deep(.r-modal__content) {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-  }
-
-  [data-slot="body"]{
-    padding: 10px 20px  !important;
-  }
-}
-
-.r-modal__header {
-    width: 100%;
-    // min-height: 40px;
-    padding: 5px 0;
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    
-    &__custom {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-}
-
-:deep(.r-modal__content [data-slot="header"]) {
-  padding: 5px 150px !important;
-  min-height: 50px !important;
-  height: auto !important;
-}
-
-:deep(.r-modal__content [data-slot="header"].r-modal__header) {
-  padding: 5px 15px !important;
-  min-height: 500px !important;
-}
-
-:deep(.r-modal__header) {
-  width: 100%;
-  padding: 50px 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: start;
-}
-
-// :deep(.r-modal__header__custom) {
-//   width: 100%;
-//   display: flex;
-//   flex-direction: row;
-//   align-items: center;
-//   justify-content: space-between;
-// }
-/* ===== Body ===== */
-.r-modal__body {
+/* ── Body content area ── */
+.rm-body {
+  padding: var(--sp-5);
   font-size: 13px;
   color: var(--c-text);
-  /* max-height: 70vh; */
+  font-family: var(--font-400,var(var(--font-fallback)));
   overflow-y: auto;
+  max-height: calc(100dvh - 4rem - 60px - 56px); // viewport - modal margin - header - footer
+
+
+
+  // scrollbar-width: thin;
+  // scrollbar-color: var(--color-w-b-3) transparent;
+
+  // &::-webkit-scrollbar        { width: 4px; }
+  // &::-webkit-scrollbar-track  { background: transparent; }
+  // &::-webkit-scrollbar-thumb  {
+  //   background: var(--color-w-b-3);
+  //   border-radius: var(--r-full);
+  // }
+  // &::-webkit-scrollbar-thumb:hover { background: var(--color-w-b-2); }
 }
 
-/* ===== Footer ===== */
+.rty-scroll {
+  // max-height: calc(100% - 52px);
+  overflow-y: auto;
+  padding-right: 2px!important;
+}
 
-.r-modal__footer {
-  width: 100%;
+/* ── Footer content area ── */
+.rm-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 6px;
-  padding: 5px 10px;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  min-height: 56px;
+  font-family: var(--font-400,var(--font-fallback));
+  width: 100% !important
 }
 
-/* buttons */
-.r-modal__btn {
-  min-width: 90px;
+/* ── Dark mode ── */
+.dark .rm-content {
+  box-shadow:
+    0 0 0 1px var(--c-border),
+    var(--glass-shadow) !important;
 }
 
-/* rounded override */
-.r-modal__rounded {
-  border-radius: 50px;
+.dark .rm-overlay {
+  background: color-mix(in srgb, var(--c-bg) 70%, transparent) !important;
 }
 
-
-// global setup style on NuxtUI to full access override
-  [data-slot="header"] {
-    padding: 5px 15px;
-    min-height: 50px !important;
-    // max-height: 20px !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    overflow: hidden !important;
-
-    h2 {
-    font-size: 15px !important;
-    line-height: 20px !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .rm-content {
+    width: calc(100vw - 1rem);
+    max-width: 100vw;
+    border-radius: var(--r-lg) !important;
   }
-
-  /* Adjust close icon size */
-  :deep([data-slot="header"] .ri-close-large-fill) {
-    font-size: 18px !important;
-  }
-}
-
-
-// hide UMoldal header of NuxtUI
-.hide-header,.hide-footer{
-  display: none !important;
 }
 </style>

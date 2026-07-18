@@ -897,6 +897,11 @@
   background-color: var(--color-w-b-2) !important;
 }
 
+*.rty-scroll{
+  // scrollbar-width: auto;
+  // scrollbar-color: transparent;
+  scrollbar-gutter: stable;
+}
 *.rty-scroll::-webkit-scrollbar {
   width: 9px;
   height: 9px;
@@ -910,6 +915,8 @@
   background-color: transparent;
   border: 3px solid var(--bg-content);
   border-radius: 50px;
+
+  transition: background .25s;
 }
 
 *.rty-scroll:hover::-webkit-scrollbar-thumb {

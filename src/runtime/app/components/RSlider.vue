@@ -1,221 +1,212 @@
 <template>
-  <USlideover v-model:open="isOpen" :side="sliderScreenMode" :ui="ui" :transition="transition" :overlay="overlay"
-    :dismissible="resolvedDismissible" :prevent-close="preventClose" :appear="appear"
-    :close="{
-      icon: 'ri-close-line',
-      color: 'neutral',
-      variant: 'ghost'
-    }"
+  <!--
+    .r-slider-host is the only element that lives INSIDE this component's
+    scoped DOM tree. We use it as a CSS custom-property carrier and as the
+    namespace anchor for the global (non-scoped) style block below.
+  -->
+  <div class="r-slider-host" :class="sliderScreenMode === 'bottom' ? 'r-slider-host--bottom' : ''">
+    <USlideover
+      v-model:open="isOpen"
+      :side="sliderScreenMode"
+      :ui="mergedUI"
+      :transition="transition"
+      :overlay="overlay ?? true"
+      :dismissible="resolvedDismissible"
+      :prevent-close="preventClose"
+      :close="{
+        icon: closeIcon || 'ri-close-line',
+        color: 'neutral',
+        variant: 'ghost'
+      }"
     >
-    <!-- :class="['r-slider-container', `r-slider-${sliderScreenMode}-mobile`]" -->
+      <!-- #header slot — lives in the portal but we own the markup -->
       <template #header>
-        <!-- Dirty form indicator strip -->
-        <div v-if="dirty" class="rs__dirty-bar" aria-hidden="true" />
-        <div class="r-slider-header flex items-center justify-between w-full">
-          <slot name="header">
-            <div>
-              <div class="flex items-center gap-2">
-                <div v-if="icon" v-html="`<i class='${icon} text-[16px]'></i>`"></div>
-                <h3 v-if="title" class="text-base font-semibold" > {{ title }} </h3>
+        <slot name="header">
+          <!-- Dirty form indicator strip -->
+          <div v-if="dirty" class="rs__dirty-bar" aria-hidden="true" />
+          <div class="rs-header">
+            <div class="rs-header__left">
+              <i v-if="icon" :class="[icon, 'rs-header__icon']" />
+              <div>
+                <h3 v-if="title" class="rs-header__title">{{ title }}</h3>
+                <p v-if="description" class="rs-header__desc">{{ description }}</p>
               </div>
-              <p v-if="description" class="text-sm text-muted" > {{ description }} </p>
             </div>
             <div class="rs__head-end">
               <span v-if="dirty" class="rs__unsaved-badge" title="You have unsaved changes">
                 <i class="ri-edit-circle-line" aria-hidden="true" />
                 Unsaved
               </span>
-              <i class="ri-close-line text-[16px] cursor-pointer" @click="closed"></i>
+              <button class="rs-header__close" aria-label="Close" @click="closed">
+                <i class="ri-close-line" />
+              </button>
             </div>
-          </slot>
-        </div>
+          </div>
+        </slot>
       </template>
-      
+
+      <!-- #body slot -->
       <template #body>
-        <div ref="refRDrawerBody" class="r-slider-body "
-          :class="hasScroll ? 'r-slider-has-scroll isScroll' : ''">
+        <div
+          ref="refRDrawerBody"
+          class="rs-body"
+          :class="{ 'rs-body--scroll': hasScroll }"
+        >
           <slot />
         </div>
       </template>
 
-      <template #footer>
-        <div v-if="$slots.footer" class="r-slider-footer flex justify-end gap-2 w-full">
-          <slot name="footer">
-            <!-- <RBtn
-              icon="close"
-              color="neutral"
-              :label="$t('close')"
-              @click="handleClose(false)"
-            />
-
-            <RBtn
-              icon="save"
-              color="primary"
-              :label="$t('save')"
-              @click="handleSubmit"
-            /> -->
-          </slot>
+      <!-- #footer slot — only renders when parent provides content -->
+      <template v-if="$slots.footer" #footer>
+        <div class="rs-footer">
+          <slot name="footer" />
         </div>
       </template>
-  </USlideover>
+    </USlideover>
+  </div>
 </template>
 
 <script setup>
 import { useScreenStore } from '../stores/screen'
 
 const screen = useScreenStore()
-const isOpen = defineModel();
+
+/* ── model + props ── */
+const isOpen = defineModel()
+
 const props = defineProps({
-  title: String,
-  description: String,
-  icon: String,
-  ui: Object,
-  transition: [Boolean, Object],
-  overlay: [Boolean, Object],
-  preventClose: Boolean,
-  side: String,
-  appear: Boolean,
-  isScroll: Boolean,
-  class: String,
-  dismissible: { type: Boolean, default: true },
-  closeIcon: String,
+  title:        { type: String,  default: undefined },
+  description:  { type: String,  default: undefined },
+  icon:         { type: String,  default: undefined },
+  closeIcon:    { type: String,  default: undefined },
+  side:         { type: String,  default: 'right'   }, // 'left' | 'right' | 'top' | 'bottom'
+  width:        { type: Number,  default: undefined }, // px, desktop only
+  maxWidth:     { type: Number,  default: 500       }, // px
+  transition:   { type: Boolean, default: true      },
+  overlay:      { type: Boolean, default: true      },
+  dismissible:  { type: Boolean, default: true      },
+  preventClose: { type: Boolean, default: false     },
+  isScroll:     { type: Boolean, default: false     },
+  ui:           { type: Object,  default: () => ({}) },
   // Dirty form guard — when true, clicking outside (overlay) will NOT close the slider.
   // The X button in the header still works (calls closed() explicitly).
   // Use with useZodForm().isDirty or useFormDirty()
-  dirty: { type: Boolean, default: false },
-});
-const emit = defineEmits(["closed"]);
+  dirty:        { type: Boolean, default: false     },
+})
 
-const title = computed(() => props.title)
-const description = computed(() => props.description)
-const icon = computed(() => props.icon)
-const transition = computed(() => props.transition);
-const overlay = computed(() => props.overlay);
-const preventClose = computed(() => props.preventClose);
-const side = computed(() => props.side);
-const appear = computed(() => props.appear);
-const dismissible = computed(() => props.dismissible)
+const emit = defineEmits(['closed'])
+
+/* ── computed ── */
+const sliderScreenMode = computed(() =>
+  screen.isMobile ? 'bottom' : (props.side || 'right')
+)
+
 // When dirty=true, block overlay/backdrop click. X button still works via closed().
-const resolvedDismissible = computed(() => props.dirty ? false : dismissible.value)
-const isScroll = computed(() => props.isScroll);
+const resolvedDismissible = computed(() => props.dirty ? false : props.dismissible)
 
-const refWrapperOCDrawer = ref();
+/*
+ * Build overlay merge safely — defaultUI.overlay was '' (string),
+ * so spread of ...props.ui?.overlay?.transition crashed silently.
+ * Now overlay is always an object before merging.
+ */
+const mergedUI = computed(() => {
+  const isMobile = screen.isMobile
 
-const refRDrawerBody = ref();
-const hasScroll = ref(false);
-
-/* -----------------------------
-   UI Helpers
------------------------------ */
-console.log("Screen mobile =========> ", screen.isMobile)
-
-const sliderScreenMode = computed(() => {
-  return screen.isMobile ? 'bottom' : side.value
-})
-
-const ui = computed(() => {
-  const defaultUI = {
-    // content: 'r-slider-content',
+  const base = {
+    // content gets our class so the global SCSS can target it
     content: [
-      'r-slider-content',
-      {
-        'max-w-full rounded-t-xl': screen.isMobile
-      }
+      'rs-content',
+      isMobile ? 'rs-content--bottom' : '',
     ],
-    header:[
-      'r-slider-header',
-      {
-        'flex items-center justify-between w-full': screen.isMobile
-      }
-    ],
-    wrapper: `r-wrapper-container relative flex-1 flex flex-col w-full focus:outline-none ${props.class}`,
-    overlay:'',
-    body: 'r-slider-body',
-    footer:{
-      class:'w-full'
-    }
-    // width: `w-full max-w-md max-w-sm ${props.class}`,
+    // header/body/footer ui values must be plain strings in NuxtUI v4 tv()
+    header:  'rs-ui-header w-full',
+    body:    'rs-ui-body w-full',
+    footer:  'rs-ui-footer gap-0 p-1 sm:px-1 w-full',
+    overlay: 'rs-overlay',
   }
-  const resultUI = {
-    ...defaultUI,
-    ...props.ui,
 
-    transition: {
-      ...defaultUI.transition,
-      ...props.ui?.transition,
-    },
-    translate: {
-      ...defaultUI.translate,
-      ...props.ui?.translate,
-    },
-    overlay: {
-      ...defaultUI.overlay,
-      ...props.ui?.overlay,
-      transition: {
-        ...defaultUI.overlay.transition,
-        ...props.ui?.overlay?.transition,
-      },
-    },
-  };
+  // Safe merge — never spread a non-object
+  const userUI      = props.ui && typeof props.ui === 'object' ? props.ui : {}
+  const userOverlay = userUI.overlay && typeof userUI.overlay === 'object' ? userUI.overlay : {}
 
-  return resultUI;
-});
-
-onMounted(async () => {
-  await nextTick(); // Ensure DOM is fully rendered
-  observeBody(); // Initial check
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkScroll);
-});
-
-
-watch(() => isOpen.value, (n) => {
-  // console.log('====>>> watch', n)
-  if (n) {
-    setTimeout(() => {
-      observeBody(); // Initial check
-    }, 100);
-
-  } else {
-    window.removeEventListener('resize', checkScroll);
+  return {
+    ...base,
+    ...userUI,
+    overlay: { ...userOverlay },
   }
 })
 
-function observeBody() {
-  if (!refRDrawerBody.value) return;
-  checkScroll()
-  window.addEventListener('resize', checkScroll);
-}
-
+/* ── scroll detection ── */
+const refRDrawerBody = ref(null)
+const hasScroll      = ref(false)
 
 function checkScroll() {
-  const wrapper = refWrapperOCDrawer.value;
-  const body = refRDrawerBody.value;
-
-  if (!wrapper || !body) return;
-
-  const header = wrapper.querySelector('.r-drawer-header');
-  const footer = wrapper.querySelector('.r-drawer-footer');
-
-  const headerHeight = header?.getBoundingClientRect().height || 0;
-  const footerHeight = footer?.getBoundingClientRect().height || 0;
-  const bodyHeight = body.getBoundingClientRect().height;
-
-  const availableHeight = window.innerHeight - headerHeight - footerHeight;
-
-  hasScroll.value = bodyHeight > availableHeight || bodyHeight > 400;
-  console.log('===>>>', hasScroll.value)
+  const body = refRDrawerBody.value
+  if (!body) return
+  hasScroll.value = body.scrollHeight > body.clientHeight
 }
 
+function observeBody() {
+  if (!refRDrawerBody.value) return
+  checkScroll()
+  window.addEventListener('resize', checkScroll, { passive: true })
+}
+
+onMounted(async () => {
+  await nextTick()
+  observeBody()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScroll)
+})
+
+watch(isOpen, (open) => {
+  if (open) {
+    setTimeout(observeBody, 120)   // wait for portal paint
+  } else {
+    window.removeEventListener('resize', checkScroll)
+    hasScroll.value = false
+  }
+})
+
 function closed() {
-  isOpen.value = false;
-  emit("closed");
+  isOpen.value = false
+  emit('closed')
 }
 </script>
 
+<!--
+  SCOPED block — only for the HOST element (.r-slider-host).
+  CSS custom properties set here flow into the portal via var() inheritance
+  because the portal content reads vars from :root / body, and we set them
+  on .r-slider-host which is an ancestor in the *cascade* (not DOM) sense.
+  All actual portal element styling is in the GLOBAL block below.
+-->
 <style lang="scss" scoped>
+.r-slider-host {
+  // Expose token overrides as custom props so the global block can read them
+  --rs-width:      v-bind("props.width ? props.width + 'px' : '420px'");
+  --rs-max-width:  v-bind("props.maxWidth ? props.maxWidth + 'px' : '500px'");
+  display: contents; // host div adds zero layout impact
+}
+</style>
+
+<!--
+  GLOBAL (non-scoped) block — targets the teleported portal DOM.
+
+  WHY NOT SCOPED?
+  USlideover uses <DialogPortal> which teleports to document.body.
+  Vue's scoped CSS adds a [data-v-xxxxxx] attribute to elements inside
+  the component's own DOM subtree. The teleported elements are OUTSIDE
+  that subtree, so Vue never stamps the scoped attribute on them.
+  Result: every :deep() rule in a scoped block simply never matches.
+
+  FIX: Use a non-scoped block, namespaced by .rs-content (our custom class
+  injected via the ui prop) so we never accidentally leak styles globally.
+-->
+<style lang="scss">
+/* ── dirty bar + unsaved badge ── */
 .rs__dirty-bar {
   height: 3px;
   background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2, #ffb347));
@@ -244,144 +235,185 @@ function closed() {
   i { font-size: 0.8rem; }
 }
 
-:deep(.r-slider-content) {
-  background-color: var(--bg-wrapper);
-  color: var(--c-text);
-  width: 100%;
-  min-width: v-bind("width ? `${width}px` : '400px'");
-  max-width: 500px !important;
+/* ── overlay ── */
+.rs-overlay {
+  background: color-mix(in srgb, var(--c-bg) 60%, transparent) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* ── content panel (the sliding drawer itself) ── */
+.rs-content {
+  // Layout
+  display: flex;
+  flex-direction: column;
+  width: var(--rs-width, 420px) !important;
+  max-width: var(--rs-max-width, 500px) !important;
+  height: 100dvh;
+
+  // SARIKA surface
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  color: var(--c-text) !important;
+  border-left: 1px solid var(--c-border);
+  box-shadow: var(--glass-shadow) !important;
+
+  // radius token (consumed by NuxtUI internally via --ui-radius)
   --ui-radius: var(--r-xl);
 
-  --ui-backdrop-filter: blur(8px);
-
-  .r-slider-header {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 4px;
-    min-height: 100px;
-    // padding: 5px 15px;
-    font-size: 14px;
-    font-family: var(--font-500);
-    width: 100%;
-  }
-  
-  .r-slider-footer {
-    display: flex;
-    align-items: center;
-    justify-content: end;
-    // padding: 5px 15px !important;
-    grid-gap: 6px;
+  // Zero out NuxtUI's default slot padding — we control it per-slot
+  [data-slot="header"],
+  [data-slot="body"],
+  [data-slot="footer"] {
+    padding: 0 !important;
   }
 }
 
-:deep(.r-slider-content){ //work all if no scoped
-  &[data-slot="body"],&[data-slot="header"],&[data-slot="footer"]{
-    padding: 0;
+/* bottom-sheet variant (mobile) */
+.rs-content--bottom {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: auto !important;
+  max-height: 92dvh;
+  border-left: none;
+  border-top: 1px solid var(--c-border);
+  border-radius: var(--r-xl) var(--r-xl) 0 0 !important;
+}
+
+/* ── NuxtUI slot wrappers (string classes we inject via ui prop) ── */
+.rs-ui-header {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--c-border);
+  min-height: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.rs-ui-body {
+  flex: 1;
+  padding: 0 !important;
+  overflow: hidden; // scroll controlled by rs-body inside
+}
+
+.rs-ui-footer {
+  padding: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  border-top: 1px solid var(--c-border);
+  justify-content: flex-end !important;
+  align-items: center !important;
+}
+
+/* ── our own header markup (inside the #header slot) ── */
+.rs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  min-height: 64px;
+  font-family: var(--font-400);
+  width: 100% !important;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
   }
 
-  &[data-slot="body"]{
-    .hasScroll{
-      padding:40px;
+  &__icon {
+    font-size: 20px;
+    color: var(--c-accent);
+    flex-shrink: 0;
+    filter: drop-shadow(var(--glow-text));
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--c-text);
+    line-height: 1.3;
+  }
+
+  &__desc {
+    margin: 2px 0 0;
+    font-size: 0.78rem;
+    color: var(--c-muted);
+    line-height: 1.4;
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-full);
+    border: none;
+    background: transparent;
+    color: var(--c-muted);
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+
+    &:hover {
+      background: var(--c-hover);
+      color: var(--c-text);
     }
   }
 }
 
-:deep(.r-wrapper-container){
-   max-width: 100%;
-  &.r-slider-bottom-mobile{
-    max-width: 100% !important;
-    padding: 7px !important;
-    border-radius: 20px 20px 0px 0px !important;
-    min-height: 500px;
-  }
-
-}
-
-:deep(.r-slider-body) {
-  // overflow-y: auto !important;
-  // overflow-x: hidden !important;
-  // min-height: calc(100vh - 80px); // cause style padding body
-  height: 100% !important;
+/* ── body content area ── */
+.rs-body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-height: 100%;
-  padding: 0 !important;
-  // padding:5px 15px ;
-  &.isScroll {
-    // this class add auto
+  padding: 8px 15px;
+  overflow: hidden;
+
+  &--scroll {
     overflow-y: auto;
-    &::-webkit-scrollbar-thumb {
-      border: 1px solid var(--bg-content);
-    }
-    &:hover::-webkit-scrollbar-thumb {
-      background-color: var(--color-w-b-3) !important;
+    overflow-x: hidden;
+    padding-right: calc(var(--sp-5) - 4px); // compensate for scrollbar
+
+    // SARIKA scrollbar
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-w-b-3) transparent;
+
+    &::-webkit-scrollbar        { width: 4px; }
+    &::-webkit-scrollbar-track  { background: transparent; }
+    &::-webkit-scrollbar-thumb  {
+      background: var(--color-w-b-3);
+      border-radius: var(--r-full);
     }
     &::-webkit-scrollbar-thumb:hover {
-      background-color: var(--color-w-b-2) !important;
+      background: var(--color-w-b-2);
     }
   }
-  &.r-slider-has-scroll {
-    padding-right: 0 !important; // reduced from 15px
-    overflow-y: auto;
-  }
 }
 
-:deep([data-slot="body"]){
-  padding: 0 !important;
+/* ── footer content area ── */
+.rs-footer {
+  display: flex !important;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  min-height: 56px;
 }
 
-.r-drawer-overlay {
-  background: var(--bg-wrapper-50) !important;
+/* ── dark mode adjustments ── */
+.dark .rs-content {
+  border-left-color: var(--c-border);
+  box-shadow: 0 0 0 1px var(--c-border), var(--glass-shadow);
 }
 
-
-:deep([data-slot="body"]) {
-  padding: 0 !important;
+.dark .rs-content--bottom {
+  border-top-color: var(--c-border);
 }
-
-:deep(.r-slider-content[data-slot="header"]) {
-  padding: 0 !important;
-}
-
-:deep(.r-slider-content[data-slot="footer"]) {
-  padding: 0 !important;
-}
-
-// .r-slider-bottom-mobile {
-//   max-width: 100% !important;
-//   padding: 7px !important;
-//   border-radius: 20px 20px 0px 0px !important;
-//   min-height: 500px;
-// }
-:deep(.r-slider-bottom-mobile) {
-  max-width: 100% !important;
-  padding: 7px !important;
-  border-radius: 20px 20px 0px 0px !important;
-  min-height: 500px;
-}
-
-:deep([data-slot="content"]) {
-  background-color: var(--bg-wrapper);
-  color: var(--c-text);
-  max-width: 500px !important;
-  border-radius: var(--r-xl);
-}
-
-:deep([data-slot="header"]) {
-  padding: 0 !important;
-  min-height: 100px;
-}
-
-:deep([data-slot="body"]) {
-  padding: 0 !important;
-  overflow-y: auto;
-}
-
-:deep([data-slot="footer"]) {
-  padding: 0 !important;
-}
-
 </style>

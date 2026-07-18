@@ -297,7 +297,7 @@ defineExpose({
         </template>
 
         <!-- Trailing slot: custom OR floating label -->
-        <template #trailing>
+        <template v-if="$slots.trailing" #trailing>
           <slot name="trailing" />
           <!-- Float label is rendered outside, not here -->
         </template>
