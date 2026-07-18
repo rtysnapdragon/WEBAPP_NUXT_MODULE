@@ -1,7 +1,8 @@
 <template>
   <Transition name="r-confirm">
     <div v-if="!!confirmStore.data" class="r-confirm">
-      <div class="r-confirm__overlay" @click="confirmStore.hide()" />
+      <!-- persistent=true means overlay click must NOT close the dialog -->
+      <div class="r-confirm__overlay" @click="!confirmStore.data?.persistent && confirmStore.hide()" />
 
       <div class="r-confirm__wrapper">
         <div class="r-confirm__card">

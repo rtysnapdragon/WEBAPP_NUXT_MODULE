@@ -5,7 +5,7 @@
     :description="description"
     :transition="true"
     :fullscreen="isFullScreen"
-    :dismissible="noClose"
+    :dismissible="resolvedDismissible"
     closeIcon="ri-close-line"
     :hide-header="noHeader"
     :hide-footer="noFooter"
@@ -79,7 +79,10 @@ const props = defineProps([
   'icon',
   'noHeader',
   'noFooter',
-  'mode'
+  'mode',
+  // Dirty form guard — when true, clicking the overlay will NOT close the modal.
+  // Use with useFormDirty() or useZodForm().isDirty
+  'dirty',
 ])
   
 const slot = useSlots()
@@ -106,6 +109,13 @@ const onCloseModal = () => {
   isOpen.value = false;
   emit("onClose");
 };
+
+// When dirty=true, block overlay/backdrop click (dismissible=false).
+// The X button in the header still works — it calls onCloseModal() explicitly.
+const resolvedDismissible = computed(() => {
+  if (props.dirty) return false
+  return props.noClose  // existing behavior (kept unchanged)
+})
 const mergedUi = computed(() => ({
   wrapper: "r-modal__wrapper",
   content: ["r-modal__content", 'bg-default divide-y divide-default flex flex-col focus:outline-none'],

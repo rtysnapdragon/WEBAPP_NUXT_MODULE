@@ -1,6 +1,6 @@
 <template>
   <USlideover v-model:open="isOpen" :side="sliderScreenMode" :ui="ui" :transition="transition" :overlay="overlay"
-    :dismissible="dismissible" :prevent-close="preventClose" :appear="appear"
+    :dismissible="resolvedDismissible" :prevent-close="preventClose" :appear="appear"
     :close="{
       icon: 'ri-close-line',
       color: 'neutral',
@@ -9,6 +9,8 @@
     >
     <!-- :class="['r-slider-container', `r-slider-${sliderScreenMode}-mobile`]" -->
       <template #header>
+        <!-- Dirty form indicator strip -->
+        <div v-if="dirty" class="rs__dirty-bar" aria-hidden="true" />
         <div class="r-slider-header flex items-center justify-between w-full">
           <slot name="header">
             <div>
@@ -18,7 +20,13 @@
               </div>
               <p v-if="description" class="text-sm text-muted" > {{ description }} </p>
             </div>
-            <i class="ri-close-line text-[16px] cursor-pointer" @click="closed"></i>
+            <div class="rs__head-end">
+              <span v-if="dirty" class="rs__unsaved-badge" title="You have unsaved changes">
+                <i class="ri-edit-circle-line" aria-hidden="true" />
+                Unsaved
+              </span>
+              <i class="ri-close-line text-[16px] cursor-pointer" @click="closed"></i>
+            </div>
           </slot>
         </div>
       </template>
@@ -57,22 +65,25 @@ import { useScreenStore } from '../stores/screen'
 
 const screen = useScreenStore()
 const isOpen = defineModel();
-const props = defineProps([
-  "title",
-  "description",
-  "icon",
-  "ui",
-  "transition",
-  "overlay",
-  "preventClose",
-  "side",
-  "appear",
-  "isScroll",
-  "class",
-  "dismissible",
-  "closeIcon",
-  "transition",
-]);
+const props = defineProps({
+  title: String,
+  description: String,
+  icon: String,
+  ui: Object,
+  transition: [Boolean, Object],
+  overlay: [Boolean, Object],
+  preventClose: Boolean,
+  side: String,
+  appear: Boolean,
+  isScroll: Boolean,
+  class: String,
+  dismissible: { type: Boolean, default: true },
+  closeIcon: String,
+  // Dirty form guard — when true, clicking outside (overlay) will NOT close the slider.
+  // The X button in the header still works (calls closed() explicitly).
+  // Use with useZodForm().isDirty or useFormDirty()
+  dirty: { type: Boolean, default: false },
+});
 const emit = defineEmits(["closed"]);
 
 const title = computed(() => props.title)
@@ -83,7 +94,9 @@ const overlay = computed(() => props.overlay);
 const preventClose = computed(() => props.preventClose);
 const side = computed(() => props.side);
 const appear = computed(() => props.appear);
-const dismissible = computed(() => props.dismissible);
+const dismissible = computed(() => props.dismissible)
+// When dirty=true, block overlay/backdrop click. X button still works via closed().
+const resolvedDismissible = computed(() => props.dirty ? false : dismissible.value)
 const isScroll = computed(() => props.isScroll);
 
 const refWrapperOCDrawer = ref();
@@ -203,6 +216,34 @@ function closed() {
 </script>
 
 <style lang="scss" scoped>
+.rs__dirty-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2, #ffb347));
+  flex-shrink: 0;
+}
+
+.rs__head-end {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.rs__unsaved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--c-accent);
+  background: rgba(255, 140, 66, 0.1);
+  border: 1px solid rgba(255, 140, 66, 0.25);
+  white-space: nowrap;
+  i { font-size: 0.8rem; }
+}
+
 :deep(.r-slider-content) {
   background-color: var(--bg-wrapper);
   color: var(--c-text);
