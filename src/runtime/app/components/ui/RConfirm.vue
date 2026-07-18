@@ -506,6 +506,9 @@ async function onCancel() {
   }
 }
 
+.r-confirm__description{
+  font-family: var(--font-400);
+}
 /* Color Variants */
 .bg-green {
   background: #dcfce7;
