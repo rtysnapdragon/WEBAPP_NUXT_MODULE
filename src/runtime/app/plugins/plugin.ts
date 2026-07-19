@@ -7,6 +7,10 @@ import tBy from "../utils/tBy.js";
 import getDeviceId from "../utils/getDeviceId.js";
 import queryParams from "../utils/queryParams.js";
 import copyWith from "../utils/copyWith.js";
+import { useScreenStore } from "../stores/screen.js";
+import { useI18n } from "#imports";
+import enJson from "../assets/lang/en.json"
+import kmJson from "../assets/lang/km.json"
 
 export default defineNuxtPlugin((nuxtApp) => {
   const screen = useScreenStore();
@@ -38,6 +42,11 @@ export default defineNuxtPlugin((nuxtApp) => {
   window.addEventListener("offline", () => {
     online.value = false;
   });
+
+ const { mergeLocaleMessage } = useI18n()
+
+  mergeLocaleMessage("en", enJson)
+  mergeLocaleMessage("km", kmJson)
 
   nuxtApp.provide("isOnline", () => online.value);
   // nuxtApp.provide("isEmpty", isEmpty);
