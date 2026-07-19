@@ -1,44 +1,4 @@
 <template>
-<<<<<<< HEAD
-  <UModal
-    v-model:open="isOpen"
-    :title="title"
-    :description="description"
-    :transition="true"
-    :fullscreen="isFullScreen"
-    :dismissible="resolvedDismissible"
-    closeIcon="ri-close-line"
-    :hide-header="noHeader"
-    :hide-footer="noFooter"
-    :mode="mode"
-    :close="{
-      color: 'primary',
-      variant: 'outline',
-      class: 'rounded-full'
-    }"
-    :content="{ style: { minWidth: modalWidthValue } }"
-    :ui="defaultUI"
-  >
-    <!-- HEADER -->
-    <template #header>
-      <div v-if="$slots.header" class="r-modal__header">
-        <div class="title">
-          <slot name="header" />
-        </div>
-        <div
-          :class="['btn-close', noClose ? '!hidden' : '']"
-          @click="
-            () => {
-              onCloseModal();
-            }
-          "
-        >
-          <i class="ri-close-large-fill"></i>
-        </div>
-        <slot name="headerCenter" />
-        <slot name="headerRight" />
-      </div>
-=======
   <!--
     .rm-host is the only element inside this component's scoped DOM subtree.
     It carries CSS custom properties (width, etc.) that portal elements inherit
@@ -56,7 +16,6 @@
       :hide-footer="noFooter"
       :content="{ style: { minWidth: modalWidthValue } }"
       :ui="mergedUI"
->>>>>>> 49725e158b266279e71e0297860676d2befe2a5a
 
     >
       <!-- ── HEADER ── -->
@@ -113,31 +72,10 @@ import { computed } from 'vue';
 
 const isOpen = defineModel()
 
-<<<<<<< HEAD
-const props = defineProps([
-  'title',
-  'description',
-  'isFullScreen',
-  'modalWidth',
-  'noClose',
-  'ui',
-  'icon',
-  'noHeader',
-  'noFooter',
-  'mode',
-  // Dirty form guard — when true, clicking the overlay will NOT close the modal.
-  // Use with useFormDirty() or useZodForm().isDirty
-  'dirty',
-])
-  
-const slot = useSlots()
-const emit = defineEmits(["submit",'onClose'])
-=======
 onMounted(async () => {
   await getAllHeight();
 });
 const content_h = ref();
->>>>>>> 49725e158b266279e71e0297860676d2befe2a5a
 
 const ref_body_h = ref();
 const body_h = ref();
@@ -164,34 +102,7 @@ const props = defineProps({
   ui:           { type: Object,  default: () => ({}) },
 })
 
-<<<<<<< HEAD
-const onCloseModal = () => {
-  isOpen.value = false;
-  emit("onClose");
-};
-
-// When dirty=true, block overlay/backdrop click (dismissible=false).
-// The X button in the header still works — it calls onCloseModal() explicitly.
-const resolvedDismissible = computed(() => {
-  if (props.dirty) return false
-  return props.noClose  // existing behavior (kept unchanged)
-})
-const mergedUi = computed(() => ({
-  wrapper: "r-modal__wrapper",
-  content: ["r-modal__content", 'bg-default divide-y divide-default flex flex-col focus:outline-none'],
-  header: ["r-modal__header", !hasHeader.value ? 'hide-header !p-0 !min-h-0' : 'p-0'] , // p-0 is lock to override style with scss scoped
-  body: "r-modal__body-ui flex-1",
-  footer: ["r-modal__footer flex items-center", !hasFooter.value ? 'hide-footer !p-0 !min-h-0' : 'p-0'], // p-0 is lock to override style with scss scoped
-  overlay: "r-modal__overlay fixed inset-0",
-  rounded: "r-modal__rounded",
-  shadow: "r-modal__shadow",
-  description: 'mt-1 text-muted text-sm',
-  title: 'text-highlighted font-semibold',
-  close: 'absolute top-4 end-4',
-}))
-=======
 const emit = defineEmits(['onClose'])
->>>>>>> 49725e158b266279e71e0297860676d2befe2a5a
 
 // Bug 8 fix: never use v-html for user-supplied strings — use {{ }} instead.
 // Computed wrappers kept for reactivity but only used as text.
