@@ -12,6 +12,7 @@ import {
   addServerImportsDir
 } from "@nuxt/kit";
 
+import { defu } from 'defu'
 import fs from "fs";
 import path from "path";
 import pkg from "fs-extra";
@@ -72,7 +73,16 @@ export default defineNuxtModule<ModuleOptions>({
     // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/tailwind.css"));
     // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/global.scss"));
     // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/date.scss"));
-
+// Only if the host already has @nuxtjs/i18n installed
+    nuxt.options.i18n = defu(nuxt.options.i18n || {}, {
+      langDir: '_locales',
+      lazy: true,
+      locales: [
+        { code: 'en', file: 'en.json' },
+        { code: 'km', file: 'km.json' }
+      ],
+      defaultLocale: 'en'
+    })
     // Install external modules
     const modulesToInstall = [
       "@nuxt/ui",
@@ -193,31 +203,88 @@ export default defineNuxtModule<ModuleOptions>({
     // addPlugin(resolve(runtimeAppDir, "plugins", "plugin"));
     addPlugin(resolve(runtimeAppDir, "plugins", "assets"));
 
+
+    console.log("layers:", layers)
+    console.log("layers.length:", layers.length)
     // Merge lang JSON files to app locales
     const lang = ["km", "en"];
+    const rootDir = nuxt.options.rootDir
 
+    console.log("rootDir:", rootDir)
+
+    console.log("cwd=======>:", process.cwd())
     for (const lan of lang) {
+        // Main app language
+        const mainLang = path.join(rootDir, "app", "assets", "lang", `${lan}.json`)
+        const moduleLang = resolve("./runtime/app/assets/lang", `${lan}.json`)
+        console.log("moduleLang-------------> ", moduleLang)
+        console.log("fs.existsSync(moduleLang) =============> ", fs.existsSync(moduleLang))
+        console.log("Main Lang:", mainLang)
+        console.log("Exists:", fs.existsSync(mainLang))
+
       const assetLangs = layers?.map((l) => {
+        console.log("l=======>:", l)
         const baseDir = path.dirname(
           path.posix.join(...process.cwd().split(/\\+/))
         );
-        return `${baseDir}/${l}/assets/lang/${lan}.json`;
+        const p = path.join(process.cwd(), "app", "assets", "lang", `${lan}.json`)
+
+        console.log("Path -------------> ", p)
+        console.log("Exists-------------> ", fs.existsSync(p))
+
+        return `${baseDir}/${l}/app/assets/lang/${lan}.json`;
       });
+      assetLangs.push(mainLang)
+
+      console.log("assetLangs:", assetLangs)
+
+      const output = path.join(rootDir, "_locales", `${lan}.json`)
+
+      console.log("Output:", output)
 
       // Add current working directory's assets path at the beginning
       assetLangs.unshift(
         `${path.posix.join(
           ...process.cwd().split(/\\+/)
-        )}/assets/lang/${lan}.json`
+        )}/app/assets/lang/${lan}.json`
       );
 
+
+      const inputPaths = [ //If you want to merge both the app and the module
+        resolve("./runtime/app/assets/lang", `${lan}.json`),           // module
+        path.join(rootDir, "assets", "lang", `${lan}.json`),           // app
+        path.join(rootDir, "app", "assets", "lang", `${lan}.json`)     // app (Nuxt app dir, if used)
+      ].filter(fs.existsSync)
+
       copyJsonFile({
-        inputPaths: assetLangs.reverse(),
-        outputPath: `${path.posix.join(
-          ...process.cwd().split(/\\+/)
-        )}/_locales/${lan}.json`,
-        deep: false,
-      });
+        inputPaths,
+        outputPath: path.join(rootDir, "_locales", `${lan}.json`),
+        deep: false
+      })
+
+      // const moduleLang = resolve("./runtime/app/assets/lang", `${lan}.json`) //If your goal is to copy the module's language files into _locales WEBAPP_NUXT_MODULE/runtime/app/assets/lang --> CEREMONY_WEBAPP_NUXT/_locales
+
+      // console.log(moduleLang)
+      // console.log(fs.existsSync(moduleLang))
+
+      // copyJsonFile({
+      //   inputPaths: [moduleLang],
+      //   outputPath: path.join(rootDir, "_locales", `${lan}.json`),
+      //   deep: false
+      // })
+
+      // copyJsonFile({
+      //   inputPaths: [moduleLang],
+      //   outputPath: path.join(rootDir, "_locales", `${lan}.json`),
+      //   deep: false
+      // })
+      // copyJsonFile({
+      //   inputPaths: assetLangs.reverse(),
+      //   outputPath: `${path.posix.join(
+      //     ...process.cwd().split(/\\+/)
+      //   )}/_locales/${lan}.json`,
+      //   deep: false,
+      // });
     }
 
     // Create tsconfig.json file
