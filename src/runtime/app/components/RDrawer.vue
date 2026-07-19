@@ -33,6 +33,9 @@ const props = defineProps({
   heightMobile:         { type: String,  default: '88vh'  },
   // Nested drawer support
   nested:               { type: Boolean, default: false   },
+  // Dirty form guard — when true, outside-click will NOT close the drawer
+  // Use with useFormDirty() or useZodForm().isDirty
+  dirty:                { type: Boolean, default: false   },
   // ui passthrough (merged with SARIKA defaults)
   ui:                   { type: Object,  default: () => ({}) },
 })
@@ -86,6 +89,9 @@ const parentIsDrawer = inject('rDrawerNested', false)
 const isNested = computed(() => props.nested || parentIsDrawer)
 provide('rDrawerNested', true)
 
+// ── Dirty guard — block outside-click close when form has unsaved changes ──
+const resolvedCloseOnOutside = computed(() => props.dirty ? false : props.closeOnOutsideClick)
+
 // ── Close handler ──────────────────────────────────────────────────────────
 function close() {
   open.value = false
@@ -104,7 +110,7 @@ function close() {
     :dismissible="dismissible"
     :trap-focus="trapFocus"
     :close-on-escape="closeOnEscape"
-    :close-on-outside-click="closeOnOutsideClick"
+    :close-on-outside-click="resolvedCloseOnOutside"
     :should-scale-background="shouldScaleBackground"
     :nested="isNested"
     :ui="mergedUi"
@@ -142,6 +148,9 @@ function close() {
     <template #content>
       <slot name="content" :close="close">
 
+        <!-- Dirty form indicator strip ────────────────── -->
+        <div v-if="dirty" class="rd__dirty-bar" aria-hidden="true" />
+
         <!-- SARIKA chrome header ─────────────────────── -->
         <div
           v-if="title || icon || $slots['drawer-header']"
@@ -158,10 +167,17 @@ function close() {
                 <p v-if="description" class="rd__desc" v-html="description" />
               </div>
             </div>
-            <!-- Close button -->
-            <button type="button" class="rd__close" aria-label="Close drawer" @click="close">
-              <i class="ri-close-line" aria-hidden="true" />
-            </button>
+            <div class="rd__head-end">
+              <!-- Unsaved changes badge -->
+              <span v-if="dirty" class="rd__unsaved-badge" title="You have unsaved changes">
+                <i class="ri-edit-circle-line" aria-hidden="true" />
+                Unsaved
+              </span>
+              <!-- Close button -->
+              <button type="button" class="rd__close" aria-label="Close drawer" @click="close">
+                <i class="ri-close-line" aria-hidden="true" />
+              </button>
+            </div>
           </slot>
         </div>
 
@@ -269,6 +285,36 @@ function close() {
     padding:      var(--space-4) var(--space-5);
     border-top:   1px solid var(--c-border);
     background:   var(--bg-tertiary);
+  }
+
+  // ── Dirty form guard UI ─────────────────────────────────
+  &__dirty-bar {
+    height:     3px;
+    background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2, #ffb347));
+    flex-shrink: 0;
+  }
+
+  &__head-end {
+    display:     flex;
+    align-items: center;
+    gap:         var(--space-2);
+    flex-shrink: 0;
+  }
+
+  &__unsaved-badge {
+    display:       inline-flex;
+    align-items:   center;
+    gap:           4px;
+    padding:       3px 8px;
+    border-radius: 999px;
+    font-size:     0.7rem;
+    font-weight:   600;
+    color:         var(--c-accent);
+    background:    rgba(255,140,66,0.1);
+    border:        1px solid rgba(255,140,66,0.25);
+    white-space:   nowrap;
+
+    i { font-size: 0.8rem; }
   }
 }
 </style>

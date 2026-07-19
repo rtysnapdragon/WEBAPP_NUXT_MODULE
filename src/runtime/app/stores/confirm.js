@@ -20,15 +20,21 @@ export const useConfirmStore = defineStore( 'ConfirmStore', {
         this.loading = false
       },
 
+      /**
+       * Show a confirm dialog.
+       *
+       * @param props.persistent {boolean} — when true, clicking the overlay does NOT close the dialog.
+       *   Use when showing a confirm on top of a dirty form.
+       *   Example: confirmStore.show({ type: 'delete', persistent: true, onConfirm: ... })
+       */
       show(props) {
-        // this.confirm = props;
         this.confirm = {
           type: props.type ?? "confirm",
           color: 'primary',
           confirmText: 'Confirm',
           cancelText: 'Cancel',
           message: props.message ?? "",
-          persistent: false,
+          persistent: false,   // override with persistent: true to block overlay-click close
           ...props
         }
       },

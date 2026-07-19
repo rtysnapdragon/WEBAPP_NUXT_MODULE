@@ -3,8 +3,8 @@
 
   <div ref="refOCSelect" class="r-customer-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
-    <USelectMenu ref="refSelctMenu" v-model="selected" v-model:query="query" :ui="ui" selected-icon="i-lucide-flame" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base" 
-      :loading="isLoading" loadingIcon="ri-loader-4-line" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen" 
+    <USelectMenu ref="refSelctMenu" v-model="selected"  v-model:open="isOpen" v-model:query="query" :ui="ui" selected-icon="i-lucide-flame" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base" :arrow="arrow"
+      :loading="isLoading" loading-icon="i-lucide-loader" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen" 
       :searchInput="isNotEmpty(props.api)
         ? props.searchInput ?? true
           ? fnSearch
@@ -78,7 +78,7 @@
         </div>
       </template>
 
-      <template #item="{ item,index,ui }">
+      <template #item="{ item,selected,index,ui }">
         <div v-if="multiple && item?.isSelectAll" class="select-clear-container">
           {{ locale == "km" ? "---ជ្រើសរើសទាំងអស់---" : "---Select All---" }}
         </div>
@@ -124,6 +124,41 @@
           </RViewInfo>
         </div>
       </template>
+      <template #trailing="{ item}">
+        <button
+          v-if="hasValue"
+          type="button"
+          class="r-select-clear"
+          @click.stop="clear"
+        >
+          <i class="ri-close-circle-fill" />
+        </button>
+
+        <UIcon
+          v-else
+          name="ri-arrow-down-s-line"
+          :class="[
+            'r-select-arrow',
+            { 'r-select-arrow--open': isOpen }
+          ]"
+        />
+      </template>
+      <!-- <template #empty>
+        <button
+          v-if="hasValue"
+          type="button"
+          class="r-select-clear"
+          @click.stop="clear"
+        >
+          <i class="ri-close-circle-fill" />
+        </button>
+
+        <UIcon
+          v-else
+          name="ri-arrow-down-s-line"
+          class="r-select-arrow"
+        />
+      </template> -->
     </USelectMenu>
   </div>
 </template>
@@ -169,7 +204,8 @@ const props = defineProps([
   'templateOption',
   'isNotAllowRemoteSelect',
   'leadingIcon',
-  'fullWidth'
+  'fullWidth',
+  'arrow'
 ]);
 const emit = defineEmits("selected", "mapData", "onSearch",'onOpen');
 const localData = computed(() => props.localData);
@@ -181,10 +217,12 @@ const variant = computed(() => props.variant ?? "outline"); // Ex: variant = sol
 const placeholder = computed(() => props.placeholder ?? null);
 const colorPlaceholder = computed(() => props.colorPlaceholder ?? false);
 const fullWidth = computed(() => props.fullWidth ?? false);
+const arrow = computed(() => props.arrow ?? true);
 const recordCountPropotyName = computed(
   () => props.recordCountPropotyName ?? false
 );
 const clearSelect = computed(() => props.clearSelect ?? true);
+const isOpen = ref(false)
 const listData = ref([]);
 const query = ref();
 // const isLoading = ref(false);
@@ -261,6 +299,16 @@ onBeforeMount(() => {
 // + reload
 // - 1: this function for reload list
 // ex: ref_Element.reload()
+
+const hasValue = computed(() => {
+  if (props.multiple) {
+    return Array.isArray(selected.value) && selected.value.length > 0
+  }
+
+  return selected.value != null &&
+         selected.value !== '' &&
+         !selected.value?.isDefault
+})
 
 mounted(async () => {
   // console.log(selected.value, 'mounted select >>>', pk.value)
@@ -476,10 +524,32 @@ function deepEqual(obj1, obj2) {
 
   return true;
 }
+function clear() {
+  selected.value = multiple.value ? [] : undefined
+  query.value = ''
+}
+function open() {
+  isOpen.value = true
+}
+function close() {
+  isOpen.value = false
+}
+function getSelected() {
+  console.log('getSelected >>>', selected.value)
+  return selected.value
+}
+function getMenuRef() {
+  return refSelctMenu.value // was selectExpose() — same thing, exposed properly now
+}
 
 defineExpose({
   remoteSelect,
   reload,
+  clear,
+  open,
+  close,
+  getSelected,
+  getMenuRef,
 });
 
 function selectExpose() {
@@ -694,13 +764,17 @@ const ui = computed(() => {
     // content:'min-w-fit',
     content: 'flex-1 min-w-0',
     leading: 'hidden',
-    trailing: '',
+    trailing: 'ui_rselect_trailing',
+    group:'ui_rselect_group',
+    empty:'',
+    item:'ui_rselect_item',
     input:'!px-2.5 !py-2.5',
     ring: "",
     rounded: "",
     itemLabel: 'truncate',
     size: {},
     value: 'text-left flex-1',
+    itemTrailingIcon: 'i-lucide-check',
     option: {
       active: "color-bg-wrapper",
       container: `flex items-center gap-1.5 w-full min-w-full`,
@@ -728,9 +802,11 @@ const ui = computed(() => {
     //     },
     //   },
     // },
-    arrow: {
-      input: "",
-    },
+    arrow:'ui_rselect_arrow'
+    // arrow: [
+    //   'ui_rselect_arrow',
+    //   { input: "", base:"ri-chevron-down", },
+    // ],
   };
 
   if (isNotEmpty(props.class)) {
@@ -752,63 +828,26 @@ function fnGenerateTextSubLabel(data, template) {
   width: 100%;
   min-width: fit-content !important;
 
- display: flex !important; 
+//  display: flex !important; 
+//   flex-direction: row !important;
+//   justify-content: start !important;
+//   align-items: center !important; 
+//   overflow: hidden !important;
+}
+
+.ui_rselect_trailing{
+  display: flex !important; 
   flex-direction: row !important;
   justify-content: start !important;
   align-items: center !important; 
   overflow: hidden !important;
-
-  [data-slot="trailing"]{
-    padding-right: 2px !important;
-  }
-  [data-slot=""]{
-    // margin-left: var(--spacing-1);
-    // margin-right: var(--spacing-1);
-    height: 100px;
-  }
 }
-// [data-slot="trigger"] {
-//   justify-content: space-between !important;
-// }
 
-// [data-slot="trigger"] > *:first-child {
-//   flex: 1;
-//   text-align: left;
-// }
-
-// .ui-select-base > .w-full {
-//   flex: 1 !important;
-//   min-width: 0;
-// }
-
-// .ui-select-base .r-text {
-//   display: block;
-//   width: 100%;
-//   text-align: left !important;
-// }
-
-// [data-slot="select-value"] {
-//   flex: 1 !important;
-//   text-align: left !important;
-//   display: flex !important;
-//   align-items: center !important;
-//   justify-content: flex-start !important;
-//   padding-left: 2px !important;
-// }
-
-// Fix for the closed state - remove max-width: 0px
-// [data-slot="listbox"][data-state="closed"] {
-//   display: flex !important;
-//   flex-direction: row !important;
-//   justify-content: flex-start !important;
-//   align-items: center !important;
-//   overflow: hidden !important;
-//   padding: 0 !important;
-//   // REMOVED: max-width: 0px !important; - THIS WAS THE PROBLEM
-//   white-space: nowrap;
-//   overflow-x: auto;
-// }
-
+.ui_rselect_item{
+  flex-shrink: 0 !important;
+  padding: 1px 5px !important;
+  border-radius: 5px !important;
+}
 .r-customer-select {
   &.have-selected-value {
     .height-btn-select-all {
@@ -1007,5 +1046,49 @@ function fnGenerateTextSubLabel(data, template) {
       }
     }
   }
+}
+
+.r-select-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px !important;
+  height: 20px !important;
+  border: 0 !important;
+  background: var(--bg-content) !important;
+  cursor: pointer !important;
+  color: var(--c-text) !important;
+  transition: .2s;
+
+  &:hover {
+    color: var(--color-error);
+  }
+
+  i {
+    font-size: 18px !important;
+  }
+}
+
+.r-select-arrow {
+  transition: transform .2s ease;
+
+  &.r-select-arrow--open {
+    transform: rotate(180deg);
+  }
+}
+
+.ui_rselect_arrow{
+  // .ui_rselect_base[aria-expanded="true"] .ri-chevron-down::before{
+  //   content: "\e984" !important;
+  // }
+
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // padding: 30px;
 }
 </style>
