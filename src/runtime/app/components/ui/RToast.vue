@@ -8,36 +8,44 @@ function closeToast(id: string) {
   toast.remove(id)
 }
 
-const typeConfig = {
-  success: {  icon: 'ri-checkbox-circle-fill',  color: '#10b981',  bg: '#ecfdf5', border: '#10b981'},
-  error: { icon: 'ri-close-circle-fill', color: '#ef4444', bg: '#fef2f2', border: '#ef4444'},
-  loading: { icon: 'ri-loader-4-line', color: '#3b82f6', bg: '#eff6ff', border: '#3b82f6'},
-  countdown: { icon: 'ri-time-fill', color: '#f59e0b', bg: '#fffbeb', border: '#f59e0b'},
-  progress: { icon: 'ri-bar-chart-box-fill', color: '#6366f1', bg: '#eef2ff', border: '#6366f1'},
-  multistep: { icon: 'ri-git-merge-fill', color: '#06b6d4', bg: '#ecfeff', border: '#06b6d4'},
-  action: { icon: 'ri-cursor-fill', color: '#8b5cf6', bg: '#f5f3ff', border: '#8b5cf6'},
-  gradient: { icon: 'ri-magic-fill', color: '#ec4899', bg: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)', border: 'transparent'},
-  safety: { icon: 'ri-shield-check-fill', color: '#14b8a6', bg: '#f0fdfa', border: '#14b8a6'},
-  streaming: { icon: 'ri-sparkling-fill', color: '#f97316', bg: '#fff7ed', border: '#f97316'},
-  pipeline: { icon: 'ri-cpu-fill', color: '#00c16a', bg: '#ecfdf5', border: '#00c16a'}
+// Read a CSS variable from the document root at call time — respects active theme and dark/light mode.
+function cssVar(name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+const typeConfig: Record<string, { icon: string; colorVar: string; fallback: string }> = {
+  success:   { icon: 'ri-checkbox-circle-fill', colorVar: '--c-success',  fallback: '#4ade80' },
+  error:     { icon: 'ri-close-circle-fill',    colorVar: '--c-danger',   fallback: '#f87171' },
+  loading:   { icon: 'ri-loader-4-line',        colorVar: '--c-info',     fallback: '#60a5fa' },
+  countdown: { icon: 'ri-time-fill',            colorVar: '--c-accent-2', fallback: '#ffb347' },
+  progress:  { icon: 'ri-bar-chart-box-fill',   colorVar: '--c-accent',   fallback: '#ff8c42' },
+  multistep: { icon: 'ri-git-merge-fill',       colorVar: '--c-info',     fallback: '#60a5fa' },
+  action:    { icon: 'ri-cursor-fill',          colorVar: '--c-accent',   fallback: '#ff8c42' },
+  gradient:  { icon: 'ri-magic-fill',           colorVar: '--c-accent',   fallback: '#ff8c42' },
+  safety:    { icon: 'ri-shield-check-fill',    colorVar: '--c-success',  fallback: '#4ade80' },
+  streaming: { icon: 'ri-sparkling-fill',       colorVar: '--c-accent',   fallback: '#ff8c42' },
+  pipeline:  { icon: 'ri-cpu-fill',             colorVar: '--c-success',  fallback: '#4ade80' },
 }
 
 function getIcon(item: any) {
-  return item.icon || typeConfig[item.type || 'success' || 'ok']?.icon || 'ri-notification-3-line'
+  return item.icon || typeConfig[item.type || 'success']?.icon || 'ri-notification-3-line'
 }
 
-function getColor(item: any) {
-  return item.color || typeConfig[item.type || 'success' || 'ok']?.color || '#6366f1'
+function getColor(item: any): string {
+  if (item.color) return item.color
+  const cfg = typeConfig[item.type || 'success']
+  return cfg ? cssVar(cfg.colorVar, cfg.fallback) : cssVar('--c-accent', '#ff8c42')
 }
 
-function getBgColor(item: any) {
+function getBgColor(item: any): string {
   if (item.type === 'gradient') return 'transparent'
-  return item.bgColor || typeConfig[item.type || 'success'|| 'ok']?.bg || '#f3f4f6'
+  return item.bgColor || 'var(--c-surface)'
 }
 
-function getBorderColor(item: any) {
+function getBorderColor(item: any): string {
   if (item.type === 'gradient') return 'transparent'
-  return typeConfig[item.type || 'success' || 'ok']?.border || '#e5e7eb'
+  return getColor(item)
 }
 
 function getProgress(item: any) {
@@ -58,16 +66,17 @@ function getStepIcon(step: any) {
   return 'ri-circle-line'
 }
 
-function getStepColor(step: any) {
-  if (step.status === 'done') return '#10b981'
-  if (step.status === 'active') return '#3b82f6'
-  return '#d1d5db'
+function getStepColor(step: any): string {
+  if (step.status === 'done') return cssVar('--c-success', '#4ade80')
+  if (step.status === 'active') return cssVar('--c-info', '#60a5fa')
+  return cssVar('--c-border', 'rgba(255,140,66,0.16)')
 }
 
-function getBadgeColor(badge: string) {
-  const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4']
-  const index = badge.length % colors.length
-  return colors[index]
+function getBadgeColor(badge: string): string {
+  const vars = ['--c-success', '--c-info', '--c-accent', '--c-accent-2', '--c-danger', '--c-info']
+  const fallbacks = ['#4ade80', '#60a5fa', '#ff8c42', '#ffb347', '#f87171', '#60a5fa']
+  const index = badge.length % vars.length
+  return cssVar(vars[index], fallbacks[index])
 }
 
 // Check if should show close button
@@ -290,7 +299,7 @@ function isAutoClose(item: any) {
           <!-- 6. STREAMING -->
           <div v-if="item.type === 'streaming'" class="r-toast-stream">
             <div class="r-toast-stream-header">
-              <i class="ri-sparkling-fill" style="color: #f97316;" />
+              <i class="ri-sparkling-fill" style="color: var(--c-accent);" />
               <span class="r-toast-stream-title">Live Stream</span>
               <span class="r-toast-stream-dot">●</span>
             </div>
@@ -368,11 +377,11 @@ function isAutoClose(item: any) {
 .r-toast-card {
   width: 440px;
   max-width: calc(100vw - 48px);
-  background: var(--c-bg);
+  background: var(--c-surface);
   border-radius: 16px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   padding: 16px 18px;
   position: relative;
   overflow: hidden;
@@ -388,36 +397,36 @@ function isAutoClose(item: any) {
   
   // Gradient Type
   &.r-toast-gradient {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-2));
     color: white;
     border-color: transparent;
-    
+
     .r-toast-title,
     .r-toast-description {
       color: white;
     }
-    
+
     .r-toast-btn-close {
       color: rgba(255, 255, 255, 0.7);
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.2);
         color: white;
       }
     }
   }
-  
+
   // Loading Type
   &.r-toast-loading {
     .r-toast-icon {
       animation: pulse 1.5s ease-in-out infinite;
     }
   }
-  
+
   // Streaming Type
   &.r-toast-streaming {
-    background: linear-gradient(135deg, #fff7ed, #ffedd5);
-    border-color: #f97316;
+    background: var(--c-surface);
+    border-color: var(--c-accent);
   }
 }
 
@@ -480,14 +489,14 @@ function isAutoClose(item: any) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--c-muted);
   cursor: pointer;
   transition: all 0.15s ease;
   font-size: 16px;
-  
+
   &:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--c-hover);
+    color: var(--c-text);
   }
 }
 
@@ -539,7 +548,7 @@ function isAutoClose(item: any) {
   align-items: center;
   gap: 16px;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--c-hover);
   border-radius: 12px;
 }
 
@@ -566,12 +575,12 @@ function isAutoClose(item: any) {
   transform: translate(-50%, -50%);
   font-size: 12px;
   font-weight: 700;
-  color: #111827;
+  color: var(--c-text);
 }
 
 .r-toast-countdown-label {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--c-muted);
 }
 
 // Progress
@@ -581,7 +590,7 @@ function isAutoClose(item: any) {
 
 .r-toast-progress-track {
   height: 8px;
-  background: #f3f4f6;
+  background: var(--c-hover);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -602,12 +611,12 @@ function isAutoClose(item: any) {
 .r-toast-progress-label {
   font-size: 13px;
   font-weight: 600;
-  color: #111827;
+  color: var(--c-text);
 }
 
 .r-toast-progress-status {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--c-muted);
 }
 
 // Multistep
@@ -622,19 +631,9 @@ function isAutoClose(item: any) {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  
-  &--done {
-    .r-toast-step-label {
-      color: #10b981;
-    }
-  }
-  
-  &--active {
-    .r-toast-step-label {
-      color: #3b82f6;
-      font-weight: 600;
-    }
-  }
+
+  &--done .r-toast-step-label { color: var(--c-success); }
+  &--active .r-toast-step-label { color: var(--c-info); font-weight: 600; }
 }
 
 .r-toast-step-indicator {
@@ -648,25 +647,23 @@ function isAutoClose(item: any) {
 .r-toast-step-line {
   width: 2px;
   height: 20px;
-  background: #e5e7eb;
+  background: var(--c-border);
   margin: 4px 0;
-  
-  &--active {
-    background: #10b981;
-  }
+
+  &--active { background: var(--c-success); }
 }
 
 .r-toast-step-circle {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--c-border);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 10px;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--c-muted);
   transition: all 0.3s ease;
 }
 
@@ -680,13 +677,13 @@ function isAutoClose(item: any) {
 
 .r-toast-step-label {
   font-size: 13px;
-  color: #374151;
+  color: var(--c-text);
   font-weight: 500;
 }
 
 .r-toast-step-status {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--c-muted);
   font-weight: 500;
 }
 
@@ -694,7 +691,7 @@ function isAutoClose(item: any) {
 .r-toast-pipeline {
   margin-top: 14px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--c-hover);
   border-radius: 12px;
 }
 
@@ -711,35 +708,18 @@ function isAutoClose(item: any) {
   flex: 1;
   
   &--done {
-    .r-toast-pipeline-dot {
-      background: #10b981;
-      color: white;
-    }
-    .r-toast-pipeline-label {
-      color: #10b981;
-    }
+    .r-toast-pipeline-dot { background: var(--c-success); color: white; }
+    .r-toast-pipeline-label { color: var(--c-success); }
   }
-  
+
   &--active {
-    .r-toast-pipeline-dot {
-      background: #3b82f6;
-      color: white;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    .r-toast-pipeline-label {
-      color: #3b82f6;
-      font-weight: 600;
-    }
+    .r-toast-pipeline-dot { background: var(--c-info); color: white; animation: pulse 1.5s ease-in-out infinite; }
+    .r-toast-pipeline-label { color: var(--c-info); font-weight: 600; }
   }
-  
+
   &--pending {
-    .r-toast-pipeline-dot {
-      background: #e5e7eb;
-      color: #9ca3af;
-    }
-    .r-toast-pipeline-label {
-      color: #9ca3af;
-    }
+    .r-toast-pipeline-dot { background: var(--c-hover); color: var(--c-muted); }
+    .r-toast-pipeline-label { color: var(--c-muted); }
   }
 }
 
@@ -764,7 +744,7 @@ function isAutoClose(item: any) {
 
 .r-toast-pipeline-label {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--c-muted);
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -776,12 +756,10 @@ function isAutoClose(item: any) {
 
 .r-toast-pipeline-line {
   height: 2px;
-  background: #e5e7eb;
+  background: var(--c-border);
   width: 100%;
-  
-  &--active {
-    background: #10b981;
-  }
+
+  &--active { background: var(--c-success); }
 }
 
 // Streaming
@@ -799,22 +777,22 @@ function isAutoClose(item: any) {
 .r-toast-stream-title {
   font-size: 12px;
   font-weight: 600;
-  color: #f97316;
+  color: var(--c-accent);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .r-toast-stream-dot {
-  color: #ef4444;
+  color: var(--c-danger);
   font-size: 8px;
   animation: blink 1s step-end infinite;
 }
 
 .r-toast-stream-content {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--c-hover);
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  border: 1px solid var(--c-border);
 }
 
 .r-toast-stream-text {
@@ -822,13 +800,13 @@ function isAutoClose(item: any) {
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: #374151;
+  color: var(--c-text);
   font-family: 'Courier New', monospace;
 }
 
 .r-toast-stream-cursor {
   animation: blink 1s step-end infinite;
-  color: #f97316;
+  color: var(--c-accent);
 }
 
 .r-toast-stream-indicators {
@@ -840,12 +818,12 @@ function isAutoClose(item: any) {
 .r-toast-stream-indicator {
   flex: 1;
   height: 2px;
-  background: #e5e7eb;
+  background: var(--c-border);
   border-radius: 1px;
   transition: all 0.3s ease;
-  
+
   &--active {
-    background: #f97316;
+    background: var(--c-accent);
     animation: pulse 1.5s ease-in-out infinite;
   }
 }
