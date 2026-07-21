@@ -115,8 +115,9 @@ defineProps<{
   }
 
   &__title {
+    font-family: var(--font-400,var(--font-fallback));
     font-size: 1.5rem;
-    font-weight: 720;
+    font-weight: bold;
 
     line-height: 1.2;
 

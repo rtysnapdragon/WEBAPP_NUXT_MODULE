@@ -11,7 +11,7 @@
 <style lang="scss" scoped>
 
 .r-content {
-  background:    var(--bg-secondary) !important;
+  background:    var(--bg-c-card) !important;
   border-radius: var(--radius-lg);
   overflow:      hidden;
   padding:10px !important;

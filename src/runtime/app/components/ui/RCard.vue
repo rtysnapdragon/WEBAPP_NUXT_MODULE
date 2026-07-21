@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // RCard — glass morphism card
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   title?:     string
   subtitle?:  string
   icon?:      string
@@ -8,6 +8,7 @@ withDefaults(defineProps<{
   padding?:   'none' | 'sm' | 'md' | 'lg'
   hoverable?: boolean
   bordered?:  boolean
+  className?:     string
 }>(), {
   padding:  'md',
   bordered: true,
@@ -22,7 +23,8 @@ function onClick(event: Event) {
 
 <template>
   <div :class="[
-    'r-card',
+    'r-card', 
+    props.className,
     `r-card--pad-${padding}`,
     { 'r-card--glass': glass, 'r-card--hoverable': hoverable, 'r-card--bordered': bordered }
   ]" @click="onClick">
