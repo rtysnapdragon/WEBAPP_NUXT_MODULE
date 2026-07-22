@@ -210,7 +210,7 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { Emoji, gitHubEmojis } from '@tiptap/extension-emoji'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Image } from '@tiptap/extension-image'
-import { useEditorCompletion } from '../../composables/useEditorCompletion.ts'
+import { useEditorCompletion } from '../../composables/EditorUseCompletion'
 
 // ════════════════════════════════════════════════════════════════════════
 // MODULE-SCOPE HELPERS + CUSTOM NODES
@@ -514,7 +514,7 @@ const {
 // EditorCompletionExtension.js for the Vite-config half). ──────────────────
 function buildExtensions() {
   const list = []
-  // if (opts.value.emojiMenu) list.push(Emoji)
+  if (opts.value.emojiMenu) list.push(Emoji)
   // if (opts.value.emojiMenu) list.push(Emoji.configure({ emojis: gitHubEmojis }))
   if (opts.value.textAlign) list.push(TextAlign.configure({ types: ['heading', 'paragraph'] }))
   if (opts.value.imageUpload) list.push(ResizableImage)

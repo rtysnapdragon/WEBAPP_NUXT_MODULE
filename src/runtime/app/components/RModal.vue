@@ -10,13 +10,12 @@
       v-model:open="isOpen"
       :transition="true"
       :fullscreen="isFullScreen"
-      :dismissible="!noClose"
+      :dismissible="noClose"
       :close-icon="closeIcon || 'ri-close-line'"
       :hide-header="noHeader"
       :hide-footer="noFooter"
       :content="{ style: { minWidth: modalWidthValue } }"
       :ui="mergedUI"
-
     >
       <!-- ── HEADER ── -->
       <template #header>
@@ -101,6 +100,8 @@ const props = defineProps({
   overflowAuto: { type: Boolean, default: false     },
   ui:           { type: Object,  default: () => ({}) },
 })
+
+const noClose = computed(() => props.noClose)
 
 const emit = defineEmits(['onClose'])
 
@@ -228,6 +229,17 @@ function onCloseModal() {
   display: none !important;
 }
 
+.rm-header__icon{
+  font-size: 18px;
+  padding: 5px !important;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .rm-ui-body {
   flex: 1;
   padding: 0 !important;

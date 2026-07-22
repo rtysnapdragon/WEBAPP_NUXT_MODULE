@@ -7,7 +7,7 @@ import { ref, computed, watch } from 'vue'
 import { useCompletion } from '@ai-sdk/vue'
 import { Completion } from './EditorCompletionExtension'
 
-export function useEditorCompletion1(editorRef, options = {}) {
+export function useEditorCompletion(editorRef, options = {}) {
   // State for direct insertion/transform mode
   const insertState = ref()
   const mode = ref('continue')
@@ -203,4 +203,4 @@ export function useEditorCompletion1(editorRef, options = {}) {
   return { extension, handlers, isLoading, mode }
 }
 
-export default useEditorCompletion1
+export default useEditorCompletion

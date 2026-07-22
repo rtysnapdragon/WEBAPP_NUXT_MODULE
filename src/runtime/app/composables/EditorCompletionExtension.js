@@ -179,4 +179,4 @@ export const Completion = Extension.create({
   },
 })
 
-export default Completion1
+export default Completion

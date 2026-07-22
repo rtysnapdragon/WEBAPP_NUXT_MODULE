@@ -259,6 +259,21 @@ const icon = computed(() => {
     props.icon?.toLowerCase() == "previous"
   )
     return "ri-arrow-left-s-line";
+  else if (
+    props.type?.toLowerCase() == "import" ||
+    props.icon?.toLowerCase() == "import"
+  )
+    return "ri-upload-2-line";
+  else if (
+    props.type?.toLowerCase() == "export" ||
+    props.icon?.toLowerCase() == "export"
+  )
+    return "ri-download-2-line";
+  else if (
+    props.type?.toLowerCase() == "add" ||
+    props.icon?.toLowerCase() == "add"
+  )
+    return "ri-user-add-line";
   else return props.icon;
 });
 const typeButton = computed(() => props.typeButton ?? "button");
@@ -412,10 +427,13 @@ function actionClick(e) {
 
 .solid {
   &.create,
+  &.add,
   &.apply,
   &.next,
   &.cash,
   &.view,
+  &.import,
+  &.export,
   &.send {
     background: var(--r-c-nenoBlue);
   }
@@ -514,9 +532,12 @@ function actionClick(e) {
   }
 
   &.create,
+  &.add,
   &.apply,
   &.next,
   &.cash,
+  &.import,
+  &.export,
   &.send {
     border: 1px solid var(--r-c-nenoBlue);
     color: var(--r-c-nenoBlue);

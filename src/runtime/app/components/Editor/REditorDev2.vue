@@ -223,6 +223,7 @@ import { Emoji, gitHubEmojis } from '@tiptap/extension-emoji'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Image } from '@tiptap/extension-image'
 import { useEditorCompletion } from './EditorUseCompletion'
+import RCanvasEditor from './RCanvasEditor.vue'
 
 // ════════════════════════════════════════════════════════════════════════
 // MODULE-SCOPE HELPERS + CUSTOM NODES
