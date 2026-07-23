@@ -1,246 +1,280 @@
 <template>
-  <URadioGroup
-    v-model="select"
-    :ui="ui"
-    :ui-radio="uiRadio"
-    :items="options"
-    :value-attribute="valueAttribute"
-    :option-attribute="optionAttribute"
-    :disabled="disabled"
-    :mode-check-box="modeCheckBox"
-    @change="(v)=>emit('onChange',v)"
+  <div
+    class="r-radios"
+    :class="[modeCheckBox ? 'r-radios--checkbox' : 'r-radios--radio', { 'is-disabled': disabled }]"
   >
-    <template #label="{ option }" v-if="$slots.label">
-      <slot name="label" v-bind="{ option }" />
-    </template>
-  </URadioGroup>
+    <!--
+      Single-item mode.
+      A native RadioGroup can't be unchecked once selected (that's correct radio
+      semantics) — but a lone option almost always means "toggle this one thing
+      on/off", so it renders as a real toggle instead of a locked-in radio.
+    -->
+    <button
+      v-if="isSingle"
+      type="button"
+      class="r-radios__single"
+      role="checkbox"
+      :aria-checked="singleChecked"
+      :disabled="disabled"
+      @click="toggleSingle"
+    >
+      <span class="r-radios__box">
+        <span class="r-radios__dot" />
+      </span>
+      <span class="r-radios__label" v-if="$slots.label || singleLabel">
+        <slot name="label" :option="singleOption">{{ singleLabel }}</slot>
+      </span>
+    </button>
+
+    <URadioGroup
+      v-else
+      v-model="select"
+      :items="normalizedItems"
+      :disabled="disabled"
+      :ui="ui"
+      orientation="horizontal"
+      @change="(v) => emit('onChange', v)"
+    >
+      <template #label="{ item }" v-if="$slots.label">
+        <slot name="label" :option="item" />
+      </template>
+    </URadioGroup>
+  </div>
 </template>
 
 <script setup>
-// const { label } = useSlots()
-const select = defineModel();
-const props = defineProps([
-  "ui",
-  "uiRadio",
-  "options",
-  "disabled",
-  "optionAttribute",
-  "valueAttribute",
-  "modeCheckBox",
-]); // modeCheckBox true or false
+import { computed } from 'vue'
+
+const select = defineModel()
+
+const props = defineProps({
+  ui: { type: Object, default: () => ({}) },
+  options: { type: Array, default: () => [] },
+  disabled: { type: Boolean, default: false },
+  // Legacy field-name bridge — lets old callers keep passing
+  // :option-attribute / :value-attribute without touching their data.
+  optionAttribute: { type: String, default: 'label' },
+  valueAttribute: { type: String, default: 'value' },
+  modeCheckBox: { type: Boolean, default: false }, // visual only: square vs circle
+})
+
+const emit = defineEmits(['onChange'])
+
+// Nuxt UI v4's URadioGroup expects { label, value } (or plain strings/numbers).
+// This normalizes whatever field names the caller's data actually uses.
+const normalizedItems = computed(() =>
+  (props.options || []).map((opt) => {
+    if (opt === null || typeof opt !== 'object') return opt
+    return {
+      ...opt,
+      label: opt.label ?? opt[props.optionAttribute],
+      value: opt.value ?? opt[props.valueAttribute],
+    }
+  })
+)
+
+const isSingle = computed(() => normalizedItems.value.length === 1)
+const singleOption = computed(() => normalizedItems.value[0])
+const singleLabel = computed(() =>
+  typeof singleOption.value === 'object' ? singleOption.value?.label : singleOption.value
+)
+const singleValue = computed(() =>
+  typeof singleOption.value === 'object' ? singleOption.value?.value : singleOption.value
+)
+const singleChecked = computed(() => select.value === singleValue.value)
+
+function toggleSingle() {
+  if (props.disabled) return
+  select.value = singleChecked.value ? undefined : singleValue.value
+  emit('onChange', select.value)
+}
 
 const ui = computed(() => {
   const defaultUI = {
-    wrapper:
-      "relative flex items-center flex-wrap px-3 pt-2 pb-2 border-color-input ocs-rounded-m max-h-[38px] h-[40px]",
-    fieldset: "flex flex-wrap items-center gap-x-5 gap-y-3",
-  };
-
-  const resultUI = { ...defaultUI, ...props.ui };
-
-  return resultUI;
-});
-
-const uiRadio = computed(() => {
-  const defaultUIRadio = {
-    wrapper: "relative flex items-center space-x-1",
-    container: "flex items-center h-5",
-    base: "h-4 w-4",
-    form: "form-radio",
-    // legend: 'text-sm font-medium text-gray-700 dark:text-gray-200 mb-1',
-    // default: {
-    //   color: 'primary'
-    // },
-    background: "bg-transparent dark:bg-transparent",
-    border: "border-color-input",
-    ring: "",
-    inner: "",
-    label: "text-xs font-normal color-w-b-1 line-clamp-1",
-    required: "",
-    help: "",
-  };
-
-  if (props.modeCheckBox) {
-    defaultUIRadio.base = "h-4 w-4 oc-checkbox";
-  } else {
-    defaultUIRadio.base = "h-4 w-4 oc-radio";
+    root: 'ui-rradio-root relative',
+    fieldset: 'ui-rradio-fieldset flex flex-wrap items-center gap-x-5 gap-y-3',
+    legend: 'ui-rradio-legend mb-1 block font-medium text-default',
+    item: 'ui-rradio-item flex items-center',
+    container: 'ui-rradio-container flex items-center',
+    base: 'ui-rradio-base size-4 overflow-hidden',
+    indicator: 'ui-rradio-indicator flex items-center justify-center size-full',
+    wrapper: 'ui-rradio-wrapper',
+    label: 'ui-rradio-label',
+    description: 'ui-rradio-description text-muted',
   }
 
-  const resultUIRadio = { ...defaultUIRadio, ...props.uiRadio };
-
-  return resultUIRadio;
-});
-
-const options = computed(() => props.options);
-console.log("Option ===================> s", options.value);
-const disabled = computed(() => props.disabled);
-const optionAttribute = computed(() => props.optionAttribute);
-const valueAttribute = computed(() => props.valueAttribute);
-
-// Sinh
-const emit = defineEmits(["onChange"]);
-
-// watch(
-//   select,
-//   (n, o) => {
-//     emit("onChange", n)
-//   },
-//   { deep: true, immediate: true }
-// );
+  return { ...defaultUI, ...props.ui }
+})
 </script>
 
 <style lang="scss">
-$oc-checkbox-padding: 6px;
-
-// .ocs-radio-group {
-//   border: 1px solid var(--color-w-b-4) !important;
-// }
-
-input[type="radio"] {
-  &.oc-radio {
-    position: relative;
-    visibility: hidden;
-    // width: 20px;
-    // height: 20px;
-    width: 16px;
-    height: 16px;
-
-    &:checked {
-      background-image: none !important;
-      background-color: transparent !important;
-
-      &::before {
-        content: "";
-        visibility: visible;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: transparent !important;
-        border: 2px solid var(--color-primary) !important;
-        border-radius: 10px;
-      }
-
-      &::after {
-        visibility: visible;
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        z-index: 1;
-        transform: translate(-50%, -50%) scale(1);
-        // width: 10px;
-        // height: 10px;
-        width: 8px;
-        height: 8px;
-        background-color: var(--color-primary);
-        border-radius: 100%;
-      }
-    }
-
-    &::before {
-      content: "";
-      visibility: visible;
-      position: absolute;
-      left: 0;
-      top: 0;
+.ui-rradio-root {
+  .ui-rradio-item {
+    width: fit-content;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 5px;
+  }
+  .ui-rradio-wrapper{
+    width: fit-content;
+    padding: 0 !important;
+    margin: 0 !important;
+    &:last-child {
       width: 100%;
-      height: 100%;
-      background-color: transparent !important;
-      border: 2px solid #c3c3c3 !important;
-      border-radius: 10px;
-    }
-
-    &::after {
-      visibility: hidden;
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      z-index: 1;
-      transform: translate(-50%, -50%) scale(0);
-      width: 10px;
-      height: 10px;
-      background-color: var(--color-primary);
-      border-radius: 100%;
-      transition: all 0.2s ease;
     }
   }
+  .ui-rradio-fieldset{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+  }
 }
+// ─── Shared look for both the URadioGroup items and the single-item toggle ───
+.r-radios {
+  &.is-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 
-input[type="radio"] {
-  &.oc-checkbox {
+  // ── URadioGroup path — styled via the explicit ui-rradio-* hook classes ──
+  .ui-rradio-label {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--c-text);
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .ui-rradio-legend {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--c-text);
+  }
+
+  .ui-rradio-description {
+    font-size: 11px;
+    color: var(--c-muted);
+  }
+
+  .ui-rradio-base {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--c-border);
+    background: var(--c-surface);
+    box-shadow: none;
+    transition: border-color var(--t-fast, .15s) var(--ease-in-out), background-color var(--t-fast, .15s) var(--ease-in-out);
+
+    &:focus-visible {
+      outline: 2px solid var(--c-accent);
+      outline-offset: 2px;
+    }
+
+    &[data-state="checked"] {
+      border-color: var(--c-accent);
+      background: var(--c-accent);
+    }
+  }
+
+  .ui-rradio-indicator {
+    &::after {
+      content: "";
+      background: #fff;
+      transform: scale(1);
+      transition: transform var(--t-fast, .15s) var(--ease-in-out);
+    }
+  }
+
+  &--radio .ui-rradio-base {
+    border-radius: var(--r-full, 9999px);
+  }
+  &--radio .ui-rradio-indicator::after {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--r-full, 9999px);
+  }
+
+  &--checkbox .ui-rradio-base {
+    border-radius: 5px;
+  }
+  &--checkbox .ui-rradio-indicator::after {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  // ── Single-item toggle path ──
+  &__single {
     all: unset;
-    position: relative;
-    margin: unset;
     display: inline-flex;
     align-items: center;
-    box-sizing: border-box;
-
-    position: relative;
-    border: 2px solid;
-    border-color: #c3c3c3;
-    border-radius: 5px;
-    outline: 0;
+    gap: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    height: 15px;
-    width: 15px;
-    margin-top: 0;
 
-    // &:focus::after {
-    //   content: '';
-    //   position: absolute;
-    //   top: -$oc-checkbox-padding;
-    //   bottom: -$oc-checkbox-padding;
-    //   left: -$oc-checkbox-padding;
-    //   right: -$oc-checkbox-padding;
-    //   border: 2px solid var(--color-primary);
-    //   border-radius: 9px;
-    //   box-sizing: content-box;
-    // }
-
-    &:checked {
-      background-color: transparent;
-      color: var(--color-primary) !important;
-      border-color: var(--color-primary) !important;
-      background-image: none !important;
+    &:disabled {
+      cursor: not-allowed;
     }
 
-    &:checked::before {
-      color: var(--color-primary) !important;
-      transform: scale(1.1);
-      font-weight: bold;
-      opacity: 1;
+    &:focus-visible &__box {
+      outline: 2px solid var(--c-accent);
+      outline-offset: 2px;
     }
+  }
 
-    &::before {
-      content: "\eb7a" !important;
-      font-family: "remixicon" !important;
-      font-size: 9px;
-      position: absolute;
-      top: 2px;
-      bottom: 2px;
-      left: 2px;
-      right: 2px;
-      border-radius: 5px;
-      background: 0 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: all 0.2s var(--ocs-curve);
-      transform: scale(0);
-      line-height: 16px;
-      font-weight: bold !important;
-    }
+  &__box {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--c-border);
+    background: var(--c-surface);
+    transition: border-color var(--t-fast, .15s) var(--ease-in-out), background-color var(--t-fast, .15s) var(--ease-in-out);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    &.minus {
-      &::before {
-        content: "\f1ae" !important;
-      }
-    }
+  &__dot {
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    transform: scale(0);
+    transition: transform var(--t-fast, .15s) var(--ease-in-out);
+  }
+
+  &--radio &__box {
+    border-radius: var(--r-full, 9999px);
+  }
+  &--radio &__dot {
+    border-radius: var(--r-full, 9999px);
+  }
+
+  &--checkbox &__box {
+    border-radius: 5px;
+  }
+  &--checkbox &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  &__single[aria-checked="true"] &__box {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+  }
+  &__single[aria-checked="true"] &__dot {
+    transform: scale(1);
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--c-text);
+    line-height: 1;
   }
 }
 </style>
