@@ -49,6 +49,7 @@ const props = defineProps([
 ]);
 
 const icon = computed(() => {
+  if (!props.icon) return "";
   if (
     props.type?.toLowerCase() == "create" ||
     props.icon?.toLowerCase() == "create"

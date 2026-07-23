@@ -1,6 +1,23 @@
 <template>
   <div class="r-group-actions">
-    <RBtn v-if="isNotEmpty(lists) && !screen.isMobile" v-for="list in lists" :type="list.type" :icon="list.icon"
+    <!-- ── 3-dot menu ── -->
+    <RPopover v-if="isNotEmpty(lists) && useThreeDot" class="ec" use="nuxtui"  :content="{ side: 'bottom-end' }">
+      <template #trigger>
+        <button class="ec__dot-btn">
+          <i class="ri-more-2-fill" />
+        </button>
+      </template>
+          <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
+            :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="fnClick(list.type, list)"
+            :permission="list.permission" :showIfAllowed="list.showIfAllowed">
+        
+            <template v-if="$slots[`${list.type}icon`]" #[`${list.type}icon`]>
+              <slot :name="`${list.type}icon`" />
+            </template>
+          </RBtnList>
+    </RPopover>
+    
+    <RBtn v-else-if="isNotEmpty(lists) && !screen.isMobile" v-for="list in lists" :type="list.type" :icon="list.icon"
       :color="list.color" :label="list.label" :disabled="list.disabled" :isIconRight="list.isIconRight"
       :variant="list.variant" :isLabelBold="list.isLabelBold" :size="list.size" :loading="list.loading"
       :iconRight="list.iconRight" :noIcon="list.noIcon" :typeButton="list.typeButton" :hide="list.hide"
@@ -47,18 +64,24 @@
         </RBtnList>
       </FwbListGroup>
     </fwb-dropdown> -->
+
   </div>
 </template>
 
 <script setup>
-// import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
+import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
 import {useScreenStore } from '../../stores/screen'
 const screen = useScreenStore();
-const props = defineProps(["data"]);
+const props = defineProps(["data","threeDotOnly"]);
 const emit = defineEmits(["click"]);
 const lists = computed(() => props.data);
-
+const useThreeDot = computed(() => props.threeDotOnly ?? false);
 const refDropdown = ref()
+
+/* ── 3-dot menu state ───────────────────────────────────────────────────── */
+const openMenu = ref(false)
+function toggleMenu() { openMenu.value = !openMenu.value; console.log(openMenu.value, '===>>>'); }
+function closeMenu()    { openMenu.value = false }
 
 watch(() => screen.isMobile, (n) => {
   console.log(n, '===>>>', refDropdown.value)
@@ -146,6 +169,76 @@ function fnClick(type, list) {
 .r-content {
   .r-group-action-more {
     background: var(--bg-wrapper);
+  }
+}
+
+// ── 3-dot menu ─────────────────────────────────────────────────────────
+.ec{
+  // position: absolute;
+  // top:      var(--sp-3);
+  // right:    var(--sp-3) !important;
+  // z-index:  999 !important;
+
+  &__dot-btn {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    width:   30px;
+    height:  30px;
+    border-radius: var(--r-full);
+    border:  1px solid var(--c-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    color:   var(--c-muted);
+    cursor:  pointer;
+    font-size: 1rem;
+    transition: background var(--t-fast) var(--ease-out),
+                border-color var(--t-fast) var(--ease-out),
+                color var(--t-fast) var(--ease-out);
+
+    &:hover {
+      border-color: var(--c-accent);
+      color:        var(--c-accent);
+      background:   color-mix(in srgb, var(--c-accent) 8%, var(--glass-bg));
+    }
+  }
+
+  &__menu {
+    position:    absolute;
+    top:         calc(100% + var(--sp-1));
+    right:       0;
+    min-width:   130px;
+    background:  var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border:      1px solid var(--c-border);
+    border-radius: var(--r-lg);
+    box-shadow:  var(--glass-shadow);
+    overflow:    hidden;
+    z-index:     100;
+  }
+
+  &__menu-item {
+    display:     flex;
+    align-items: center;
+    gap:         var(--sp-2);
+    width:       100%;
+    padding:     var(--sp-2) var(--sp-3);
+    border:      none;
+    background:  transparent;
+    color:       var(--c-text);
+    font-size:   0.8125rem;
+    font-family: var(--font-fallback);
+    font-weight: 500;
+    cursor:      pointer;
+    text-align:  left;
+    transition:  background var(--t-fast) var(--ease-out);
+
+    i { color: var(--c-muted); font-size: 0.875rem; }
+
+    &:hover {
+      background: color-mix(in srgb, var(--c-accent) 8%, transparent);
+      i { color: var(--c-accent); }
+    }
   }
 }
 </style>

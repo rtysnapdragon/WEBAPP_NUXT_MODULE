@@ -1,9 +1,8 @@
 <template>
-  <div class="ocs-wrapper-popover">
-
+  <div class="r-wrapper-popover">
     <!-- use = nuxtui -->
-    <UPopover v-model:open="model" :closeDelay="closeDelay" :mode="mode" :content="content" :reference="reference" :open-delay="openDelay" :close-delay="closeDelay" :arrow="arrow"
-      :ui="{ wrapper: 'flex', ring: '', background: '' }" :popper="{ placement: placement ?? 'left-start' }"
+    <UPopover v-model:open="model" :closeDelay="closeDelay" :mode="mode" :reference="reference" :dismissible="noClose" :open-delay="openDelay" :close-delay="closeDelay" :arrow="arrow" :content="content"
+      :ui="{ content: 'ui-rpopover-content flex', arrow: 'ui-rpopover-arrow', background: '' }" :popper="{ placement: placement ?? 'left-start' }"
       v-if="use == 'nuxtui'">
       <slot name="trigger" v-if="$slots.trigger"></slot>
       <div class="btn-leading" v-else><i class="ri-more-2-fill"></i></div>
@@ -13,7 +12,7 @@
         </div>
       </template>
       <slot name="anchor" v-if="$slots.anchor">
-        <RInput placeholder="Focus to open" @focus="open = true" @blur="open = false" />
+        <RInput placeholder="Frus to open" @frus="open = true" @blur="open = false" />
       </slot>
     </UPopover>
 
@@ -42,10 +41,10 @@
 </template>
 
 <script setup>
+//  :content="{ side: side,sideOffset: sideOffset}" :alignOffset="1"
 // import { FwbDropdown } from 'flowbite-vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-const props = defineProps(['mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside', 'closeDelay', 'openDelay','arrow',
-'reference', // cutom ref by parent use for uipopup use:"nuxtui"
+const props = defineProps(['mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside', 'closeDelay', 'openDelay','arrow','noClose','reference', // cutom ref by parent use for uipopup use:"nuxtui"
 'content' // content:{ side: string 'top|bottom|left|right|top-start|top-end|bottom-start|bottom-end|left-start|left-end|right-start|right-end',remak
 ]) // use : nuxtui , flowbite , headless
 const model = defineModel()
@@ -58,6 +57,9 @@ const closeInside = computed(() => props.closeInside)
 const openDelay = computed(() => props.openDelay)
 const reference = computed(() => props.reference)
 const content = computed(() => props.content)
+const side = computed(() => props.content?.side)
+const sideOffset = computed(() => props.content?.sideOffset ?? 8)
+const noClose = computed(() => props.noClose)
 const arrow = computed(() => props.arrow ?? false)
 const emit = defineEmits(['click'])
 
@@ -78,7 +80,7 @@ const emit = defineEmits(['click'])
     padding: 10px;
   }
 }
-.ocs-wrapper-popover ::v-deep {
+.r-wrapper-popover ::v-deep {
 
   // nuxtui
   .btn-leading {
@@ -143,9 +145,20 @@ const emit = defineEmits(['click'])
           opacity: 1;
         }
       }
-
     }
   }
-
 }
+</style>
+
+<style lang="scss">
+.ui-rpopover-arrow{
+  background: var(--bg-wrapper);
+}
+.ui-rpopover-content{
+  background: var(--bg-wrapper);
+  padding: 10px;
+  border-radius: 10px;
+  overflow: hidden !important;
+}
+// style="--tw-ring-offset-color: var(--color-w-b-1); --tw-ring-color: var(--color-w-b-1);"
 </style>
