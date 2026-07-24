@@ -4,10 +4,10 @@
       v-for="(item, index) in visibleSrc"
       :key="index"
       :class="`avatar ${avatarClasses} ${src?.length > 1 ? 'border-none' : ''} ${
-        online !== undefined && index === visibleSrc.length - 1 && extraCount === 0 ? 'has-badge' : ''
+        hasBadge && index === visibleSrc.length - 1 && extraCount === 0 ? 'has-badge' : ''
       }`"
     >
-      <img :src="getSrc(item)" @error="handleError" />
+      <img :src="getSrc(item)" @error="handleError" @click.stop.prevent="handlePreviewClick"/>
       <RPreviewFile
         v-if="props.src.length == 1 && !props.notUsePreviewImage"
         :pathUrl="getSrc(item)"
@@ -15,47 +15,89 @@
         v-model="isPreviewImage"
         :isBGClose="true"
       />
-      <span v-if="online !== undefined && index === visibleSrc.length - 1 && extraCount === 0" class="badge" :class="online ? 'av-online' : 'av-offline'" />
+      <slot
+        name="badge"
+        v-if="hasBadge && index === visibleSrc.length - 1 && extraCount === 0"
+      >
+        <span
+          v-if="props.online !== undefined"
+          class="badge"
+          :class="props.online ? 'av-online' : 'av-offline'"
+        />
+        <span
+          v-else-if="props.badge !== undefined"
+          class="badge"
+          :class="typeof props.badge === 'boolean' ? (props.badge ? 'av-online' : 'av-offline') : 'av-badge-text'"
+        >
+          <template v-if="typeof props.badge !== 'boolean'">{{ props.badge }}</template>
+        </span>
+      </slot>
     </div>
-    <div v-if="extraCount > 0" :class="`avatar show-plus ${avatarClasses} ${online !== undefined ? 'has-badge' : ''}`">
+    <div v-if="extraCount > 0" :class="`avatar show-plus ${avatarClasses} ${hasBadge ? 'has-badge' : ''}`">
       +{{ extraCount }}
-      <span v-if="online !== undefined" class="badge" :class="online ? 'av-online' : 'av-offline'" />
+      <slot name="badge" v-if="hasBadge">
+        <span
+          v-if="props.online !== undefined"
+          class="badge"
+          :class="props.online ? 'av-online' : 'av-offline'"
+        />
+        <span
+          v-else-if="props.badge !== undefined"
+          class="badge"
+          :class="typeof props.badge === 'boolean' ? (props.badge ? 'av-online' : 'av-offline') : 'av-badge-text'"
+        >
+          <template v-if="typeof props.badge !== 'boolean'">{{ props.badge }}</template>
+        </span>
+      </slot>
     </div>
   </div>
   <div
     v-else
-    :class="`avatar cursor-pointer ${avatarClasses} ${online !== undefined ? 'has-badge' : ''}`"
-    @click="isShowModal = !isShowModal"
+    :class="`avatar cursor-pointer ${avatarClasses} ${hasBadge ? 'has-badge' : ''}`"
   >
     <img
       :src="getSrc(src)"
       @error="handleError"
-      @click.stop.prevent="isPreviewImage = true  && !props.notUsePreviewImage"
+      @click.stop.prevent="handlePreviewClick"
     />
     <slot></slot>
     <RPreviewFile
-      v-if="isPreviewImage && !props.notUsePreviewImage"
+      v-if="isPreviewImage && !props.notUsePreviewImage && !isError"
       :pathUrl="getSrc(src)"
       :errorType="errorType"
       v-model="isPreviewImage"
       :isBGClose="true"
     />
-    <!-- Online indicator -->
-    <span v-if="online !== undefined" class="badge" :class="online ? 'av-online' : 'av-offline'" />
-
-    <!-- Custom badge slot -->
-    <slot name="badge" />
-
+    <!-- Custom badge slot or online/badge indicator -->
+    <slot name="badge">
+      <span
+        v-if="props.online !== undefined"
+        class="badge"
+        :class="props.online ? 'av-online' : 'av-offline'"
+      />
+      <span
+        v-else-if="props.badge !== undefined"
+        class="badge"
+        :class="typeof props.badge === 'boolean' ? (props.badge ? 'av-online' : 'av-offline') : 'av-badge-text'"
+      >
+        <template v-if="typeof props.badge !== 'boolean'">{{ props.badge }}</template>
+      </span>
+    </slot>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, useSlots } from "vue";
 import { UseDefaultImageStore } from "../stores/defaultImage";
 // import { UseDefaultImageStore } from "@/stores/defaultImage"
 import RPreviewFile from './RPreviewFile.vue'
+
+const slots = useSlots();
 const defaultImg = UseDefaultImageStore();
 const isPreviewImage = ref(false);
+const isError = ref(false);
+
+
 const props = defineProps({
   notUsePreviewImage: {
     type: Boolean,
@@ -105,8 +147,38 @@ const props = defineProps({
     type: Boolean,
     default: undefined,
   },
+  gender: {
+    type: String,
+    default: "female",
+  },
+  badge: {
+    type: [Boolean, String, Number, Object],
+    default: undefined,
+  },
 });
-const online = computed(() => props.online)
+
+const resolvedErrorType = computed(() => {
+  if (props.gender) {
+    const g = String(props.gender).toLowerCase();
+    if (g === "male" || g === "m") return "male";
+    if (g === "female" || g === "f") return "female";
+  }
+  if (props.errorType && props.errorType !== "user") {
+    return props.errorType;
+  }
+  return "female";
+});
+
+const hasBadge = computed(() => {
+  if (props.online !== undefined) return true;
+  if (!!slots.badge) return true;
+  if (props.badge === undefined || props.badge === null) return false;
+  if (typeof props.badge === "boolean") return true;
+  if (typeof props.badge === "number") return props.badge > 0;
+  if (typeof props.badge === "string") return props.badge.length > 0;
+  return true; // Object case — assume intentional
+});
+
 const getSrc = (src) => {
   return props.isUrl ? getUrl(src, true) : src;
 };
@@ -132,8 +204,18 @@ const extraCount = computed(() => {
 });
 
 const handleError = (e) => {
-  defaultImg.get(e, props.errorType);
+  isError.value = true;
+  // defaultImg.get(e, props.errorType);
+  defaultImg.get(e, resolvedErrorType.value);
 };
+
+const handlePreviewClick = () => {
+  if (props.notUsePreviewImage || isError.value) return;
+  isPreviewImage.value = true;
+};
+watch(() => props.src, () => {
+  isError.value = false;
+});
 
 const isShowModal = ref(false);
 
@@ -341,24 +423,43 @@ const onImageClick = (src) => {
   // Online/offline badge
   .badge {
     position: absolute;
-    bottom: 5%;
-    right: 5%;
-    width: 26%;
-    height: 26%;
-    max-width: 12px;
-    max-height: 12px;
-    min-width: 6px;
-    min-height: 6px;
+    top: 2px;
+    right: -5px;
+    /* width: 26%;
+    height: 26%; */
+    width: 12px !important;
+    height: 12px !important;
+    min-width: 6px !important;
+    min-height: 6px !important;
     border-radius: 50%;
-    border: 2px solid var(--c-surface, #fff);
-    z-index: 1;
+    border: 2px solid var(--c-surface, #fff) !important;
+    z-index: 1 !important;
 
     &.av-online {
-      background: #22c55e;
+      background: #22c55e !important;
     }
 
     &.av-offline {
-      background: #94a3b8;
+      background: #94a3b8 !important;
+    }
+
+    &.av-badge-text {
+      width: auto;
+      height: auto;
+      max-width: none;
+      max-height: none;
+      min-width: 16px !important;
+      min-height: 16px !important;
+      padding: 0 4px !important;
+      border-radius: 10px !important;
+      background: #ef4444 !important;
+      color: #ffffff !important;
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
   }
 }

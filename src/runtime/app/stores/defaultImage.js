@@ -65,9 +65,15 @@ export const UseDefaultImageStore = defineStore('defaultImageStore', {
       if (!target || target.tagName !== 'IMG') return
 
       const fallbackMap = {
+        //  user: new URL('../assets/imgs/default-user.png', import.meta.url).href,
+        // avatar: new URL('../assets/imgs/default-avatar.png', import.meta.url).href,
         img: new URL('../assets/imgs/defaultProfile.png', import.meta.url).href,
-        user: new URL('../assets/imgs/default-user.png', import.meta.url).href,
-        avatar: new URL('../assets/imgs/default-avatar.png', import.meta.url).href,
+        user: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
+        avatar: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
+        female: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
+        f: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
+        male: new URL('../assets/imgs/profile_male.png', import.meta.url).href,
+        m: new URL('../assets/imgs/profile_male.png', import.meta.url).href,
         banner: new URL('../assets/imgs/default-banner.png', import.meta.url).href,
         product: new URL('../assets/imgs/default-product.png', import.meta.url).href,
       }
