@@ -57,18 +57,29 @@
 import { defineStore,acceptHMRUpdate } from 'pinia'
 
 export const UseDefaultImageStore = defineStore('defaultImageStore', {
+  
   actions: {
+    
     get(event, type = 'img') {
       const target = event?.target
       if (!target || target.tagName !== 'IMG') return
 
       const fallbackMap = {
-        img: '/images/defualtProfile.png',
-        user: '/img/default-user.png',
-        avatar: '/img/default-avatar.png',
-        banner: '/img/default-banner.png',
-        product: '/img/default-product.png',
+        img: new URL('../assets/imgs/defaultProfile.png', import.meta.url).href,
+        user: new URL('../assets/imgs/default-user.png', import.meta.url).href,
+        avatar: new URL('../assets/imgs/default-avatar.png', import.meta.url).href,
+        banner: new URL('../assets/imgs/default-banner.png', import.meta.url).href,
+        product: new URL('../assets/imgs/default-product.png', import.meta.url).href,
       }
+
+// fallbackMap1  
+      // const fallbackMap = {
+      //   img: '/imgs/defaultProfile.png',
+      //   user: '/imgs/default-user.png',
+      //   avatar: '/imgs/default-avatar.png',
+      //   banner: '/imgs/default-banner.png',
+      //   product: '/imgs/default-product.png',
+      // }
 
       target.src = fallbackMap[type] || fallbackMap.img
     },

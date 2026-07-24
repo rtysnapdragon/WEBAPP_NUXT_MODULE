@@ -20,6 +20,7 @@ const { copySync } = pkg;
 import copyJsonFile from "./runtime/app/utils/copyJsonFile.js";
 import getPages from "./runtime/app/utils/getPages.js";
 import createTsConfigFile from "./runtime/app/utils/createTsConfigFile.js";
+import { runtimeDir } from "@nuxt/ui/unplugin";
 export interface ModuleOptions {}
 
 export default defineNuxtModule<ModuleOptions>({
@@ -62,6 +63,14 @@ export default defineNuxtModule<ModuleOptions>({
       route: '/api/completion',
       handler: resolve(runtimeServerDir, 'api/completion.post.js')
     });
+
+    nuxt.options.nitro.publicAssets ||= []
+    console.log("runtimeDir ================================> ", runtimeDir)
+    nuxt.options.nitro.publicAssets.push({
+      dir: resolve(runtimeDir, 'public'),
+      baseURL: '/',
+    })
+
     nuxt.options.runtimeConfig.anthropicApiKey = options.anthropicApiKey
     //  nuxt.options.serverHandlers.push({
     //   route: "/api/completion",

@@ -15,7 +15,7 @@ const props = defineProps({
   overlay:              { type: Boolean, default: true    },
   handle:               { type: Boolean, default: true    },
   handleOnly:           { type: Boolean, default: false   },
-  dismissible:          { type: Boolean, default: true    },
+  noClose:          { type: Boolean, default: false    },
   trapFocus:            { type: Boolean, default: true    },
   closeOnEscape:        { type: Boolean, default: true    },
   closeOnOutsideClick:  { type: Boolean, default: true    },
@@ -107,7 +107,7 @@ function close() {
     :overlay="overlay"
     :handle="handle"
     :handle-only="handleOnly"
-    :dismissible="dismissible"
+    :dismissible="!noClose"
     :trap-focus="trapFocus"
     :close-on-escape="closeOnEscape"
     :close-on-outside-click="resolvedCloseOnOutside"
@@ -147,7 +147,6 @@ function close() {
     ─────────────────────────────────────────────────────── -->
     <template #content>
       <slot name="content" :close="close">
-
         <!-- Dirty form indicator strip ────────────────── -->
         <div v-if="dirty" class="rd__dirty-bar" aria-hidden="true" />
 
@@ -234,6 +233,7 @@ function close() {
   }
 
   &__title {
+    font-family: var(--font-400);
     font-size:   0.95rem;
     font-weight: 700;
     color:       var(--c-text);
@@ -242,6 +242,8 @@ function close() {
   }
 
   &__desc {
+    font-family: var(--font-400);
+    color: var(--sub-color);
     font-size:  0.78rem;
     color:      var(--c-muted);
     margin:     3px 0 0;
@@ -284,7 +286,11 @@ function close() {
     flex-shrink:  0;
     padding:      var(--space-4) var(--space-5);
     border-top:   1px solid var(--c-border);
-    background:   var(--bg-tertiary);
+    // background:   var(--c-bg) !important; 
+    display:      flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap:          var(--space-2);
   }
 
   // ── Dirty form guard UI ─────────────────────────────────
@@ -398,18 +404,18 @@ function close() {
   }
 
   &:hover::before { background: var(--c-accent) !important; }
-}
-
-// Handle padding offset
-[data-slot="handle"] {
-  padding:1px 0 !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center;
-}
-
-[data-vaul-handle]{
-  top: 0;
+  
+  // Handle padding offset
+  &[data-slot="handle"] {
+    padding:1px 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+  }
+  
+  &[data-vaul-handle]{
+    top: 0;
+  }
 }
 
 // ── Container ─────────────────────────────────────────────

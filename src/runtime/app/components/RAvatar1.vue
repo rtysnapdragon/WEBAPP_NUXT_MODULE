@@ -3,9 +3,7 @@
     <div
       v-for="(item, index) in visibleSrc"
       :key="index"
-      :class="`avatar ${avatarClasses} ${src?.length > 1 ? 'border-none' : ''} ${
-        online !== undefined && index === visibleSrc.length - 1 && extraCount === 0 ? 'has-badge' : ''
-      }`"
+      :class="`avatar ${avatarClasses} ${src?.length > 1 ? 'border-none' : ''}`"
     >
       <img :src="getSrc(item)" @error="handleError" />
       <RPreviewFile
@@ -15,16 +13,14 @@
         v-model="isPreviewImage"
         :isBGClose="true"
       />
-      <span v-if="online !== undefined && index === visibleSrc.length - 1 && extraCount === 0" class="badge" :class="online ? 'av-online' : 'av-offline'" />
     </div>
-    <div v-if="extraCount > 0" :class="`avatar show-plus ${avatarClasses} ${online !== undefined ? 'has-badge' : ''}`">
+    <div v-if="extraCount > 0" :class="'avatar show-plus ' + avatarClasses">
       +{{ extraCount }}
-      <span v-if="online !== undefined" class="badge" :class="online ? 'av-online' : 'av-offline'" />
     </div>
   </div>
   <div
     v-else
-    :class="`avatar cursor-pointer ${avatarClasses} ${online !== undefined ? 'has-badge' : ''}`"
+    :class="'avatar cursor-pointer ' + avatarClasses"
     @click="isShowModal = !isShowModal"
   >
     <img
@@ -45,7 +41,6 @@
 
     <!-- Custom badge slot -->
     <slot name="badge" />
-
   </div>
 </template>
 
@@ -53,7 +48,6 @@
 import { computed } from "vue";
 import { UseDefaultImageStore } from "../stores/defaultImage";
 // import { UseDefaultImageStore } from "@/stores/defaultImage"
-import RPreviewFile from './RPreviewFile.vue'
 const defaultImg = UseDefaultImageStore();
 const isPreviewImage = ref(false);
 const props = defineProps({
@@ -106,7 +100,7 @@ const props = defineProps({
     default: undefined,
   },
 });
-const online = computed(() => props.online)
+
 const getSrc = (src) => {
   return props.isUrl ? getUrl(src, true) : src;
 };
@@ -334,12 +328,8 @@ const onImageClick = (src) => {
     border: unset !important;
   }
 
-  &.has-badge {
-    overflow: visible;
-  }
-
   // Online/offline badge
-  .badge {
+  &.badge {
     position: absolute;
     bottom: 5%;
     right: 5%;
@@ -351,16 +341,9 @@ const onImageClick = (src) => {
     min-height: 6px;
     border-radius: 50%;
     border: 2px solid var(--c-surface, #fff);
-    z-index: 1;
-
-    &.av-online {
-      background: #22c55e;
-    }
-
-    &.av-offline {
-      background: #94a3b8;
-    }
   }
+  &.online  { background: #22c55e; }
+  &.offline { background: #94a3b8; }
 }
 
 .group-avatar {
