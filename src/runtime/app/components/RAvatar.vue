@@ -287,6 +287,34 @@ const onImageClick = (src) => {
     min-height: 100px;
   }
 
+  &.size-xl {
+    width: 130px;
+    height: 130px;
+    min-width: 130px;
+    min-height: 130px;
+  }
+
+  &.size-2xl {
+    width: 160px;
+    height: 160px;
+    min-width: 160px;
+    min-height: 160px;
+  }
+
+  &.size-3xl {
+    width: 190px;
+    height: 190px;
+    min-width: 190px;
+    min-height: 190px;
+  }
+
+  &.size-4xl {
+    width: 220px;
+    height: 220px;
+    min-width: 220px;
+    min-height: 220px;
+  }
+
   &.size-ss {
     width: 18px;
     height: 18px;

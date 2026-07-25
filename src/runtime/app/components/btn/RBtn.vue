@@ -274,7 +274,7 @@ const icon = computed(() => {
     props.type?.toLowerCase() == "add" ||
     props.icon?.toLowerCase() == "add"
   )
-    return "ri-user-add-line";
+    return "ri-add-line";
   else return props.icon;
 });
 const typeButton = computed(() => props.typeButton ?? "button");

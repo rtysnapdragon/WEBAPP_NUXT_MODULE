@@ -12,15 +12,15 @@ const props = defineProps(['class'])
 .r-wrapper-page {
   display: flex;
   flex-direction: column;
-  padding: 0px 20px 20px 20px;
+  padding: 5px 15px 5px 15px;
   grid-gap: 16px;
   height: calc(100vh - 66px);
 }
 @media (max-width: 768px) {
   .r-wrapper-page {
-    padding: 0px 14px 20px 14px;
-    grid-gap: 12px;
-    height: calc(100vh - 114px);
+    padding: 5px 5px 2px 5px !important;
+    grid-gap: 12px !important;
+    height: calc(100vh - 114px) !important;
   }
 }
 </style>

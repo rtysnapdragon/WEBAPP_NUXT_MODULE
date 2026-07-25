@@ -20,7 +20,7 @@ const { copySync } = pkg;
 import copyJsonFile from "./runtime/app/utils/copyJsonFile.js";
 import getPages from "./runtime/app/utils/getPages.js";
 import createTsConfigFile from "./runtime/app/utils/createTsConfigFile.js";
-import { runtimeDir } from "@nuxt/ui/unplugin";
+// import { runtimeDir } from "@nuxt/ui/unplugin";
 export interface ModuleOptions {}
 
 export default defineNuxtModule<ModuleOptions>({
@@ -65,9 +65,8 @@ export default defineNuxtModule<ModuleOptions>({
     });
 
     nuxt.options.nitro.publicAssets ||= []
-    console.log("runtimeDir ================================> ", runtimeDir)
     nuxt.options.nitro.publicAssets.push({
-      dir: resolve(runtimeDir, 'public'),
+      dir: resolve('./', 'public'),
       baseURL: '/',
     })
 

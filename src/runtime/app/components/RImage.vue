@@ -1,7 +1,9 @@
 <template>
   <img
     :src="imageSrc"
+    loading="lazy"
     @error="handleError"
+    :class="className"
   />
 </template>
 
@@ -22,14 +24,19 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  class: {
+    type: String,
+    default: '',
+  }
 });
 
 const defaultImg = UseDefaultImageStore();
+const className = computed(() => props.class);
 
 const imageSrc = computed(() => {
   if (!props.src) {
     const fallbackMap = {
-      img: new URL('../assets/imgs/defaultProfile.png', import.meta.url).href,
+      img: new URL('../assets/imgs/placeholder.png', import.meta.url).href,
       user: new URL('../assets/imgs/default-user.png', import.meta.url).href,
       avatar: new URL('../assets/imgs/default-avatar.png', import.meta.url).href,
       banner: new URL('../assets/imgs/default-banner.png', import.meta.url).href,

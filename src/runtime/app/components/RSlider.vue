@@ -293,7 +293,10 @@ function closed() {
 .rs-ui-body {
   flex: 1;
   padding: 0 !important;
-  overflow: hidden; // scroll controlled by rs-body inside
+  // overflow: hidden; // scroll controlled by rs-body inside
+
+  // overflow-x: hidden !important; // scroll controlled by rs-body inside
+  // overflow-y: auto !important; // scroll controlled by rs-body inside
 }
 
 .rs-ui-footer {
@@ -376,8 +379,8 @@ function closed() {
   overflow: hidden;
 
   &--scroll {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     padding-right: calc(var(--sp-5) - 4px); // compensate for scrollbar
 
     // SARIKA scrollbar
