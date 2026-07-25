@@ -1,6 +1,6 @@
 <template>
   <div class="r-wrapper-page" :class="props.class">
-      <slot></slot>
+    <slot></slot>
   </div>
 </template>
 
@@ -8,7 +8,7 @@
 const props = defineProps(['class'])
 </script>
 
-<style >
+<style lang="scss" scoped>
 .r-wrapper-page {
   display: flex;
   flex-direction: column;
