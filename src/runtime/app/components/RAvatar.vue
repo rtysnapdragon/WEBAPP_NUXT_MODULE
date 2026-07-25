@@ -4,10 +4,10 @@
       v-for="(item, index) in visibleSrc"
       :key="index"
       :class="`avatar ${avatarClasses} ${src?.length > 1 ? 'border-none' : ''} ${
-        hasBadge && index === visibleSrc.length - 1 && extraCount === 0 ? 'has-badge' : ''
+        hasBadge && index === visibleSrc.length - 1 && extraCount === 0 ? 'has-chip' : ''
       }`"
     >
-      <img :src="getSrc(item)" @error="handleError" @click.stop.prevent="handlePreviewClick"/>
+      <img :src="getSrc(item)" loading="lazy" @error="handleError" @click.stop.prevent="handlePreviewClick"/>
       <RPreviewFile
         v-if="props.src.length == 1 && !props.notUsePreviewImage"
         :pathUrl="getSrc(item)"
@@ -16,47 +16,48 @@
         :isBGClose="true"
       />
       <slot
-        name="badge"
+        name="chip"
         v-if="hasBadge && index === visibleSrc.length - 1 && extraCount === 0"
       >
         <span
           v-if="props.online !== undefined"
-          class="badge"
+          class="av-chip"
           :class="props.online ? 'av-online' : 'av-offline'"
         />
         <span
-          v-else-if="props.badge !== undefined"
-          class="badge"
-          :class="typeof props.badge === 'boolean' ? (props.badge ? 'av-online' : 'av-offline') : 'av-badge-text'"
+          v-else-if="props.chip !== undefined"
+          class="av-chip"
+          :class="typeof props.chip === 'boolean' ? (props.chip ? 'av-online' : 'av-offline') : 'av-chip-text'"
         >
-          <template v-if="typeof props.badge !== 'boolean'">{{ props.badge }}</template>
+          <template v-if="typeof props.chip !== 'boolean'">{{ props.chip }}</template>
         </span>
       </slot>
     </div>
-    <div v-if="extraCount > 0" :class="`avatar show-plus ${avatarClasses} ${hasBadge ? 'has-badge' : ''}`">
+    <div v-if="extraCount > 0" :class="`avatar show-plus ${avatarClasses} ${hasBadge ? 'has-chip' : ''}`">
       +{{ extraCount }}
-      <slot name="badge" v-if="hasBadge">
+      <slot name="chip" v-if="hasBadge">
         <span
           v-if="props.online !== undefined"
-          class="badge"
+          class="av-chip"
           :class="props.online ? 'av-online' : 'av-offline'"
         />
         <span
-          v-else-if="props.badge !== undefined"
-          class="badge"
-          :class="typeof props.badge === 'boolean' ? (props.badge ? 'av-online' : 'av-offline') : 'av-badge-text'"
+          v-else-if="props.chip !== undefined"
+          class="av-chip"
+          :class="typeof props.chip === 'boolean' ? (props.chip ? 'av-online' : 'av-offline') : 'av-chip-text'"
         >
-          <template v-if="typeof props.badge !== 'boolean'">{{ props.badge }}</template>
+          <template v-if="typeof props.chip !== 'boolean'">{{ props.chip }}</template>
         </span>
       </slot>
     </div>
   </div>
   <div
     v-else
-    :class="`avatar cursor-pointer ${avatarClasses} ${hasBadge ? 'has-badge' : ''}`"
+    :class="`avatar cursor-pointer ${avatarClasses} ${hasBadge ? 'has-chip' : ''}`"
   >
     <img
       :src="getSrc(src)"
+      loading="lazy"
       @error="handleError"
       @click.stop.prevent="handlePreviewClick"
     />
@@ -68,19 +69,19 @@
       v-model="isPreviewImage"
       :isBGClose="true"
     />
-    <!-- Custom badge slot or online/badge indicator -->
-    <slot name="badge">
+    <!-- Custom chip slot or online/chip indicator -->
+    <slot name="chip">
       <span
         v-if="props.online !== undefined"
-        class="badge"
+        class="av-chip"
         :class="props.online ? 'av-online' : 'av-offline'"
       />
       <span
-        v-else-if="props.badge !== undefined"
-        class="badge"
-        :class="typeof props.badge === 'boolean' ? (props.badge ? 'av-online' : 'av-offline') : 'av-badge-text'"
+        v-else-if="props.chip !== undefined"
+        class="av-chip"
+        :class="typeof props.chip === 'boolean' ? (props.chip ? 'av-online' : 'av-offline') : 'av-chip-text'"
       >
-        <template v-if="typeof props.badge !== 'boolean'">{{ props.badge }}</template>
+        <template v-if="typeof props.chip !== 'boolean'">{{ props.chip }}</template>
       </span>
     </slot>
   </div>
@@ -151,7 +152,7 @@ const props = defineProps({
     type: String,
     default: "female",
   },
-  badge: {
+  chip: {
     type: [Boolean, String, Number, Object],
     default: undefined,
   },
@@ -171,11 +172,11 @@ const resolvedErrorType = computed(() => {
 
 const hasBadge = computed(() => {
   if (props.online !== undefined) return true;
-  if (!!slots.badge) return true;
-  if (props.badge === undefined || props.badge === null) return false;
-  if (typeof props.badge === "boolean") return true;
-  if (typeof props.badge === "number") return props.badge > 0;
-  if (typeof props.badge === "string") return props.badge.length > 0;
+  if (!!slots.chip) return true;
+  if (props.chip === undefined || props.chip === null) return false;
+  if (typeof props.chip === "boolean") return true;
+  if (typeof props.chip === "number") return props.chip > 0;
+  if (typeof props.chip === "string") return props.chip.length > 0;
   return true; // Object case — assume intentional
 });
 
@@ -416,12 +417,12 @@ const onImageClick = (src) => {
     border: unset !important;
   }
 
-  &.has-badge {
+  &.has-chip {
     overflow: visible;
   }
 
-  // Online/offline badge
-  .badge {
+  // Online/offline chip
+  .av-chip {
     position: absolute;
     top: 2px;
     right: -5px;
@@ -443,7 +444,7 @@ const onImageClick = (src) => {
       background: #94a3b8 !important;
     }
 
-    &.av-badge-text {
+    &.av-chip-text {
       width: auto;
       height: auto;
       max-width: none;
