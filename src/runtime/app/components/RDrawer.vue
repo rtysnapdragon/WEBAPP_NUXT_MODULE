@@ -123,7 +123,7 @@ function close() {
          Passes through whatever the parent puts as trigger.
          UDrawer uses its default slot as the trigger button.
     ─────────────────────────────────────────────────────── -->
-    <slot />
+    <!-- <slot /> -->
 
     <!-- ── #header slot ──────────────────────────────────── -->
     <template v-if="$slots.header" #header>
@@ -181,23 +181,24 @@ function close() {
         </div>
 
         <!-- Scrollable body ──────────────────────────── -->
+             <!-- ── Default slot (trigger) ─────────────────────────
+         Passes through whatever the parent puts as trigger.
+         UDrawer uses its default slot as the trigger button.
+    ─────────────────────────────────────────────────────── -->
         <div class="rd__body">
-          <slot name="body" :close="close" />
+          <slot :close="close" />
         </div>
 
         <!-- Footer ──────────────────────────────────── -->
         <div v-if="$slots.footer" class="rd__footer">
           <slot name="footer" :close="close" />
         </div>
-
       </slot>
     </template>
-
   </UDrawer>
 </template>
 
 <style lang="scss" scoped>
-
 // ─────────────────────────────────────────────────────────
 // SARIKA chrome (scoped to this component's own elements)
 // ─────────────────────────────────────────────────────────

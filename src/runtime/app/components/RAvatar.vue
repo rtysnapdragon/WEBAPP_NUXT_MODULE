@@ -375,47 +375,47 @@ const onImageClick = (src) => {
   }
 
   &.borderColor-nenoBlue {
-    border-color: var(--rs-c-nenoBlue) !important;
+    border-color: var(--r-c-nenoBlue) !important;
   }
 
   &.borderColor-green {
-    border-color: var(--rs-c-green) !important;
+    border-color: var(--r-c-green) !important;
   }
 
   &.borderColor-orange {
-    border-color: var(--rs-c-orange) !important;
+    border-color: var(--r-c-orange) !important;
   }
 
   &.borderColor-purple {
-    border-color: var(--rs-c-purple) !important;
+    border-color: var(--r-c-purple) !important;
   }
 
   &.borderColor-purpleBlack {
-    border-color: var(--rs-c-purpleBlack) !important;
+    border-color: var(--r-c-purpleBlack) !important;
   }
 
   &.borderColor-red {
-    border-color: var(--rs-c-red) !important;
+    border-color: var(--r-c-red) !important;
   }
 
   &.borderColor-orangeRed {
-    border-color: var(--rs-c-orangeRed) !important;
+    border-color: var(--r-c-orangeRed) !important;
   }
 
   &.borderColor-blue {
-    border-color: var(--rs-c-blue) !important;
+    border-color: var(--r-c-blue) !important;
   }
 
   &.borderColor-capture {
-    border-color: var(--rs-c-capture) !important;
+    border-color: var(--r-c-capture) !important;
   }
 
   &.borderColor-male {
-    border-color: var(--rs-c-male) !important;
+    border-color: var(--r-c-male) !important;
   }
 
   &.borderColor-female {
-    border-color: var(--rs-c-female) !important;
+    border-color: var(--r-c-female) !important;
   }
 
   &.borderColor-content {
