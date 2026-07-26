@@ -416,6 +416,10 @@ const onImageClick = (src) => {
 
   &.borderColor-female {
     border-color: var(--r-c-female) !important;
+
+    img {
+      border-radius: 50% !important;
+    }
   }
 
   &.borderColor-content {
@@ -439,6 +443,7 @@ const onImageClick = (src) => {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 50% !important;
   }
 
   &.border-none {
@@ -454,8 +459,8 @@ const onImageClick = (src) => {
     position: absolute;
     top: 2px;
     right: -5px;
-    /* width: 26%;
-    height: 26%; */
+    width: 26%;
+    height: 26%;
     width: 12px !important;
     height: 12px !important;
     min-width: 6px !important;
@@ -500,6 +505,7 @@ const onImageClick = (src) => {
   :not(:first-child) {
     margin-left: -15px;
   }
+
 }
 
 .show-plus {

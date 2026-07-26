@@ -63,11 +63,11 @@ export const UseDefaultImageStore = defineStore('defaultImageStore', {
     get(event, type = 'img') {
       const target = event?.target
       if (!target || target.tagName !== 'IMG') return
-
+      console.log("Type image =======================================> ", type)
       const fallbackMap = {
         //  user: new URL('../assets/imgs/default-user.png', import.meta.url).href,
         // avatar: new URL('../assets/imgs/default-avatar.png', import.meta.url).href,
-        img: new URL('../assets/imgs/defaultProfile.png', import.meta.url).href,
+        img: new URL('../assets/imgs/placeholder.png', import.meta.url).href,
         user: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
         avatar: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
         female: new URL('../assets/imgs/profile_female.png', import.meta.url).href,
@@ -78,7 +78,7 @@ export const UseDefaultImageStore = defineStore('defaultImageStore', {
         product: new URL('../assets/imgs/default-product.png', import.meta.url).href,
       }
 
-// fallbackMap1  
+      // fallbackMap1  
       // const fallbackMap = {
       //   img: '/imgs/defaultProfile.png',
       //   user: '/imgs/default-user.png',

@@ -31,6 +31,7 @@
 -->
 
 <script setup>
+import { useRouter } from 'vue-router'
 const props = defineProps({
   // Breadcrumb items — if omitted, reads from useBreadcrumb state
   items:       { type: Array, default: undefined },

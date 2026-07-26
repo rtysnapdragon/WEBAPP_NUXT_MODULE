@@ -32,7 +32,7 @@ const props = defineProps({
 
 const defaultImg = UseDefaultImageStore();
 const className = computed(() => props.class);
-
+const imageType = computed(() => props.errorType || 'img')
 const imageSrc = computed(() => {
   if (!props.src) {
     const fallbackMap = {
@@ -56,6 +56,10 @@ const imageSrc = computed(() => {
 });
 
 const handleError = (e) => {
-  defaultImg.get(e, props.errorType);
+  if (!e || e.target.tagName !== 'IMG') return
+  // console.log("Err -=====> ", e)//
+  // e.target.onerror = null
+  // e.target.src = fallbackMap[imageType.value] || fallbackMap.img
+  defaultImg.get(e, imageType.value);
 };
 </script>
