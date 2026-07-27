@@ -122,10 +122,12 @@ const upopverUI = computed(() => ({
     padding: 10px;
   }
 }
-.r-wrapper-popover ::v-deep {
 
+.r-wrapper-popover ::v-deep {
   // nuxtui
   .btn-leading {
+    width: 100% !important;
+    height:  100% !important;
     font-size: 13px;
     cursor: pointer;
   }

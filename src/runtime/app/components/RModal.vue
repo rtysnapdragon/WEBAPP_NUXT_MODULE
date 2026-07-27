@@ -185,7 +185,7 @@ function onCloseModal() {
   max-height: calc(100dvh - 4rem);
 
   // SARIKA glass surface
-  background: var(--glass-bg) !important;
+  background: var(--bg-content) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   color: var(--c-text) !important;

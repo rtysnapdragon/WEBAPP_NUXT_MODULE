@@ -185,7 +185,7 @@ function close() {
          Passes through whatever the parent puts as trigger.
          UDrawer uses its default slot as the trigger button.
     ─────────────────────────────────────────────────────── -->
-        <div class="rd__body">
+        <div class="rd__body" >
           <slot :close="close" />
         </div>
 
