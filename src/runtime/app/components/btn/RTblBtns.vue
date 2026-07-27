@@ -22,8 +22,7 @@
         </button>
       </RTooltip>
 
-
-      <fwb-dropdown placement="left" class="popup-wrapper z-50" v-if="actionsMore.length > 0" :close-inside="close">
+      <fwb-dropdown placement="left" class="popup-wrapper z-50" v-if="actionsMore.length > 0 && use == 'flowbite'" :close-inside="close">
         <template #trigger>
           <RTooltip :text="$t('more_button')" placement="left">
             <button class="r-btn-icon more" @click="clickShow">
@@ -64,6 +63,37 @@
           </FwbListGroupItem>
         </FwbListGroup>
       </fwb-dropdown>
+
+      <!-- with NuxtUI UPopover - RPopover -->
+      <RPopover v-else-if="actionsMore.length > 0" v-model="open" use="nuxtui"  :close-inside="close"
+        :content="{ side: 'bottom', align: 'end', sideOffset: 8 }"
+        :ui="{ content: 'p-0 bg-transparent shadow-none border-none' }"
+      >
+        <template #trigger>
+          <RTooltip :text="$t('more_button')" placement="left">
+            <button class="r-btn-icon more" @click="clickShow" >
+              <div class="icon"> <i class="ri-more-2-fill"></i> </div>
+            </button>
+          </RTooltip>
+        </template>
+
+        <div class="dialog-group-actions dialog-group-actions-nuxtui">
+          <div v-for="(action, idx) in copyWith(actionsMore)" :key="idx"
+            v-if=" showIfAllowed( action?.showIfAllowed, dataMenu.getActionPermission(action?.permission) ) "
+            class="item-action"
+            :class="`${action?.color?.toLowerCase()} ${
+              action?.disabled || action?.loading ? 'disabled' : ''
+            }`"
+            @click="handleAction(action)"
+          >
+            <div class="icon" :class="action?.color?.toLowerCase()">
+              <div class="loader" v-if="action?.loading"></div>
+              <i :class="generateIcon(action?.icon)" v-else></i>
+            </div>
+            <div class="btn-label"> {{ action?.label }} </div>
+          </div>
+        </div>
+      </RPopover>
     </div>
   </div>
 </template>
@@ -72,10 +102,11 @@
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
 const { t } = useI18n();
 import RTooltip from '../RTooltip.vue'
-const props = defineProps(["items", "closeInside"]);
+const props = defineProps(["items", "closeInside","use"]);
 const close = computed(() => props.closeInside);
 const dataMenu = useMenuStore();
 const toast = useToastStore();
+const open = ref(false)
 const model = computed(() => {
   return props.items;
 });
@@ -83,7 +114,8 @@ const emit = defineEmits(["actionClick"]);
 function showIfAllowed(ifAllow = true, per) {
   return per == 1 || ifAllow;
 }
-
+const use = computed(() => props.use)
+// const toast = useToast()
 function generateIcon(icon) {
   if (!icon) {
     console.error('Icon is not defined')
@@ -105,8 +137,7 @@ function generateIcon(icon) {
   if (icon?.toLowerCase() == "more") classIcon = "ri-more-2-fill";
   if (icon?.toLowerCase() == "review") classIcon = "ri-file-search-line";
   if (icon?.toLowerCase() == "release") classIcon = "ri-corner-up-right-line";
-  if (icon?.toLowerCase() == "clone" || icon?.toLowerCase() == "copy")
-    classIcon = "ri-file-copy-line";
+  if (icon?.toLowerCase() == "clone" || icon?.toLowerCase() == "copy") classIcon = "ri-file-copy-line";
   if (icon?.toLowerCase() == "unuser") classIcon = "ri-user-unfollow-fill";
   if (icon?.toLowerCase() == "chat") classIcon = "ri-chat-3-line";
   if (icon?.toLowerCase() == "adduser") classIcon = "ri-user-add-fill";
@@ -133,6 +164,18 @@ const actionsMore = computed(() => {
     return model.value.length > 0 ? model.value : [];
   else return model.value.length >= 4 ? model.value.slice(2) : [];
 });
+
+function handleAction(action) {
+  click(
+    action?.type,
+    action?.permission,
+    action?.label,
+    action
+  )
+
+  open.value = false
+}
+
 function click(e, per, label, action) {
   if (action?.disabled || action?.loading) {
     console.log('disabled or loading=======================>')
@@ -210,6 +253,19 @@ function getCurrentTop(child) {
     return childRect.top - parentRect.top;
   }
 }
+
+watch(
+  () => use,
+  (value) => {
+    if (value !== 'nuxtui') {
+      toast.add({
+        title: 'Incorrect usage!'
+      })
+    }
+  },
+  { immediate: true }
+)
+
 </script>
 
 <style lang="scss" scoped>
@@ -626,16 +682,50 @@ function getCurrentTop(child) {
   transform: rotate(-180deg) !important;
 }
 
+.dialog-group-actions-nuxtui {
+  position: absolute !important;
+  z-index: 999 !important;
+  right: 20px !important;
+  top: -8px !important;
+  padding: 8px !important;
+  background: var(--bg-wrapper) !important;
+  border-radius: 10px !important;
+  box-shadow: 0px 6px 20px #0000002d !important;
+  border: none !important;
+  width: fit-content !important;
+  border-radius: 10px !important;
+  // width: max-content !important;
+
+  animation: ani-top 0.25s ease-in-out;
+  transform: translateY(0px);
+  // opacity: 1;
+
+  @keyframes ani-top {
+      from {
+        transform: translateY(6px);
+        opacity: 0;
+      }
+  
+      to {
+        transform: translateY(0px);
+        opacity: 1;
+      }
+    }
+}
+
+
 .dialog-group-actions {
   position: absolute;
   z-index: 999 !important;
   right: -6px;
-  padding: 8px 8px;
+  padding: 8px;
   background: var(--bg-wrapper);
   border-radius: 10px;
   box-shadow: 0px 6px 20px #0000002d;
   border: none;
   width: fit-content;
+    // border-radius: 10px;
+  // width: max-content;
 
   &.top {
     bottom: -4px;

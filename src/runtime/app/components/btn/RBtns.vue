@@ -1,20 +1,20 @@
 <template>
   <div class="r-group-actions">
     <!-- ── 3-dot menu ── -->
-    <RPopover v-if="isNotEmpty(lists) && useThreeDot" class="ec" use="nuxtui"  :content="{ side: 'bottom-end' }">
+    <RPopover  v-model="openAction"  v-if="isNotEmpty(lists) && useThreeDot" class="ec" use="nuxtui"  :content="{ side: 'bottom-end' }">
       <template #trigger>
         <button class="ec__dot-btn">
           <i class="ri-more-2-fill" />
         </button>
       </template>
-          <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
-            :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="fnClick(list.type, list)"
-            :permission="list.permission" :showIfAllowed="list.showIfAllowed">
-        
-            <template v-if="$slots[`${list.type}icon`]" #[`${list.type}icon`]>
-              <slot :name="`${list.type}icon`" />
-            </template>
-          </RBtnList>
+      <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
+        :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="() => { fnClick(list.type, list); openAction = false; }"
+        :permission="list.permission" :showIfAllowed="list.showIfAllowed">
+    
+        <template v-if="$slots[`${list.type}icon`]" #[`${list.type}icon`]>
+          <slot :name="`${list.type}icon`" />
+        </template>
+      </RBtnList>
     </RPopover>
     
     <RBtn v-else-if="isNotEmpty(lists) && !screen.isMobile" v-for="list in lists" :type="list.type" :icon="list.icon"
@@ -27,17 +27,18 @@
         <slot :name="`${list.type}icon`" />
       </template>
     </RBtn>
-        
-    <!-- Mobile popover -->
-    <RPopover v-else-if="isNotEmpty(lists) && screen.isMobile" use="headless" :content="{side:'left-start'}">
+    
+    <RPopover v-model="openAction" v-else-if="isNotEmpty(lists) && screen.isMobile && props.use=='nuxtui'" use="nuxtui"  :content="{ side: 'bottom-end',align: 'start',offset: 10 }" :ui="{
+      content: '-translate-x-3 p-2 rounded-lg bg-white p-0 w-56 rounded-xl shadow-xl border border-gray-200'
+    }">
       <template #trigger>
         <div class="r-group-action-more" @click="clickShow">
           <i class="ri-more-2-fill"></i>
         </div>
       </template>
-      <div class="popup">
+      <div class="popup-nuxtui">
         <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
-          :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="fnClick(list.type, list)"
+          :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="() => { fnClick(list.type, list); openAction = false; }"
           :permission="list.permission" :showIfAllowed="list.showIfAllowed">
 
           <template v-if="$slots[`${list.type}icon`]" #[`${list.type}icon`]>
@@ -46,6 +47,26 @@
         </RBtnList>
       </div>
     </RPopover>
+
+    <!-- Mobile popover -->
+    <RPopover  v-model="openAction"  v-else-if="isNotEmpty(lists) && screen.isMobile" use="headless" :content="{side:'left-start'}">
+      <template #trigger>
+        <div class="r-group-action-more" @click="clickShow">
+          <i class="ri-more-2-fill"></i>
+        </div>
+      </template>
+      <div class="popup">
+        <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
+          :disabled="list.disabled" :loading="list.loading" :hide="list.hide" @click="() => { fnClick(list.type, list); openAction = false; }"
+          :permission="list.permission" :showIfAllowed="list.showIfAllowed">
+
+          <template v-if="$slots[`${list.type}icon`]" #[`${list.type}icon`]>
+            <slot :name="`${list.type}icon`" />
+          </template>
+        </RBtnList>
+      </div>
+    </RPopover>
+
     <!-- <fwb-dropdown ref="refDropdown" placement="left" class="r-popup-action-btn"
       v-if="isNotEmpty(lists) && screen.isMobile" close-inside>
       <template #trigger>
@@ -71,10 +92,11 @@
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
 import {useScreenStore } from '../../stores/screen'
 const screen = useScreenStore();
-const props = defineProps(["data","threeDotOnly"]);
+const props = defineProps(["data","threeDotOnly", "use"]);
 const emit = defineEmits(["click"]);
 const lists = computed(() => props.data);
 const useThreeDot = computed(() => props.threeDotOnly ?? false);
+const openAction = ref(false)
 const refDropdown = ref()
 
 /* ── 3-dot menu state ───────────────────────────────────────────────────── */
@@ -102,6 +124,23 @@ function fnClick(type, list) {
   position: absolute;
   top: -18px;
   right: -1px;
+  padding: 8px 8px;
+  border-radius: 10px;
+  box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.05);
+  // box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.05);
+  bottom: unset;
+  animation: ani-bottom 0.25s ease-in-out;
+  transform: translateY(0px);
+  opacity: 1;
+  width: fit-content;
+  border: none;
+}
+
+.popup-nuxtui{
+  background: var(--bg-wrapper);
+  position: absolute;
+  top: -10px;
+  right: 15px;
   padding: 8px 8px;
   border-radius: 10px;
   box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.05);

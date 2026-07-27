@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showIfAllowed" class="ocs-btn-list" :class="disabled == true ? 'disabled' : ''" @click="fnClick">
+  <div v-if="showIfAllowed" class="r-btn-list" :class="disabled == true ? 'disabled' : ''" @click="fnClick">
 
     <div class="icon" :class="[color]">
       <slot :name="`${type}icon`">
@@ -78,7 +78,7 @@ function fnClick() {
 </script>
 
 <style lang="scss" scoped>
-.ocs-btn-list {
+.r-btn-list {
   height: 32px;
   padding: 0px 10px;
   display: flex;
@@ -108,29 +108,29 @@ function fnClick() {
 
     // &.create,
     // &.view {
-    //   color: var(--ocs-c-nenoBlue);
+    //   color: var(--r-c-nenoBlue);
     // }
     // &.edit {
-    //   color: var(--ocs-c-capture);
+    //   color: var(--r-c-capture);
     // }
     // &.delete {
-    //   color: var(--ocs-c-red);
+    //   color: var(--r-c-red);
     // }
     // &.approve {
-    //   color: var(--ocs-c-green);
+    //   color: var(--r-c-green);
     // }
     // &.setting {
-    //   color: var(--ocs-c-purple);
+    //   color: var(--r-c-purple);
     // }
     // &.print {
-    //   color: var(--ocs-c-orange);
+    //   color: var(--r-c-orange);
     // }
     // &.release {
-    //   color: var(--ocs-c-capture);
+    //   color: var(--r-c-capture);
     // }
 
     &.more {
-      color: var(--ocs-c-gray);
+      color: var(--r-c-gray);
     }
 
     &.cash,
@@ -138,11 +138,11 @@ function fnClick() {
     &.apply,
     &.next,
     &.send {
-      color: var(--ocs-c-nenoBlue);
+      color: var(--r-c-nenoBlue);
     }
 
     &.print {
-      color: var(--ocs-c-orange);
+      color: var(--r-c-orange);
     }
 
     &.scan,
@@ -152,42 +152,42 @@ function fnClick() {
     }
 
     &.hold {
-      color: var(--ocs-c-gray);
+      color: var(--r-c-gray);
     }
 
     &.approve,
     &.update,
     &.save,
     &.save-update {
-      color: var(--ocs-c-green);
+      color: var(--r-c-green);
     }
 
     &.setting,
     &.copy,
     &.key {
-      color: var(--ocs-c-purple);
+      color: var(--r-c-purple);
     }
 
     &.email {
-      color: var(--ocs-c-orangeRed);
+      color: var(--r-c-orangeRed);
     }
 
     &.phone,
     &.release {
-      color: var(--ocs-c-capture);
+      color: var(--r-c-capture);
     }
 
     &.void,
     &.delete {
-      color: var(--ocs-c-red);
+      color: var(--r-c-red);
     }
 
     &.share {
-      color: var(--ocs-c-blue);
+      color: var(--r-c-blue);
     }
 
     &.reset {
-      color: var(--ocs-c-purpleBlack);
+      color: var(--r-c-purpleBlack);
     }
 
     &.employee {

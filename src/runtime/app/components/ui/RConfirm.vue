@@ -46,28 +46,9 @@
 
           <!-- Actions -->
           <div class="r-confirm__actions">
-            <RBtn
-              type="cancel"
-              :label="$t('cancel')"
-              size="s"
-              variant="solid"
-              :noIcon="true"
-              :disabled="confirmStore.loading"
-              @click="onCancel"
-              />
-              <!-- class="r-confirm__btn r-confirm__btn--cancel" -->
-            <RBtn
-              :type="type"
-              :icon="type"
-              :label="labelBtnConfirm"
-              size="s"
-              :variant="confirmStore.loading ? 'ghost' : 'solid'"
-              :noIcon="!confirmStore.loading"
-              :loading="confirmStore.loading"
-              @click="onConfirm"
-              />
-              <!-- :class="typeClasses.confirmButton" -->
-            </div>
+            <RBtn type="cancel" :label="$t('cancel')" size="s" variant="solid" :noIcon="true" :disabled="confirmStore.loading"  @click="onCancel"/>
+            <RBtn :type="type" :icon="type" :label="labelBtnConfirm" size="s" :variant="confirmStore.loading ? 'ghost' : 'solid'" :noIcon="!confirmStore.loading" :loading="confirmStore.loading" @click="onConfirm" />
+          </div>
         </div>
       </div>
     </div>
@@ -444,12 +425,14 @@ async function onCancel() {
   }
 
   &__title {
+    font-family: var(--font-400);
     font-size: 1.125rem;
     font-weight: 900;
     color: var(--c-text);
   }
 
   &__description {
+    font-family: var(--font-400);
     margin-top: 0.5rem;
     font-size: 0.875rem;
     color: var(--c-muted);
@@ -473,12 +456,14 @@ async function onCancel() {
     }
 
     h4 {
+      font-family: var(--font-400);
       font-size: 0.875rem;
       font-weight: 600;
       color: #991b1b;
     }
 
     p {
+      font-family: var(--font-400);
       margin-top: 0.25rem;
       font-size: 0.8125rem;
       color: #b91c1c;
@@ -488,14 +473,11 @@ async function onCancel() {
 
   &__actions {
     display: flex;
-    gap: 0.75rem;
+    flex-direction: row;
+    gap: 0.50rem;
     align-items: end;
     justify-content: end;
     white-space: nowrap !important;
-
-    @media (max-width: 640px) {
-      flex-direction: column;
-    }
   }
 
   &__btn {

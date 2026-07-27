@@ -1,5 +1,5 @@
 <template>
-  <div class="ocs-wrapper-chip">
+  <div class="r-wrapper-chip">
     <div v-for="(item, i) in items" :class="`r-chip-container color-bg-content ${isNotEmpty(item.value )? '' : 'hidden'
       }`">
       <div class="flex items-center gap-1.5">
@@ -91,7 +91,7 @@ watch(() => items.value, (n) => {
   }
 }
 
-.ocs-wrapper-chip {
+.r-wrapper-chip {
   display: flex;
   grid-gap: 4px;
   align-items: center;

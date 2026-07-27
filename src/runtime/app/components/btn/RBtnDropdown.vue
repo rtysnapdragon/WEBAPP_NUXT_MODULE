@@ -131,41 +131,41 @@ function showIfAllowed(ifAllow = true, per) {
     &.add,
     &.view,
     &.upload {
-      color: var(--ocs-c-nenoBlue);
+      color: var(--r-c-nenoBlue);
     }
 
     &.edit {
-      color: var(--ocs-c-capture);
+      color: var(--r-c-capture);
     }
     &.completed {
-      color: var(--ocs-c-green);
+      color: var(--r-c-green);
     }
     &.incompleted {
-      color: var(--ocs-c-blue);
+      color: var(--r-c-blue);
     }
 
     &.delete {
-      color: var(--ocs-c-red);
+      color: var(--r-c-red);
     }
 
     &.approve {
-      color: var(--ocs-c-green);
+      color: var(--r-c-green);
     }
 
     &.setting {
-      color: var(--ocs-c-purple);
+      color: var(--r-c-purple);
     }
 
     &.print {
-      color: var(--ocs-c-orange);
+      color: var(--r-c-orange);
     }
 
     &.more {
-      color: var(--ocs-c-gray);
+      color: var(--r-c-gray);
     }
 
     &.release {
-      color: var(--ocs-c-capture);
+      color: var(--r-c-capture);
     }
 
     &.employee {

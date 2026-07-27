@@ -1,13 +1,13 @@
 <template>
   <div class="r-wrapper-popover">
     <!-- use = nuxtui -->
-    <UPopover v-model:open="model" :closeDelay="closeDelay" :mode="mode" :reference="reference" :dismissible="noClose" :open-delay="openDelay" :close-delay="closeDelay" :arrow="arrow" :content="content"
-      :ui="{ content: 'ui-rpopover-content flex', arrow: 'ui-rpopover-arrow', background: '' }" :popper="{ placement: placement ?? 'left-start' }"
+    <UPopover v-model:open="model" :closeDelay="closeDelay" :mode="mode" :reference="reference" :dismissible="noClose" :open-delay="openDelay" :close-delay="closeDelay" :arrow="arrow" :content="contentCus"
+      :ui="upopverUI"  @pointer-down-outside.prevent
       v-if="use == 'nuxtui'">
       <slot name="trigger" v-if="$slots.trigger"></slot>
       <div class="btn-leading" v-else><i class="ri-more-2-fill"></i></div>
       <template #content>
-        <div class="dialog" :class="nClass" @click.stop>
+        <div class="dialog" :class="nClass" @pointerdown.stop @mousedown.stop @click.stop >
           <slot></slot>
         </div>
       </template>
@@ -41,10 +41,10 @@
 </template>
 
 <script setup>
-//  :content="{ side: side,sideOffset: sideOffset}" :alignOffset="1"
+//  :content="{ side: side,align:'',sideOffset: sideOffset}" :alignOffset="1"
 // import { FwbDropdown } from 'flowbite-vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-const props = defineProps(['mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside', 'closeDelay', 'openDelay','arrow','noClose','reference', // cutom ref by parent use for uipopup use:"nuxtui"
+const props = defineProps(['ui','mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside', 'closeDelay', 'openDelay','arrow','noClose','reference', // cutom ref by parent use for uipopup use:"nuxtui"
 'content' // content:{ side: string 'top|bottom|left|right|top-start|top-end|bottom-start|bottom-end|left-start|left-end|right-start|right-end',remak
 ]) // use : nuxtui , flowbite , headless
 const model = defineModel()
@@ -63,6 +63,48 @@ const noClose = computed(() => props.noClose)
 const arrow = computed(() => props.arrow ?? false)
 const emit = defineEmits(['click'])
 
+const contentCus1 = computed(() => {
+  const content = {
+    side: side.value ?? 'right',
+    sideOffset: sideOffset.value ?? 8,
+    // alignOffset: props.alignOffset.value ?? 1,
+  }
+  if(content.value){
+    Object.assign(content,content.value)
+  }
+  return content
+})
+
+const contentCus = computed(() => {
+  const result = {
+    side: 'right',
+    sideOffset: 8,
+  }
+
+  // support placement: bottom-start, bottom-end, left-start...
+  if (props.placement) {
+    const [side, align] = props.placement.split('-')
+
+    result.side = side
+
+    if (align) {
+      result.align = align
+    }
+  }
+
+  // allow parent content override
+  return {
+    ...result,
+    ...props.content
+  }
+})
+
+const upopverUI = computed(() => ({
+  content: 'ui-rpopover-content flex', arrow: 'ui-rpopover-arrow', background: '',
+  arrow: 'ui-rpopover-arrow',
+  padding: 'padding-0',
+  ...props.ui
+}))
 </script>
 
 <style lang="scss" scoped>
@@ -153,6 +195,7 @@ const emit = defineEmits(['click'])
 <style lang="scss">
 .ui-rpopover-arrow{
   background: var(--bg-wrapper);
+  padding: 20px;
 }
 .ui-rpopover-content{
   background: var(--bg-wrapper);

@@ -94,7 +94,7 @@ const props = defineProps({
   closeIcon:    { type: String,  default: undefined },
   isFullScreen: { type: Boolean, default: false     },
   modalWidth:   { type: String,  default: undefined }, // e.g. '600px' or '80vw'
-  noClose:      { type: Boolean, default: false     }, // hide close button + lock dismiss
+  noClose:      { type: Boolean, default: true     }, // hide close button + lock dismiss
   noHeader:     { type: Boolean, default: false     },
   noFooter:     { type: Boolean, default: false     },
   overflowAuto: { type: Boolean, default: false     },
