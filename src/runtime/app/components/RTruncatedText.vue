@@ -37,10 +37,13 @@ const expand = (txt) => {
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  -webkit-line-clamp: var(--lines,2);
+  -webkit-line-clamp: var(--lines,2) !important;
   -webkit-box-orient: vertical;
   white-space: nowrap;
   min-width: 0;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
 }
 // .r-table-clamp {
 //   display: -webkit-box;

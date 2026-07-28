@@ -1,7 +1,7 @@
 <template>
         <!-- :search-input="props.localData?.keySearch" -->
 
-  <div ref="refOCSelect" class="r-customer-select"
+  <div ref="refOCSelect" class="r-custom-select"
     :class="[variant, props.disabled ? 'disabled' : '', (multiple && selected?.length > 0) ? 'have-selected-value' : '']">
     <USelectMenu ref="refSelctMenu" v-model="selected"  v-model:open="isOpen" v-model:query="query" :ui="ui" selected-icon="i-lucide-flame" trailingIcon="ri-arrow-down-s-line" class="r-select-menu-base" :arrow="arrow"
       :loading="isLoading" loading-icon="i-lucide-loader" :placeholder="props.placeholder ? props.placeholder : $t('select')" :items="listData" @update:open="onOpen" 
@@ -16,7 +16,7 @@
       <template #default="{ modelValue,open,ui }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(modelValue) && !modelValue.isDefault" name="leading" :data="modelValue" />
-        <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1 flex-1 w-full text-left"
+        <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="truncated-select text-[13px] color-w-b-1 flex-1 w-full text-left"
           v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
         <!-- <div v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)"  class="flex-1 min-w-0">
           <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1" />
@@ -759,7 +759,7 @@ async function getData(filter, isFromSelect = false) {
 
 const ui = computed(() => {
   const defaultUI = {
-    // container: "r-customer-select",
+    // container: "r-custom-select",
     base: `justify-between ui-select-base w-full color-bg-content rounded-[8px] ${props.multiple ? 'height-btn-select-all' : ''}`,
     // content:'min-w-fit',
     content: 'flex-1 min-w-0',
@@ -827,12 +827,19 @@ function fnGenerateTextSubLabel(data, template) {
 .ui-select-base { // work
   width: 100%;
   min-width: fit-content !important;
+  display: flex;
+  justify-content: start;
+  align-items: center !important;
 
 //  display: flex !important; 
 //   flex-direction: row !important;
 //   justify-content: start !important;
 //   align-items: center !important; 
 //   overflow: hidden !important;
+}
+
+.truncated-select{
+  padding-top: 7px !important;
 }
 
 .ui_rselect_trailing{
@@ -848,7 +855,7 @@ function fnGenerateTextSubLabel(data, template) {
   padding: 1px 5px !important;
   border-radius: 5px !important;
 }
-.r-customer-select {
+.r-custom-select {
   &.have-selected-value {
     .height-btn-select-all {
       padding: 3px 40px 3px 2px;
@@ -1055,7 +1062,7 @@ function fnGenerateTextSubLabel(data, template) {
   width: 20px !important;
   height: 20px !important;
   border: 0 !important;
-  background: var(--bg-content) !important;
+  background: var(--color-w-b-1) !important;
   cursor: pointer !important;
   color: var(--c-text) !important;
   transition: .2s;
