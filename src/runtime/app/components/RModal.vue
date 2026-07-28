@@ -33,7 +33,7 @@
               <slot name="headerCenter" />
               <slot name="headerRight" />
               <button
-                v-if="!noClose"
+                v-if="noClose"
                 class="rm-btn-close"
                 aria-label="Close"
                 @click="onCloseModal"

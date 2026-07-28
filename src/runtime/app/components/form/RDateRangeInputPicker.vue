@@ -105,7 +105,7 @@ const defaultUi = {
             leadingIcon: 'size-4',
             leadingAvatarSize: '3xs',
             trailingIcon: 'size-4',
-            segment: 'data-[segment=day]:w-8 data-[segment=month]:w-8 data-[segment=year]:w-10'
+            segment: 'data-[segment=day]:w-2 data-[segment=month]:w-8 data-[segment=year]:w-10'
           },
           sm: {
             base: [
@@ -493,8 +493,6 @@ const calendarUI = {
   }
 }
 
-
-
 //calendar btn
 
 .rdp__cal-btn {
@@ -552,12 +550,36 @@ const calendarUI = {
 // can override the NuxtUI style but need css class to base of ui of NuxtUI but need as global without scoped
 .rdp-input {
   height: 40px !important; //base
-  padding: 0 12px;
+  width: 100% !important;
+  padding: 0 2px 0 12px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  // border-radius: 12px;
-}
+  border-radius: var(--radius-md) !important;
 
+  [data-segment="day"],
+  [data-segment="month"],
+  [data-segment="year"] {
+    width: fit-content !important;
+    min-width: 0 !important;
+    flex: none !important;
+    padding-inline: 6px !important;
+    // padding: 1px 2px !important;
+
+    // background-color: var(--color-w-b-6);
+  }
+  [data-segment="day"]:focus,
+  [data-segment="month"]:focus,
+  [data-segment="year"]:focus {
+    background-color: var(--color-w-b-6) !important;
+  }
+
+  [data-slot="trailing"] {  // not in this for padding-right, use outside instead;
+    right: 0 !important;
+    padding-right: 2px !important;
+    background: transparent !important;
+    font-size: 14px !important;
+  }
+}
 
 //    ─────────────────────────────────────────────
 //      GLOBAL — targets NuxtUI portal / teleport

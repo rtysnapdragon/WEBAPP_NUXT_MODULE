@@ -335,6 +335,7 @@ function closed() {
 
   &__title {
     margin: 0;
+    font-family: var(--font-400) !important;
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--c-text);
@@ -343,6 +344,7 @@ function closed() {
 
   &__desc {
     margin: 2px 0 0;
+    font-family: var(--font-400) !important;
     font-size: 0.78rem;
     color: var(--c-muted);
     line-height: 1.4;

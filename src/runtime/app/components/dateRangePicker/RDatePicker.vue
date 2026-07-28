@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full">
     <!-- date range picker -->
     <VDatePicker v-if="dateRangePicker" ref="refDatePicker" v-model="date" :columns="columns" is-range
       v-bind="{ ...attrs, ...$attrs }" :attributes="attributes" :min-date="minDate" :max-date="maxDate" :masks="masks"
@@ -199,8 +199,9 @@ const ui = computed(() => {
 });
 
 const defaultUI = {
+  root:'ui-rinput-root relative w-full',
   placeholder: "placeholder:text-xs",
-  base: "color-w-b-1 text-left",
+  base: "ui-rinput-base color-w-b-1 w-full text-left",
   file: {
     base: "file:hidden",
   },
@@ -373,6 +374,18 @@ defineExpose({ datePicker ,fnReset});
   &::placeholder {
     color: var(--color-w-b-3) !important;
   }
+}
+
+.ui-rinput-base {
+  font-family: var(--font-400);
+  font-size: 12px;
+  color: var(--color-w-b-1);
+  font-weight: var(--font-medium);
+  line-height: 18px;
+  height: 38px !important;
+  letter-spacing: 0.5px;
+  border-radius: 11px !important;
+  width: 100% !important;
 }
 
 .ocs-input-date {

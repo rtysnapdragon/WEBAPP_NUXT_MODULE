@@ -209,7 +209,8 @@ const forwardedProps = computed(() => ({
   list: props.list,
   readonly: props.readonly,
   autocomplete: props.autocomplete,
-  class: props.class
+  class: props.class,
+  use: ['nuxtui']
 }))
 
 /* ----------------------------------------------------------------------- */
@@ -433,6 +434,15 @@ defineExpose({
         <slot :name="slotName" v-bind="slotProps" />
       </template>
     </UInputTags>
+
+    <!-- <UPopver v-if="use == 'nuxtui'" v-model="isSuggestionsOpen" :positions="['bottom-start']">
+      <template #trigger>
+
+      </template>
+      <template #content>
+        
+      </template>
+    </UPopver> -->
 
     <Transition name="ui-rinputtag-fade">
       <div v-if="showSuggestions" class="ui-rinputtag-suggestions" role="listbox">
