@@ -78,7 +78,6 @@ defineProps<{
 
   &__content {
     min-width: 0;
-
     flex: 1;
   }
 
@@ -86,16 +85,11 @@ defineProps<{
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 44px;
     height: 44px;
-
     border-radius: 12px;
-
     flex-shrink: 0;
-
     background: var(--color-item-active-bg);
-
     @media (max-width: 768px) {
       width: 38px;
       height: 38px;
@@ -105,9 +99,7 @@ defineProps<{
   &__icon {
     width: 22px;
     height: 22px;
-
     color: var(--color-accent);
-
     @media (max-width: 768px) {
       width: 18px;
       height: 18px;
@@ -118,13 +110,9 @@ defineProps<{
     font-family: var(--font-400,var(--font-fallback));
     font-size: 1.5rem;
     font-weight: bold;
-
     line-height: 1.2;
-
     letter-spacing: -0.02em;
-
     color: var(--color-text-primary);
-
     @media (max-width: 768px) {
       font-size: 1.2rem;
     }
@@ -132,11 +120,8 @@ defineProps<{
 
   &__sub {
     margin-top: 2px;
-
     font-size: 0.85rem;
-
-    color: var(--color-text-muted);
-
+    color: var(--sub-text);
     @media (max-width: 768px) {
       font-size: 0.78rem;
     }
@@ -144,11 +129,9 @@ defineProps<{
 
   &__actions {
     margin-left: auto;
-
     display: flex;
     align-items: center;
     gap: 8px;
-
     flex-shrink: 0;
   }
 }

@@ -4,17 +4,18 @@ const props = withDefaults(defineProps<{
   title?:     string
   subtitle?:  string
   icon?:      string
+  class?:string
   glass?:     boolean
   padding?:   'none' | 'sm' | 'md' | 'lg'
   hoverable?: boolean
-  bordered?:  boolean
-  className?:     string
+  hasBorder?:  boolean
 }>(), {
   padding:  'md',
-  bordered: true,
+  hasBorder: false,
 })
 
 const emits = defineEmits(['click'])
+const classStye = computed(() => props.class)
 
 function onClick(event: Event) {
   emits('click', event)
@@ -24,9 +25,9 @@ function onClick(event: Event) {
 <template>
   <div :class="[
     'r-card', 
-    props.className,
+    classStye,
     `r-card--pad-${padding}`,
-    { 'r-card--glass': glass, 'r-card--hoverable': hoverable, 'r-card--bordered': bordered }
+    { 'r-card--glass': glass, 'r-card--hoverable': hoverable, 'r-card--bordered': hasBorder }
   ]" @click="onClick">
     <!-- Header -->
     <div v-if="title || $slots.header" class="r-card__header">
@@ -83,7 +84,7 @@ function onClick(event: Event) {
     border-radius: inherit;
   }
 
-  // &--bordered { border: 1px solid var(--c-border); }
+  &--bordered { border: 0.5px solid var(--c-active); }
 
   &--glass {
     @include glass;
@@ -96,6 +97,8 @@ function onClick(event: Event) {
 
   /* Padding variants */
   &--pad-none .r-card__body { padding: 0; }
+  &--pad-xs   .r-card__body { padding: var(--space-1); }
+  &--pad-s   .r-card__body { padding: var(--space-2); }
   &--pad-sm   .r-card__body { padding: var(--space-3); }
   &--pad-md   .r-card__body { padding: var(--space-4) var(--space-5); }
   &--pad-lg   .r-card__body { padding: var(--space-6) var(--space-8); }

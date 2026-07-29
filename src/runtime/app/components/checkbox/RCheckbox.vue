@@ -17,7 +17,9 @@
     :value="props.value"
     :id="computedId"
     :color="props.color"
+    :icon="props.icon ?? 'ri-check-line'"
     v-bind="$attrs"
+    :style="{ '--rcb-radius': radiusMap[rounded] }"
   >
     <template v-if="$slots.label" #label>
       <slot name="label" />
@@ -41,10 +43,23 @@ const props = defineProps({
   indeterminate: { type: Boolean, default: false      },
   size:          { type: String,  default: 'md'       }, // 'sm' | 'md' | 'lg'
   color:         { type: String,  default: 'primary'   }, // 'primary' | 'accent' | 'danger' | 'info' | 'warning' | 'muted' | 'none'
+  rounded:       { type: Boolean, default: false      },
+  hasBorder:     { type: Boolean, default: false      },
+  icon:          { type: String,  default: 'ri-check-line' },
+  variant:       { type: String,  default: 'list' },    // card, list
 })
 
 const computedId = computed(() => props.id)
-
+const rounded = computed(() => props.rounded ? 'md' : 'none')
+const radiusMap = {
+  '2xs': 'var(--rounded-2xs)',
+  xs: 'var(--rounded-xs)',
+  sm: 'var(--rounded-s)',
+  md: 'var(--rounded-m)',
+  lg: 'var(--rounded)',
+  xl: 'var(--border-radius)',
+  full: '9999px',
+}
 /*
  * ui prop for UCheckbox v4:
  * All values must be plain strings (NuxtUI v4 uses tv() / tailwind-variants).
@@ -66,7 +81,15 @@ const mergedUI = computed(() => {
 
   const base = {
     root:      `rcb-root ${sizeClass} ${colorClass}`,
-    base:      `rcb-base`,
+    container:  'rcb-container',
+    base:      [`rcb-base`, `rcb--rounded-${rounded.value}`,
+      "border border-(--color-w-b-3)",
+      "data-[state=checked]:bg-primary/10",
+      "data-[state=checked]:border-primary",
+      "data-[state=checked]:text-primary",
+      "data-[state=indeterminate]:bg-primary/10",
+      "data-[state=indeterminate]:border-primary",
+    ].join(" "),
     indicator: 'rcb-indicator',
     icon:      'rcb-icon',
     inner:     'rcb-inner',
@@ -157,6 +180,15 @@ $rcb-colors: (
 // We use our injected .rcb-base class as the primary hook (more stable than
 // relying solely on data-slot, in case NuxtUI changes that in a patch).
 //
+
+// .rcb-base {
+//   border-radius: var(--rcb-radius);
+// }
+
+.rcb-base {
+  border-radius: var(--rcb-radius, var(--rounded-m)) !important;
+}
+
 .rcb-base,
 .rcb-root [data-slot="base"] {
   // Reset browser and NuxtUI defaults
@@ -174,13 +206,21 @@ $rcb-colors: (
   width:        var(--rcb-size, 16px);
   height:       var(--rcb-size, 16px);
   min-width:    var(--rcb-size, 16px);
+  
 
   // Surface
   border:        2px solid var(--color-w-b-3);
-  border-radius: var(--rcb-radius, 4px);
-  background:    var(--c-surface);
+  border-radius: var(--rcb-radius, 4px) ;
+  background:    transparent;
   cursor:        pointer;
   overflow:      visible; // allow focus ring to bleed out
+
+  // &.rcb--rounded-2xs { border-radius: var(--rounded-2xs) !important; }
+  // &.rcb--rounded-xs  { border-radius: var(--rounded-xs) !important; }
+  // &.rcb--rounded-sm  { border-radius: var(--rounded-s) !important; }
+  // &.rcb--rounded-md  { border-radius: var(--rounded-m) !important; }
+  // &.rcb--rounded-lg  { border-radius: var(--rounded) !important; }
+  // &.rcb--rounded-xl  { border-radius: var(--border-radius) !important; }
 
   transition:
     border-color  var(--t-fast) var(--ease-out),
@@ -203,6 +243,7 @@ $rcb-colors: (
     justify-content: center;
     width:       100%;
     height:      100%;
+    padding: 3px;
     opacity:     0;
     transform:   scale(0.5);
     transition:
@@ -268,6 +309,13 @@ $rcb-colors: (
 .rcb-root [data-slot="indicator"] {
   display: none !important;
 }
+
+// .rcb-container{
+//   display: flex;
+//   align-items: center;
+//   flex-direction: row-reverse !important;
+//   // background-color: burlywood;
+// }
 
 // ── Inner wrapper (label + help stack) ──────────────────────────────────────
 .rcb-inner,

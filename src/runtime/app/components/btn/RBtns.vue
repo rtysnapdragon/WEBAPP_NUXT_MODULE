@@ -1,10 +1,10 @@
 <template>
   <div class="r-group-actions">
     <!-- ── 3-dot menu ── -->
-    <RPopover  v-model="openAction"  v-if="isNotEmpty(lists) && useThreeDot" class="ec" use="nuxtui"  :content="{ side: 'bottom-end' }">
+    <RPopover  v-model="openAction"  v-if="isNotEmpty(lists) && useThreeDot" use="nuxtui"  :content="{ side: 'bottom-end' }">
       <template #trigger>
-        <button class="ec__dot-btn">
-          <i class="ri-more-2-fill" />
+        <button class="custom-btn">
+          <i :class="iconThreeDot ?? 'ri-more-2-fill'" />
         </button>
       </template>
       <RBtnList v-for="list in lists" :type="list.type" :icon="list.icon" :color="list.color" :label="list.label"
@@ -92,10 +92,11 @@
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
 import {useScreenStore } from '../../stores/screen'
 const screen = useScreenStore();
-const props = defineProps(["data","threeDotOnly", "use"]);
+const props = defineProps(["data","threeDotOnly", "use", "iconThreeDot"]);
 const emit = defineEmits(["click"]);
 const lists = computed(() => props.data);
 const useThreeDot = computed(() => props.threeDotOnly ?? false);
+const iconThreeDot = computed(() => props.iconThreeDot ?? 'ri-more-2-fill')// ri-more-fill //ri-equalizer-lin
 const openAction = ref(false)
 const refDropdown = ref()
 
@@ -211,20 +212,14 @@ function fnClick(type, list) {
 }
 
 // ── 3-dot menu ─────────────────────────────────────────────────────────
-.ec{
-  // position: absolute;
-  // top:      var(--sp-3);
-  // right:    var(--sp-3) !important;
-  // z-index:  999 !important;
-
-  &__dot-btn {
+.custom-btn{
     display:         flex;
     align-items:     center;
     justify-content: center;
     width:   30px;
     height:  30px;
     border-radius: var(--r-full);
-    border:  1px solid var(--c-border);
+    border:  0.5px solid var(--c-border);
     background: var(--glass-bg);
     backdrop-filter: blur(8px);
     color:   var(--c-muted);
@@ -235,48 +230,24 @@ function fnClick(type, list) {
                 color var(--t-fast) var(--ease-out);
 
     &:hover {
-      border-color: var(--c-accent);
+      // border-color: var(--c-accent);
       color:        var(--c-accent);
+      outline: none;
+      // background:   color-mix(in srgb, var(--c-accent) 8%, var(--glass-bg));
+    }
+    &:focus{
+      outline: none !important;
       background:   color-mix(in srgb, var(--c-accent) 8%, var(--glass-bg));
     }
-  }
-
-  &__menu {
-    position:    absolute;
-    top:         calc(100% + var(--sp-1));
-    right:       0;
-    min-width:   130px;
-    background:  var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    border:      1px solid var(--c-border);
-    border-radius: var(--r-lg);
-    box-shadow:  var(--glass-shadow);
-    overflow:    hidden;
-    z-index:     100;
-  }
-
-  &__menu-item {
-    display:     flex;
-    align-items: center;
-    gap:         var(--sp-2);
-    width:       100%;
-    padding:     var(--sp-2) var(--sp-3);
-    border:      none;
-    background:  transparent;
-    color:       var(--c-text);
-    font-size:   0.8125rem;
-    font-family: var(--font-fallback);
-    font-weight: 500;
-    cursor:      pointer;
-    text-align:  left;
-    transition:  background var(--t-fast) var(--ease-out);
-
-    i { color: var(--c-muted); font-size: 0.875rem; }
-
-    &:hover {
-      background: color-mix(in srgb, var(--c-accent) 8%, transparent);
-      i { color: var(--c-accent); }
+    &:focus-visible {
+      border-color: var(--c-accent);
+      color: var(--c-accent);
+      background: color-mix(in srgb, var(--c-accent) 8%, var(--glass-bg));
+      outline: none;
     }
-  }
+
+    &:active {
+      background: color-mix(in srgb, var(--c-accent) 12%, var(--glass-bg));
+    }
 }
 </style>
