@@ -366,7 +366,7 @@ function onCloseModal() {
 
 /* ── Body content area ── */
 .rm-body {
-  padding: var(--sp-5);
+  padding: var(--sp-2) var(--sp-5);
   font-size: 13px;
   color: var(--c-text);
   font-family: var(--font-400,var(var(--font-fallback)));

@@ -46,9 +46,9 @@ const props = withDefaults(defineProps<{
 }>(), {
   orientation:   'horizontal',
   size:          'md',
-  color:         'accent',
-  showContent:   true,
-  showActions:   true,
+  color:         'primary',
+  showContent:   false,
+  showActions:   false,
 })
 
 const emit = defineEmits<{
