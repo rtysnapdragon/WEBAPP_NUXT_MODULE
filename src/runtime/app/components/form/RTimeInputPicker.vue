@@ -81,9 +81,6 @@ const props = defineProps([
 ])
 
 const slot = useSlots()
-console.log("Slot -------------------------> ",slot)
-const timeVal = computed(() => props.modelValue ?? null)
-const rangeVal = computed(() => props.range ? {start : null, end : null} : null)
 const range = computed(() => props.range ?? false)
 const granularity = computed(() => props.granularity ?? 'minute') //['hour', 'minute', 'second']
 const hourCycle = computed(() => props.hourCycle ?? 12)
@@ -131,43 +128,36 @@ const { locale, t } = useI18n()
 // const internal = ref(props.modelValue ?? null)
 // const internal = shallowRef(props.modelValue ?? null)
 // ── Internal model ─────────────────────────────────────────────────────────
-// const internal = ref<TimeVal>(props.modelValue ?? null)
 const internal = ref(null)
-const internalRange = ref({ start: null, end: null })
-console.log("Internal ----------------> ",internal.value)
-watch(() => props.modelValue, v => { internal.value = v ?? null })
-watch(internal, v => { emit('update:modelValue', v); emit('change', v) })
-console.log("Test Time Instance ------> ",internal.value instanceof Time)
-console.log("Test Time Typeof ------> ",typeof internal.value?.copy)
-watch(internal, (v) => {
-  console.log('MODEL', v)
-  console.log('IS RANGE', props.range)
 
-  if (v?.start) {
-    console.log('START COPY', typeof v.start?.copy)
-    console.log('END COPY', typeof v.end?.copy)
+// Accept both Time objects and "HH:mm" strings (used by ScheduleTab & form pages).
+const toTimeValue = (v) => {
+  if (v == null) return null
+  if (v instanceof Time) return v
+  if (typeof v === 'string' && v.trim()) {
+    const p = v.split(':').map(Number)
+    if (p.length >= 2 && p[0] >= 0 && p[0] <= 23 && p[1] >= 0 && p[1] <= 59)
+      return new Time(p[0], p[1], p[2] || 0)
+    return null
   }
-})
-// ── Internal model ─────────────────────────────────────────────────────────
+  return v
+}
 
-const timeValue = ref({
-    start:new Time(0,0),
-    end:new Time(23,59)
-})
-// const startTime = { start: new Time(0, 0, 0), end: new Time(23, 59, 0) }
-const startTime = ref(new Time(0, 0, 0))
-const endTime = { start: new Time(0, 0, 0), end: new Time(23, 59, 0) }
-const timeValues = computed(() => props.range ? timeValue.value : startTime)
-console.log("Range Value---------------------------> " , timeValues.value)
-
-const singleValue = computed({
-  get() {
-    return internal.value ?? new Time(0, 0, 0)
+watch(
+  () => props.modelValue,
+  (v) => {
+    internal.value = toTimeValue(v)
   },
-  set(v) {
-    internal.value = v
-  }
-})
+  { immediate: true },
+)
+watch(
+  internal,
+  (v) => {
+    emit('update:modelValue', v)
+    emit('change', v)
+  },
+)
+// ── Internal model ─────────────────────────────────────────────────────────
 
 // ── Popover state ──────────────────────────────────────────────────────────
 const open       = ref(false)
@@ -286,18 +276,6 @@ function pickAmPm(pm) {
   scrollDrumTo(ampmDrum.value, pm ? 1 : 0)
 }
 
-function applyTime2(t) {
-  if (!props.range) {
-    internal.value = t
-    return
-  }
-  const prev = (internal.value) ?? { start: new Time(0,0,0), end: new Time(0,0,0) }
-  if (rangeStep.value === 'start') {
-    internal.value = { start: t, end: prev.end }
-  } else {
-    internal.value = { start: prev.start, end: t }
-  }
-}
 function applyTime(t) {
   if (!props.range) {
     internal.value = t
@@ -504,7 +482,7 @@ const stepLabel = computed(() =>
       <!-- ── Range mode ── -->
       <template v-if="range">
         <UInputTime
-          v-model="rangeValue"
+          v-model="internal"
           :range="range"
           :separator-icon="separatorIcon"
           :granularity="granularity"
@@ -582,7 +560,7 @@ const stepLabel = computed(() =>
     <!-- ══════════════════════════════════════════════════════
          DRUM PICKER POPOVER
     ══════════════════════════════════════════════════════ -->
-      <RPopover v-model="open" :reference="triggerRef" class="rti__pop" use="nuxtui">
+      <RPopover v-model="open" :reference="triggerRef" class="rti__pop" use="nuxtui" :content="{ side: 'bottom-end' }">
         <template #trigger></template>
         <!-- Header: live time display + range step badge -->
         <div class="rti__pop-head">
@@ -603,18 +581,21 @@ const stepLabel = computed(() =>
 
         <!-- Column header labels -->
         <div class="rti__drum-labels" :class="{
-          'rti__drum-labels--sec':  granularity === 'second',
-          'rti__drum-labels--ampm': hourCycle === 12,
+          'rti__drum-labels--sec':     granularity === 'second',
+          'rti__drum-labels--ampm':    hourCycle === 12 && granularity !== 'second',
+          'rti__drum-labels--sec-ampm': granularity === 'second' && hourCycle === 12,
         }">
           <span>{{ lbl.h }}</span>
           <span v-if="granularity !== 'hour'">{{ lbl.m }}</span>
+          <span v-if="granularity === 'second'">{{ lbl.s }}</span>
           <span v-if="hourCycle === 12">AM/PM</span>
         </div>
 
         <!-- ══ Drum columns ══ -->
         <div class="rti__drums" :class="{
-          'rti__drums--sec':  granularity === 'second',
-          'rti__drums--ampm': hourCycle === 12,
+          'rti__drums--sec':     granularity === 'second',
+          'rti__drums--ampm':    hourCycle === 12 && granularity !== 'second',
+          'rti__drums--sec-ampm': granularity === 'second' && hourCycle === 12,
         }">
           <!-- Selection highlight bar -->
           <div class="rti__selector" aria-hidden="true" />
@@ -656,30 +637,6 @@ const stepLabel = computed(() =>
               @click="pickMinute(m)"
             >{{ pad(m) }}</div>
             <div class="rti__drum-pad" />
-          </div>
-
-          <div v-if="granularity === 'second'">
-            <!-- Colon -->
-            <!-- <div v-if="granularity !== 'hour'" class="rti__colon" aria-hidden="true">:</div> -->
-
-            <!-- Minute drum -->
-            <div
-              v-if="granularity !== 'hour'"
-              ref="minuteDrum"
-              class="rti__drum"
-              tabindex="0"
-              role="listbox" :aria-label="lbl.m"
-              @keydown="onDrumKey($event, 'm')"
-            >
-              <div class="rti__drum-pad" />
-              <div
-                v-for="m in minuteItems" :key="m"
-                :class="['rti__drum-item', { 'rti__drum-item--active': isMinActive(m) }]"
-                role="option" :aria-selected="isMinActive(m)"
-                @click="pickMinute(m)"
-              >{{ pad(m) }}</div>
-              <div class="rti__drum-pad" />
-            </div>
           </div>
           <!-- Colon (seconds) -->
           <!-- <div v-if="granularity === 'second'" class="rti__colon" aria-hidden="true">:</div> -->
@@ -1053,25 +1010,27 @@ $vis:    3;       // visible items in viewport
   letter-spacing: 0.08em;
   text-align:     center;
 
-  // auto-grow columns to match drum layout
-  grid-template-columns: 1fr auto 1fr;            // h : m  (default minute)
-  &--sec  { grid-template-columns: 1fr auto 1fr auto 1fr; }
-  &--ampm { grid-template-columns: 1fr auto 1fr 48px; }
+  // columns match the drum layout (colons are hidden)
+  grid-template-columns: 1fr 1fr;                       // h : m  (default minute)
+  &--sec      { grid-template-columns: 1fr 1fr 1fr; }   // h : m : s
+  &--ampm     { grid-template-columns: 1fr 1fr 48px; }  // h : m : AM/PM
+  &--sec-ampm { grid-template-columns: 1fr 1fr 1fr 48px; }
 }
 
 // ── Drums container ──────────────────────────
 .rti__drums {
   position: relative;
   display:  grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   padding:  0 var(--space-4);
   height:   ($item-h * $vis);
   gap:      0;
   background-color: var(--bg-content) !important;
 
-  &--sec  { grid-template-columns: 1fr auto 1fr auto 1fr; }
-  &--ampm { grid-template-columns: 1fr auto 1fr 48px; }
+  &--sec      { grid-template-columns: 1fr 1fr 1fr; }
+  &--ampm     { grid-template-columns: 1fr 1fr 48px; }
+  &--sec-ampm { grid-template-columns: 1fr 1fr 1fr 48px; }
 }
 
 // Highlight bar sitting behind the centre row

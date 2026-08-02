@@ -1,4 +1,5 @@
 <template>
+  <Teleport to="body">
   <Transition name="r-confirm">
     <div v-if="!!confirmStore.data" class="r-confirm">
       <!-- persistent=true means overlay click must NOT close the dialog -->
@@ -53,6 +54,7 @@
       </div>
     </div>
   </Transition>
+  </Teleport>
   <!--
 EX
 const confirm = useConfirmStore()
@@ -358,7 +360,7 @@ async function onCancel() {
 .r-confirm {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 2147483647;
 
   &__overlay {
     position: absolute;
@@ -369,7 +371,7 @@ async function onCancel() {
 
   &__wrapper {
     position: relative;
-    z-index: 1;
+    // z-index: 1;
 
     display: flex;
     align-items: center;
@@ -382,6 +384,7 @@ async function onCancel() {
   &__card {
     width: 100%;
     max-width: 460px;
+    z-index: 1;
 
     background: #fff;
     color: var(--c-text);
