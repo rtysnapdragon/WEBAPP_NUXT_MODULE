@@ -390,7 +390,7 @@ function onCloseModal() {
 .rty-scroll {
   // max-height: calc(100% - 52px);
   overflow-y: auto;
-  padding-right: 2px!important;
+  padding-right: 10px!important;
 }
 
 /* ── Footer content area ── */
