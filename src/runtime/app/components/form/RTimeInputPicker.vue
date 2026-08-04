@@ -129,33 +129,138 @@ const { locale, t } = useI18n()
 // const internal = shallowRef(props.modelValue ?? null)
 // ── Internal model ─────────────────────────────────────────────────────────
 const internal = ref(null)
+const internal1 = computed({
+  get: () => toTimeValue(props.modelValue),
+  set: (value) => {
+    emit('update:modelValue', value)
+    emit('change', value)
+  }
+})
+function dateToTime(date) {
+  return new Time(
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds()
+  )
+}
 
 // Accept both Time objects and "HH:mm" strings (used by ScheduleTab & form pages).
-const toTimeValue = (v) => {
-  if (v == null) return null
-  if (v instanceof Time) return v
-  if (typeof v === 'string' && v.trim()) {
-    const p = v.split(':').map(Number)
-    if (p.length >= 2 && p[0] >= 0 && p[0] <= 23 && p[1] >= 0 && p[1] <= 59)
-      return new Time(p[0], p[1], p[2] || 0)
-    return null
+// const toTimeValue = (v) => {
+//   if (v == null) return null
+//   if (v instanceof Time) return v
+//   if (typeof v === 'string' && v.trim()) {
+//     const p = v.split(':').map(Number)
+//     if (p.length >= 2 && p[0] >= 0 && p[0] <= 23 && p[1] >= 0 && p[1] <= 59)
+//       return new Time(p[0], p[1], p[2] || 0)
+//     return null
+//   }
+//   return v
+// }
+const toTime = (v) => {
+  if (!v) return null
+
+  if (v instanceof Time) {
+    return v
   }
-  return v
+
+  if (v instanceof Date) {
+    return new Time(
+      v.getHours(),
+      v.getMinutes(),
+      v.getSeconds()
+    )
+  }
+
+  if (typeof v === 'string') {
+    const [h, m, s = 0] = v.split(':').map(Number)
+    return new Time(h, m, s)
+  }
+
+  return null
+}
+
+const toTimeValue = (v) => {
+  if (!v) return null
+
+  // Range
+  if (props.range && typeof v === 'object' && 'start' in v && 'end' in v) {
+    return {
+      start: toTime(v.start),
+      end: toTime(v.end),
+      // start:
+      //   v.start instanceof Time
+      //     ? v.start
+      //     : v.start instanceof Date
+      //       ? dateToTime(v.start)
+      //       : v.start,
+
+      // end:
+      //   v.end instanceof Time
+      //     ? v.end
+      //     : v.end instanceof Date
+      //       ? dateToTime(v.end)
+      //       : v.end,
+    }
+  }
+
+  // Single
+  return toTime(v)
+  // if (v instanceof Time) return v
+
+  // if (v instanceof Date) {
+  //   return dateToTime(v)
+  // }
+
+  // if (typeof v === 'string') {
+  //   const [h, m, s = 0] = v.split(':').map(Number)
+  //   return new Time(h, m, s)
+  // }
+
+  // return v
+}
+function isSameRange(a, b) {
+  if (a === b) return true
+  if (!a || !b) return a === b
+
+  if (props.range) {
+    return (
+      a.start?.hour === b.start?.hour &&
+      a.start?.minute === b.start?.minute &&
+      a.start?.second === b.start?.second &&
+      a.end?.hour === b.end?.hour &&
+      a.end?.minute === b.end?.minute &&
+      a.end?.second === b.end?.second
+    )
+  }
+
+  return (
+    a.hour === b.hour &&
+    a.minute === b.minute &&
+    a.second === b.second
+  )
 }
 
 watch(
   () => props.modelValue,
   (v) => {
-    internal.value = toTimeValue(v)
+    const value = toTimeValue(v)
+
+    if (!isSameRange(internal.value, value)) {
+      internal.value = value
+    }
   },
-  { immediate: true },
+  { immediate: true }
 )
-watch(
+
+watch( //Don't emit if nothing changed:
   internal,
-  (v) => {
+  (v, old) => {
+    if (isSameRange(v, old)) return
+
     emit('update:modelValue', v)
     emit('change', v)
   },
+  { deep: true }
 )
 // ── Internal model ─────────────────────────────────────────────────────────
 
@@ -201,10 +306,11 @@ const hourItems = computed(() =>
     : Array.from({ length: 24 }, (_, i) => i)           // 0-23
 )
 const minuteItems = computed(() =>
-  Array.from({ length: Math.ceil(60 / props.minuteStep) }, (_, i) => i * props.minuteStep)
+  Array.from({ length: Math.ceil(60 / props.minuteStep) }, (_, i) => i * minuteStep.value)
 )
+
 const secondItems = computed(() =>
-  Array.from({ length: Math.ceil(60 / props.secondStep) }, (_, i) => i * props.secondStep)
+  Array.from({ length: Math.ceil(60 / props.secondStep) }, (_, i) => i * secondStep.value)
 )
 
 // ── Editing time (current phase in range mode) ─────────────────────────────
@@ -237,8 +343,8 @@ function scrollAllDrums(instant = true) {
 
   scrollDrumTo(hourDrum.value,
     hourItems.value.indexOf(hDisplay), instant)
-  scrollDrumTo(minuteDrum.value,
-    minuteItems.value.findIndex(m => m >= t.minute) ?? 0, instant)
+  const minuteIndex = minuteItems.value.findIndex(m => m >= t.minute)
+  scrollDrumTo(minuteDrum.value, minuteIndex >= 0 ? minuteIndex : 0,instant)
   if (props.granularity === 'second')
     scrollDrumTo(secondDrum.value,
       secondItems.value.findIndex(s => s >= t.second) ?? 0, instant)
