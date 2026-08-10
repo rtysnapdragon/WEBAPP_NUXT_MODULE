@@ -27,6 +27,10 @@ const props = defineProps({
   class: {
     type: String,
     default: '',
+  },
+  border: {
+    type: String,
+    default: '',
   }
 });
 

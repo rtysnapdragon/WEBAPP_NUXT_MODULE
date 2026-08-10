@@ -81,7 +81,7 @@ const props = defineProps({
   closeIcon:    { type: String,  default: undefined },
   side:         { type: String,  default: 'right'   }, // 'left' | 'right' | 'top' | 'bottom'
   width:        { type: Number,  default: undefined }, // px, desktop only
-  maxWidth:     { type: Number,  default: 500       }, // px
+  maxWidth:     { type: Number,  default: 900       }, // px
   transition:   { type: Boolean, default: true      },
   overlay:      { type: Boolean, default: true      },
   dismissible:  { type: Boolean, default: true      },
@@ -117,6 +117,7 @@ const mergedUI = computed(() => {
     content: [
       'rs-content',
       isMobile ? 'rs-content--bottom' : '',
+      !isMobile && props.width ? `rs-content--width-${props.width}` : '',
     ],
     // header/body/footer ui values must be plain strings in NuxtUI v4 tv()
     header:  'rs-ui-header w-full',
@@ -183,14 +184,15 @@ function closed() {
   on .r-slider-host which is an ancestor in the *cascade* (not DOM) sense.
   All actual portal element styling is in the GLOBAL block below.
 -->
-<style lang="scss" scoped>
+<!-- <style lang="scss" scoped>
+
 .r-slider-host {
   // Expose token overrides as custom props so the global block can read them
   --rs-width:      v-bind("props.width ? props.width + 'px' : '420px'");
-  --rs-max-width:  v-bind("props.maxWidth ? props.maxWidth + 'px' : '500px'");
+  --rs-max-width:  v-bind("props.maxWidth ? props.maxWidth + 'px' : '900px'");
   display: contents; // host div adds zero layout impact
 }
-</style>
+</style> -->
 
 <!--
   GLOBAL (non-scoped) block — targets the teleported portal DOM.
@@ -206,6 +208,18 @@ function closed() {
   injected via the ui prop) so we never accidentally leak styles globally.
 -->
 <style lang="scss">
+// .rs-content--width-400 { width: 400px; }
+// .rs-content--width-500 { width: 500px; }
+// .rs-content--width-600 { width: 600px; }
+// .rs-content--width-700 { width: 700px; }
+// .rs-content--width-800 { width: 900px; }
+
+// .r-slider-host {
+//   // Expose token overrides as custom props so the global block can read them
+//   --rs-width:      v-bind("props.width ? props.width + 'px' : '420px'");
+//   --rs-max-width:  v-bind("props.maxWidth ? props.maxWidth + 'px' : '900px'");
+//   display: contents; // host div adds zero layout impact
+// }
 /* ── dirty bar + unsaved badge ── */
 .rs__dirty-bar {
   height: 3px;
@@ -246,17 +260,17 @@ function closed() {
   // Layout
   display: flex;
   flex-direction: column;
-  width: var(--rs-width, 420px) !important;
-  max-width: var(--rs-max-width, 500px) !important;
+  width: v-bind('props.width ? props.width + "px" : "420px"') !important;
+  max-width: v-bind('props.maxWidth ? props.maxWidth + "px" : "900px"') !important;
   height: 100dvh;
 
   // SARIKA surface
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
-  color: var(--c-text) !important;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--c-text);
   border-left: 1px solid var(--c-border);
-  box-shadow: var(--glass-shadow) !important;
+  box-shadow: var(--glass-shadow);
 
   // radius token (consumed by NuxtUI internally via --ui-radius)
   --ui-radius: var(--r-xl);

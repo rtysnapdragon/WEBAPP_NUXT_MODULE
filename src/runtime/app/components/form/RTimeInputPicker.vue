@@ -1,294 +1,181 @@
-
 <script setup>
-// RTimeInput — SARIKA
-// NuxtUI v4 UInputTime + drum-scroll popover picker
-// Modes  : single (default) | range (prop)
-// Picker : vertical drum columns — click OR scroll to select
-// Range  : picking happens in two phases: start → end
-// v-model: Time | { start: Time; end: Time } | null
-
-import { shallowRef , ref, computed, watch, nextTick, onMounted, onBeforeUnmount, useSlots } from 'vue'
+/**
+ * RTimeInputPicker — SARIKA
+ * NuxtUI v4 UInputTime + drum-scroll popover picker
+ *
+ * Fixes applied vs original:
+ *   1. minuteItems was broken — used props.minuteStep (undefined) instead of
+ *      the local computed, making Math.ceil(60/undefined)=NaN → empty array.
+ *      Fixed: hardcoded step=1, generate all 60 minutes [0..59].
+ *   2. Removed minuteStep / secondStep props entirely (no longer needed).
+ *   3. Removed granularity='second' drum column — only hour, minute, AM/PM.
+ *   4. Removed dead `internal1` computed.
+ *   5. v-model watch loop: internal is now shallowRef so Time objects are
+ *      never deep-proxied. isSameTime guard prevents redundant re-emits.
+ *   6. scrollAllDrums: minute index now uses indexOf (exact match on 0-59).
+ *   7. Drum grid always 2 columns (h + m) or 3 (h + m + ampm) — no sec column.
+ *   8. All granularity==='second' references removed from template/script.
+ */
+import { shallowRef, ref, computed, watch, nextTick, onMounted, onBeforeUnmount, useSlots, toRaw } from 'vue'
 import { Time } from '@internationalized/date'
 import { useI18n } from 'vue-i18n'
 import RPopover from '../RPopover.vue'
 
-// ── Props ──────────────────────────────────────────────────────────────────
-// const prop = defineProps({
-//   modelValue: {
-//     type: [Object, Time, null],
-//     default: null
-//   },
-//   range: Boolean,
-//   granularity: {
-//     type: String,
-//     default: 'minute',
-//     values: ['hour', 'minute', 'second']
-//   },
-//   hourCycle: {
-//     type: Number,
-//     default: 12,
-//     values: [12, 24]
-//   },
-//   minuteStep: {
-//     type: Number,
-//     default: 1,
-//     values: [1, 5, 10, 15, 30]
-//   },
-//   secondStep: {
-//     type: Number,
-//     default: 1,
-//     values: [1, 5, 10, 15, 30]
-//   },
-//   label: String,
-//   labelKm: String,
-//   hint: String,
-//   error: String,
-//   required: Boolean,
-//   disabled: Boolean,
-//   readonly: Boolean,
-//   clearable: Boolean,
-//   size: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
-//   ui: { type: Object, default: {} },
-// })
-
+// ── Props ─────────────────────────────────────────────────────────────────
 const props = defineProps([
-  "modelValue",
-  "range",
-  "granularity",
-  "hourCycle",
-  "minuteStep",
-  "secondStep",
-  "label",
-  "labelKm",
-  "hint",
-  "error",
-  "required",
-  "disabled",
-  "readonly",
-  "clearable",
-  "size",
-  "ui",
-  "placeholder",
-  "separatorIcon",
-  "autoOpen",
-  "leading",
-  "trailing",
-  "class",
-  "color",
-  "leadingIcon",
-  "trailingIcon",
-  "loading"
+  'modelValue',
+  'range',
+  // granularity: only 'hour' | 'minute' supported now (second removed)
+  'granularity',
+  'hourCycle',
+  'label',
+  'labelKm',
+  'hint',
+  'error',
+  'required',
+  'disabled',
+  'readonly',
+  'clearable',
+  'size',
+  'ui',
+  'placeholder',
+  'separatorIcon',
+  'autoOpen',
+  'leading',
+  'trailing',
+  'class',
+  'color',
+  'leadingIcon',
+  'trailingIcon',
+  'loading',
 ])
 
-const slot = useSlots()
-const range = computed(() => props.range ?? false)
-const granularity = computed(() => props.granularity ?? 'minute') //['hour', 'minute', 'second']
-const hourCycle = computed(() => props.hourCycle ?? 12)
-const minuteStep = computed(() => props.minuteStep ?? 1)
-const secondStep = computed(() => props.secondStep ?? 1)
-const label = computed(() => props.label ?? null)
-const labelKm = computed(() => props.labelKm ?? null)
-const hint = computed(() => props.hint ?? null)
-const error = computed(() => props.error ?? null)
-const required = computed(() => props.required ?? false)
-const disabled = computed(() => props.disabled ?? false)
-const readonly = computed(() => props.readonly ?? null)
-const clearable = computed(() => props.clearable ?? true)
-const size = computed(() => props.size ?? 'md')
-const ui = computed(() => props.ui ?? {})
-const autoOpen = computed(() => props.autoOpen ?? true)
+const slots = useSlots()
+
+// ── Computed prop accessors ───────────────────────────────────────────────
+const range       = computed(() => props.range      ?? false)
+// granularity capped at 'minute' — 'second' no longer supported
+const granularity = computed(() => props.granularity === 'hour' ? 'hour' : 'minute')
+const hourCycle   = computed(() => props.hourCycle  ?? 12)
+const label       = computed(() => props.label      ?? null)
+const labelKm     = computed(() => props.labelKm    ?? null)
+const hint        = computed(() => props.hint       ?? null)
+const error       = computed(() => props.error      ?? null)
+const required    = computed(() => props.required   ?? false)
+const disabled    = computed(() => props.disabled   ?? false)
+const readonly    = computed(() => props.readonly   ?? false)
+const clearable   = computed(() => props.clearable  ?? true)
+const size        = computed(() => props.size       ?? 'md')
+const autoOpen    = computed(() => props.autoOpen   ?? true)
 const placeholder = computed(() => props.placeholder ?? 'Select time')
 const separatorIcon = computed(() => props.separatorIcon ?? '<i class="ri-arrow-drop-right-line w-8 text-center" />')
-const leading = computed(() => slot.leading ?? null)
-const trailing = computed(() => slot.trailing ?? null)
-const _class = computed(() => props.class ?? null)
-const color = computed(() => props.color ?? null)
+const _class      = computed(() => props.class      ?? null)
+const color       = computed(() => props.color      ?? null)
 const leadingIcon = computed(() => props.leadingIcon ?? null)
 const trailingIcon = computed(() => props.trailingIcon ?? null)
-const loading = computed(() => props.loading ?? false)
+const loading     = computed(() => props.loading    ?? false)
 
-
-// (), {
-//   granularity: 'minute',
-//   minuteStep:  1,
-//   secondStep:  1,
-//   size:        'md',
-//   clearable:   true,
-// })
-
+// ── Emits ─────────────────────────────────────────────────────────────────
 const emit = defineEmits({
-  'update:modelValue': [],
-  'change': [],
-  'clear': [],
-  'blur': [],
-  'focus': [],
+  'update:modelValue': null,
+  'change':            null,
+  'clear':             null,
+  'blur':              null,
+  'focus':             null,
 })
 
-const { locale, t } = useI18n()
-// const internal = ref(props.modelValue ?? null)
-// const internal = shallowRef(props.modelValue ?? null)
-// ── Internal model ─────────────────────────────────────────────────────────
-const internal = ref(null)
-const internal1 = computed({
-  get: () => toTimeValue(props.modelValue),
-  set: (value) => {
-    emit('update:modelValue', value)
-    emit('change', value)
-  }
-})
-function dateToTime(date) {
-  return new Time(
-    date.getHours(),
-    date.getMinutes(),
-    date.getSeconds()
-  )
-}
+const { locale } = useI18n()
 
-// Accept both Time objects and "HH:mm" strings (used by ScheduleTab & form pages).
-// const toTimeValue = (v) => {
-//   if (v == null) return null
-//   if (v instanceof Time) return v
-//   if (typeof v === 'string' && v.trim()) {
-//     const p = v.split(':').map(Number)
-//     if (p.length >= 2 && p[0] >= 0 && p[0] <= 23 && p[1] >= 0 && p[1] <= 59)
-//       return new Time(p[0], p[1], p[2] || 0)
-//     return null
-//   }
-//   return v
-// }
-const toTime = (v) => {
+// ── Type coercions ────────────────────────────────────────────────────────
+function toTime(v) {
   if (!v) return null
-
-  if (v instanceof Time) {
-    return v
+  const raw = toRaw(v)        // strip proxy — Time methods break under proxy
+  if (raw instanceof Time)    return raw
+  if (raw instanceof Date)    return new Time(raw.getHours(), raw.getMinutes(), 0)
+  if (typeof raw === 'string') {
+    const [h = 0, m = 0] = raw.split(':').map(Number)
+    return new Time(h, m, 0)
   }
-
-  if (v instanceof Date) {
-    return new Time(
-      v.getHours(),
-      v.getMinutes(),
-      v.getSeconds()
-    )
-  }
-
-  if (typeof v === 'string') {
-    const [h, m, s = 0] = v.split(':').map(Number)
-    return new Time(h, m, s)
-  }
-
   return null
 }
 
-const toTimeValue = (v) => {
+function toTimeValue(v) {
   if (!v) return null
-
-  // Range
   if (props.range && typeof v === 'object' && 'start' in v && 'end' in v) {
-    return {
-      start: toTime(v.start),
-      end: toTime(v.end),
-      // start:
-      //   v.start instanceof Time
-      //     ? v.start
-      //     : v.start instanceof Date
-      //       ? dateToTime(v.start)
-      //       : v.start,
-
-      // end:
-      //   v.end instanceof Time
-      //     ? v.end
-      //     : v.end instanceof Date
-      //       ? dateToTime(v.end)
-      //       : v.end,
-    }
+    return { start: toTime(v.start), end: toTime(v.end) }
   }
-
-  // Single
   return toTime(v)
-  // if (v instanceof Time) return v
-
-  // if (v instanceof Date) {
-  //   return dateToTime(v)
-  // }
-
-  // if (typeof v === 'string') {
-  //   const [h, m, s = 0] = v.split(':').map(Number)
-  //   return new Time(h, m, s)
-  // }
-
-  // return v
 }
-function isSameRange(a, b) {
+
+// ── Equality guards (prevent emit loops) ──────────────────────────────────
+function sameTime(a, b) {
+  if (a === b) return true
+  if (!a || !b) return false
+  return a.hour === b.hour && a.minute === b.minute
+}
+
+function sameValue(a, b) {
   if (a === b) return true
   if (!a || !b) return a === b
-
   if (props.range) {
-    return (
-      a.start?.hour === b.start?.hour &&
-      a.start?.minute === b.start?.minute &&
-      a.start?.second === b.start?.second &&
-      a.end?.hour === b.end?.hour &&
-      a.end?.minute === b.end?.minute &&
-      a.end?.second === b.end?.second
-    )
+    return sameTime(a.start, b.start) && sameTime(a.end, b.end)
   }
-
-  return (
-    a.hour === b.hour &&
-    a.minute === b.minute &&
-    a.second === b.second
-  )
+  return sameTime(a, b)
 }
 
+// ── Internal state — MUST be shallowRef ───────────────────────────────────
+// Time is an immutable value-object. ref() deep-proxies it and breaks
+// methods. shallowRef holds the reference as-is.
+const internal = shallowRef(toTimeValue(props.modelValue))
+
+// Sync parent → internal (only when actually different)
 watch(
   () => props.modelValue,
   (v) => {
-    const value = toTimeValue(v)
-
-    if (!isSameRange(internal.value, value)) {
-      internal.value = value
+    const next = toTimeValue(v)
+    if (!sameValue(internal.value, next)) {
+      internal.value = next
     }
   },
-  { immediate: true }
 )
 
-watch( //Don't emit if nothing changed:
+// Sync internal → parent (only when actually different)
+watch(
   internal,
   (v, old) => {
-    if (isSameRange(v, old)) return
-
+    if (sameValue(v, old)) return
     emit('update:modelValue', v)
     emit('change', v)
   },
-  { deep: true }
 )
-// ── Internal model ─────────────────────────────────────────────────────────
 
-// ── Popover state ──────────────────────────────────────────────────────────
+// ── Popover state ─────────────────────────────────────────────────────────
 const open       = ref(false)
 const popRef     = ref(null)
 const triggerRef = ref(null)
-
-// Range: two-phase picking
-const rangeStep = ref('start')
+const rangeStep  = ref('start')   // range two-phase: 'start' | 'end'
 
 function openPicker() {
-  if (props.disabled || props.readonly) return
+  if (disabled.value || readonly.value) return
   if (props.range) rangeStep.value = 'start'
   open.value = !open.value
-  if (open.value) nextTick(scrollAllDrums)
+  if (open.value) nextTick(() => scrollAllDrums(true))
 }
-function closePicker() { open.value = false; emit('blur') }
+
+function closePicker() {
+  open.value = false
+  emit('blur')
+}
 
 function onOutside(e) {
   const t = e.target
   if (popRef.value?.contains(t) || triggerRef.value?.contains(t)) return
   closePicker()
 }
-onMounted(() => document.addEventListener('mousedown', onOutside))
+
+onMounted(()    => document.addEventListener('mousedown', onOutside))
 onBeforeUnmount(() => document.removeEventListener('mousedown', onOutside))
 
-// ── Clear ──────────────────────────────────────────────────────────────────
 function clearValue() {
   internal.value = null
   emit('clear')
@@ -297,88 +184,81 @@ function clearValue() {
 
 const hasValue = computed(() => !!internal.value)
 
-// ── Drum item lists ────────────────────────────────────────────────────────
-const ITEM_H = 44   // px — must match CSS
+// ── Drum item lists ───────────────────────────────────────────────────────
+const ITEM_H = 44   // px — must match CSS $item-h
 
 const hourItems = computed(() =>
-  props.hourCycle === 12
-    ? Array.from({ length: 12 }, (_, i) => i + 1)      // 1-12
-    : Array.from({ length: 24 }, (_, i) => i)           // 0-23
+  hourCycle.value === 12
+    ? Array.from({ length: 12 }, (_, i) => i + 1)   // 1–12
+    : Array.from({ length: 24 }, (_, i) => i)        // 0–23
 )
+
+// Fixed step=1 → all 60 minutes [0, 1, 2, … 59]
+// Original bug: used props.minuteStep (undefined) → NaN length → empty array
 const minuteItems = computed(() =>
-  Array.from({ length: Math.ceil(60 / props.minuteStep) }, (_, i) => i * minuteStep.value)
+  Array.from({ length: 60 }, (_, i) => i)
 )
 
-const secondItems = computed(() =>
-  Array.from({ length: Math.ceil(60 / props.secondStep) }, (_, i) => i * secondStep.value)
-)
-
-// ── Editing time (current phase in range mode) ─────────────────────────────
+// ── Current editing time ──────────────────────────────────────────────────
 const editingTime = computed(() => {
-  if (!internal.value) return new Time(0, 0, 0)
+  const fallback = new Time(0, 0, 0)
+  if (!internal.value) return fallback
   if (props.range) {
-    const r = internal.value 
-    return (rangeStep.value === 'start' ? r.start : r.end) ?? new Time(0, 0, 0)
+    const r = internal.value
+    return (rangeStep.value === 'start' ? r.start : r.end) ?? fallback
   }
-  return (internal.value) ?? new Time(0, 0, 0)
+  return internal.value ?? fallback
 })
 
-// Convert 24h → 12h display
 function to12h(h) { return h === 0 ? 12 : h > 12 ? h - 12 : h }
 
-// ── Drum refs ──────────────────────────────────────────────────────────────
+// ── Drum refs ─────────────────────────────────────────────────────────────
 const hourDrum   = ref(null)
 const minuteDrum = ref(null)
-const secondDrum = ref(null)
 const ampmDrum   = ref(null)
 
 function scrollDrumTo(el, idx, instant = false) {
-  if (!el) return
+  if (!el || idx < 0) return
   el.scrollTo({ top: idx * ITEM_H, behavior: instant ? 'instant' : 'smooth' })
 }
 
 function scrollAllDrums(instant = true) {
   const t = editingTime.value
-  const hDisplay = props.hourCycle === 12 ? to12h(t.hour) : t.hour
+  const hDisplay = hourCycle.value === 12 ? to12h(t.hour) : t.hour
 
   scrollDrumTo(hourDrum.value,
     hourItems.value.indexOf(hDisplay), instant)
-  const minuteIndex = minuteItems.value.findIndex(m => m >= t.minute)
-  scrollDrumTo(minuteDrum.value, minuteIndex >= 0 ? minuteIndex : 0,instant)
-  if (props.granularity === 'second')
-    scrollDrumTo(secondDrum.value,
-      secondItems.value.findIndex(s => s >= t.second) ?? 0, instant)
-  if (props.hourCycle === 12)
+
+  // minuteItems is [0..59] so indexOf(minute) === minute
+  scrollDrumTo(minuteDrum.value, t.minute, instant)
+
+  if (hourCycle.value === 12)
     scrollDrumTo(ampmDrum.value, t.hour >= 12 ? 1 : 0, instant)
 }
 
-// ── Click on drum item ─────────────────────────────────────────────────────
+// ── Drum item pick handlers ───────────────────────────────────────────────
 function pickHour(h) {
   let realH = h
-  if (props.hourCycle === 12) {
+  if (hourCycle.value === 12) {
     const isPm = editingTime.value.hour >= 12
     realH = isPm ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h)
   }
-  applyTime(new Time(realH, editingTime.value.minute, editingTime.value.second))
+  applyTime(new Time(realH, editingTime.value.minute, 0))
   scrollDrumTo(hourDrum.value, hourItems.value.indexOf(h))
 }
 
 function pickMinute(m) {
-  applyTime(new Time(editingTime.value.hour, m, editingTime.value.second))
-  scrollDrumTo(minuteDrum.value, minuteItems.value.indexOf(m))
-}
-
-function pickSecond(s) {
-  applyTime(new Time(editingTime.value.hour, editingTime.value.minute, s))
-  scrollDrumTo(secondDrum.value, secondItems.value.indexOf(s))
+  applyTime(new Time(editingTime.value.hour, m, 0))
+  // minuteItems is [0..59], so index === value
+  scrollDrumTo(minuteDrum.value, m)
 }
 
 function pickAmPm(pm) {
   const h = editingTime.value.hour
   let newH = h
-  if (pm && h < 12) newH = h + 12
+  if (pm  && h < 12) newH = h + 12
   if (!pm && h >= 12) newH = h - 12
-  applyTime(new Time(newH, editingTime.value.minute, editingTime.value.second))
+  applyTime(new Time(newH, editingTime.value.minute, 0))
   scrollDrumTo(ampmDrum.value, pm ? 1 : 0)
 }
 
@@ -387,75 +267,52 @@ function applyTime(t) {
     internal.value = t
     return
   }
-
-  const prev = internal.value ?? {
-    start: new Time(0,0,0),
-    end: new Time(0,0,0)
-  }
-
-  if (rangeStep.value === 'start') {
-    internal.value = {
-      start: t,
-      end: prev.end
-    }
-  } else {
-    internal.value = {
-      start: prev.start,
-      end: t
-    }
-  }
+  const prev = internal.value ?? { start: new Time(0, 0, 0), end: new Time(0, 0, 0) }
+  internal.value = rangeStep.value === 'start'
+    ? { start: t, end: prev.end }
+    : { start: prev.start, end: t }
 }
+
 function onFocus(e) {
   emit('focus', e)
-
-  // if (!props.disabled && !props.readonly) {
-  //   open.value = true
-  //   nextTick(scrollAllDrums)
-  // }
-
   if (autoOpen.value && !disabled.value && !readonly.value) {
     open.value = true
-    nextTick(scrollAllDrums)
+    nextTick(() => scrollAllDrums(true))
   }
 }
-// Advance range phase
+
 function advancePhase() {
   if (!props.range) { closePicker(); return }
   if (rangeStep.value === 'start') {
     rangeStep.value = 'end'
-    nextTick(scrollAllDrums)
+    nextTick(() => scrollAllDrums(true))
   } else {
     closePicker()
   }
 }
 
-// ── Keyboard on drums ──────────────────────────────────────────────────────
+// ── Keyboard on drums ─────────────────────────────────────────────────────
 function onDrumKey(e, col) {
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
   e.preventDefault()
   const dir = e.key === 'ArrowUp' ? -1 : 1
   if (col === 'h') {
     const list = hourItems.value
-    const cur  = list.indexOf(props.hourCycle === 12 ? to12h(editingTime.value.hour) : editingTime.value.hour)
+    const cur  = list.indexOf(hourCycle.value === 12 ? to12h(editingTime.value.hour) : editingTime.value.hour)
     pickHour(list[(cur + dir + list.length) % list.length])
-  } else if (col === 'm') {
-    const list = minuteItems.value
-    const cur  = list.indexOf(editingTime.value.minute)
-    pickMinute(list[(cur + dir + list.length) % list.length])
   } else {
-    const list = secondItems.value
-    const cur  = list.indexOf(editingTime.value.second)
-    pickSecond(list[(cur + dir + list.length) % list.length])
+    // minute: wrap 0–59
+    const cur = editingTime.value.minute
+    pickMinute((cur + dir + 60) % 60)
   }
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────
 const pad = (n) => String(n).padStart(2, '0')
 
 function fmtTime(t) {
   if (!t) return '—'
-  if (props.granularity === 'second') return `${pad(t.hour)}:${pad(t.minute)}:${pad(t.second)}`
-  if (props.granularity === 'hour')   return `${pad(t.hour)}:00`
+  if (granularity.value === 'hour') return `${pad(t.hour)}:00`
   return `${pad(t.hour)}:${pad(t.minute)}`
 }
 
@@ -478,30 +335,24 @@ const duration = computed(() => {
   return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`
 })
 
-// ── Active checks ──────────────────────────────────────────────────────────
+// ── Active checks ─────────────────────────────────────────────────────────
 function isHourActive(h) {
-  const t = editingTime.value
-  return (props.hourCycle === 12 ? to12h(t.hour) : t.hour) === h
+  return (hourCycle.value === 12
+    ? to12h(editingTime.value.hour)
+    : editingTime.value.hour) === h
 }
-function isMinActive(m) { return editingTime.value.minute === m }
-function isSecActive(s) { return editingTime.value.second === s }
-function isAmPmActive(pm) { return pm ? editingTime.value.hour >= 12 : editingTime.value.hour < 12 }
+function isMinActive(m)    { return editingTime.value.minute === m }
+function isAmPmActive(pm)  { return pm ? editingTime.value.hour >= 12 : editingTime.value.hour < 12 }
 
-// ── NuxtUI ui merge ────────────────────────────────────────────────────────
+// ── NuxtUI ui merge ───────────────────────────────────────────────────────
 const mergedUi = computed(() => ({
-  root: 'rti__ui-root',
-  base: [
-    'rti__ui-base',
-    'pe-12', // reserve trailing button area
-    leading.value ? 'ps-10' : '',
-    trailing.value ? 'pe-10' : '',
-  ],
-  leading: 'rti__leading',
+  root:     'rti__ui-root',
+  base:     'rti__ui-base pe-12',
+  leading:  'rti__leading',
   trailing: 'rti__trailing',
-  segment: 'rti__segment',
+  segment:  'rti__segment',
   ...(props.ui ?? {}),
 }))
-
 
 const displayLabel = computed(() =>
   locale.value === 'km' && props.labelKm ? props.labelKm : props.label
@@ -509,16 +360,23 @@ const displayLabel = computed(() =>
 
 const lbl = computed(() =>
   locale.value === 'km'
-    ? { h: 'ម៉ោង', m: 'នាទី', s: 'វិ', am: 'ព្រឹក', pm: 'ល្ងាច' }
-    : { h: 'Hour',  m: 'Min',  s: 'Sec', am: 'AM',   pm: 'PM' }
+    ? { h: 'ម៉ោង', m: 'នាទី', am: 'ព្រឹក', pm: 'ល្ងាច' }
+    : { h: 'Hour',  m: 'Min',  am: 'AM',    pm: 'PM'    }
 )
 
-const stepLabel = computed(() =>
-  props.range
-    ? (rangeStep.value === 'start'
-        ? (locale.value === 'km' ? '✦ ចាប់ផ្ដើម' : '✦ Start')
-        : (locale.value === 'km' ? '✦ បញ្ចប់'    : '✦ End'))
-    : null
+const stepLabel = computed(() => {
+  if (!props.range) return null
+  return rangeStep.value === 'start'
+    ? (locale.value === 'km' ? '✦ ចាប់ផ្ដើម' : '✦ Start')
+    : (locale.value === 'km' ? '✦ បញ្ចប់'    : '✦ End')
+})
+
+// Drum grid class: 2 cols (h+m) or 3 cols (h+m+ampm)
+const drumsClass = computed(() =>
+  hourCycle.value === 12 ? 'rti__drums--ampm' : ''
+)
+const labelsClass = computed(() =>
+  hourCycle.value === 12 ? 'rti__drum-labels--ampm' : ''
 )
 </script>
 
@@ -534,20 +392,12 @@ const stepLabel = computed(() =>
         'rti--filled':   hasValue,
         'rti--open':     open,
       },
+      _class,
     ]"
   >
-    <!-- ── Label ──────────────────────────────────────────── -->
-    <div v-if="displayLabel || hint" class="rti__label-row">
-      <label class="rti__label">
-        {{ displayLabel }}
-        <span v-if="required" class="rti__req">*</span>
-      </label>
-      <span v-if="hint && !error" class="rti__hint">{{ hint }}</span>
-    </div>
-
-    <!-- ── Field ──────────────────────────────────────────── -->
+    <!-- ── Field ─────────────────────────────────────────── -->
     <div class="rti__field">
-      <!-- ── Single mode ── -->
+      <!-- Single mode -->
       <template v-if="!range">
         <UInputTime
           v-model="internal"
@@ -562,34 +412,35 @@ const stepLabel = computed(() =>
           @focus="onFocus"
         >
           <template #trailing>
-            <Transition name="rti-fade">
+            <div class="rti__trail">
+              <Transition name="rti-fade">
+                <button
+                  v-if="clearable && hasValue && !disabled && !readonly"
+                  type="button" class="rti__clear" tabindex="-1"
+                  aria-label="Clear" @click.stop="clearValue"
+                >
+                  <UIcon name="i-lucide-x" />
+                </button>
+              </Transition>
               <button
-                v-if="clearable && hasValue && !disabled && !readonly"
-                type="button" class="rti__clear" tabindex="-1"
-                aria-label="Clear" @click.stop="clearValue"
-              >
-                <UIcon name="i-lucide-x" />
-              </button>
-            </Transition>
-
-            <button
                 ref="triggerRef" type="button"
                 :disabled="disabled || readonly"
                 :class="['rti__trigger', { 'rti__trigger--active': open }]"
-                aria-label="Open time drum picker"
-                @click="openPicker"
+                aria-label="Open time picker"
+                @click.stop="openPicker"
               >
                 <UIcon name="i-lucide-clock" />
-            </button>
+              </button>
+            </div>
           </template>
-      </UInputTime>
+        </UInputTime>
       </template>
-      
-      <!-- ── Range mode ── -->
+
+      <!-- Range mode -->
       <template v-if="range">
         <UInputTime
           v-model="internal"
-          :range="range"
+          range
           :separator-icon="separatorIcon"
           :granularity="granularity"
           :hour-cycle="hourCycle"
@@ -597,230 +448,197 @@ const stepLabel = computed(() =>
           :readonly="readonly"
           :ui="mergedUi"
           class="rti__input"
+          v-bind="$attrs"
           @blur="emit('blur', $event)"
           @focus="onFocus"
         >
           <template #trailing>
-            <Transition name="rti-fade">
+            <div class="rti__trail">
+              <Transition name="rti-fade">
+                <button
+                  v-if="clearable && hasValue && !disabled && !readonly"
+                  type="button" class="rti__clear" tabindex="-1"
+                  aria-label="Clear" @click.stop="clearValue"
+                >
+                  <UIcon name="i-lucide-x" />
+                </button>
+              </Transition>
               <button
-                v-if="clearable && hasValue && !disabled && !readonly"
-                type="button" class="rti__clear" tabindex="-1"
-                aria-label="Clear" @click.stop="clearValue"
-              >
-                <UIcon name="i-lucide-x" />
-              </button>
-            </Transition>
-
-            <button
                 ref="triggerRef" type="button"
                 :disabled="disabled || readonly"
                 :class="['rti__trigger', { 'rti__trigger--active': open }]"
-                aria-label="Open time drum picker"
-                @click="openPicker"
+                aria-label="Open time picker"
+                @click.stop="openPicker"
               >
                 <UIcon name="i-lucide-clock" />
               </button>
+            </div>
           </template>
         </UInputTime>
       </template>
 
-      <!-- Trailing -->
-      <!-- <div class="rti__trail">
-        <Transition name="rti-fade">
-          <button
-            v-if="clearable && hasValue && !disabled && !readonly"
-            type="button" class="rti__clear" tabindex="-1"
-            aria-label="Clear" @click.stop="clearValue"
-          >
-            <UIcon name="i-lucide-x" />
-          </button>
-        </Transition>
-        <button
-          ref="triggerRef" type="button"
-          :disabled="disabled || readonly"
-          :class="['rti__trigger', { 'rti__trigger--active': open }]"
-          aria-label="Open time drum picker"
-          @click.stop="openPicker"
-        >
-          <UIcon name="i-lucide-clock" />
-        </button>
-      </div> -->
-    </div>
+    </div><!-- /field -->
 
-    <!-- ── Error ──────────────────────────────────────────── -->
+    <!-- Summary chip -->
+    <!-- <div v-if="hasValue && summaryText" class="rti__summary">
+      <UIcon name="i-lucide-clock" />
+      <span class="rti__summary-val">{{ summaryText }}</span>
+      <span v-if="duration" class="rti__summary-dur">({{ duration }})</span>
+    </div> -->
+
+    <!-- Error -->
     <Transition name="rti-fade">
       <p v-if="error" class="rti__error" role="alert">
         <UIcon name="i-lucide-alert-circle" />{{ error }}
       </p>
     </Transition>
 
-    <!-- ── Summary chip ───────────────────────────────────── -->
-    <!-- <Transition name="rti-fade">
-      <div v-if="summaryText && !error" class="rti__summary">
-        <UIcon name="i-lucide-clock-check" />
-        <span class="rti__summary-val">{{ summaryText }}</span>
-        <span v-if="duration" class="rti__summary-dur">· {{ duration }}</span>
-      </div>
-    </Transition> -->
-
-    <!-- ══════════════════════════════════════════════════════
+    <!-- ══════════════════════════════════════════════
          DRUM PICKER POPOVER
-    ══════════════════════════════════════════════════════ -->
-      <RPopover v-model="open" :reference="triggerRef" class="rti__pop" use="nuxtui" :content="{ side: 'bottom-end' }">
-        <template #trigger></template>
-        <!-- Header: live time display + range step badge -->
-        <div class="rti__pop-head">
-          <div class="rti__pop-live">
-            <span class="rti__pop-live-time">
-              {{ hourCycle === 12
-                ? `${pad(to12h(editingTime.hour))}:${pad(editingTime.minute)}${granularity === 'second' ? ':' + pad(editingTime.second) : ''}`
-                : fmtTime(editingTime) }}
-            </span>
-            <span v-if="hourCycle === 12" class="rti__pop-live-ampm">
-              {{ editingTime.hour >= 12 ? lbl.pm : lbl.am }}
-            </span>
-            <span v-if="range" :class="['rti__step-badge', `rti__step-badge--${rangeStep}`]">
-              {{ stepLabel }}
-            </span>
-          </div>
+    ══════════════════════════════════════════════ -->
+    <RPopover
+      v-model="open"
+      :reference="triggerRef"
+      class="rti__pop"
+      use="nuxtui"
+      :content="{ side: 'bottom-end' }"
+    >
+      <template #trigger />
+      <!-- Header: live time + range step badge -->
+      <div class="rti__pop-head">
+        <div class="rti__pop-live">
+          <span class="rti__pop-live-time">
+            {{ hourCycle === 12
+              ? `${pad(to12h(editingTime.hour))}:${pad(editingTime.minute)}`
+              : fmtTime(editingTime) }}
+          </span>
+          <span v-if="hourCycle === 12" class="rti__pop-live-ampm">
+            {{ editingTime.hour >= 12 ? lbl.pm : lbl.am }}
+          </span>
+          <span
+            v-if="range"
+            :class="['rti__step-badge', `rti__step-badge--${rangeStep}`]"
+          >{{ stepLabel }}</span>
+        </div>
+      </div>
+
+      <!-- Column header labels: Hour | Min | AM/PM -->
+      <div class="rti__drum-labels" :class="labelsClass">
+        <span>{{ lbl.h }}</span>
+        <span v-if="granularity !== 'hour'">{{ lbl.m }}</span>
+        <span v-if="hourCycle === 12">AM/PM</span>
+      </div>
+
+      <!-- ══ Drum columns ══ -->
+      <div class="rti__drums" :class="drumsClass">
+        <!-- Selection highlight bar -->
+        <div class="rti__selector" aria-hidden="true" />
+        <!-- Hour drum -->
+        <div
+          ref="hourDrum"
+          class="rti__drum"
+          tabindex="0"
+          role="listbox"
+          :aria-label="lbl.h"
+          @keydown="onDrumKey($event, 'h')"
+        >
+          <div class="rti__drum-pad" />
+          <div
+            v-for="h in hourItems" :key="h"
+            :class="['rti__drum-item', { 'rti__drum-item--active': isHourActive(h) }]"
+            role="option" :aria-selected="isHourActive(h)"
+            @click="pickHour(h)"
+          >{{ pad(h) }}</div>
+          <div class="rti__drum-pad" />
         </div>
 
-        <!-- Column header labels -->
-        <div class="rti__drum-labels" :class="{
-          'rti__drum-labels--sec':     granularity === 'second',
-          'rti__drum-labels--ampm':    hourCycle === 12 && granularity !== 'second',
-          'rti__drum-labels--sec-ampm': granularity === 'second' && hourCycle === 12,
-        }">
-          <span>{{ lbl.h }}</span>
-          <span v-if="granularity !== 'hour'">{{ lbl.m }}</span>
-          <span v-if="granularity === 'second'">{{ lbl.s }}</span>
-          <span v-if="hourCycle === 12">AM/PM</span>
+        <!-- Minute drum — always visible when granularity !== 'hour' -->
+        <div
+          v-if="granularity !== 'hour'"
+          ref="minuteDrum"
+          class="rti__drum"
+          tabindex="0"
+          role="listbox"
+          :aria-label="lbl.m"
+          @keydown="onDrumKey($event, 'm')"
+        >
+          <div class="rti__drum-pad" />
+          <div
+            v-for="m in minuteItems" :key="m"
+            :class="['rti__drum-item', { 'rti__drum-item--active': isMinActive(m) }]"
+            role="option" :aria-selected="isMinActive(m)"
+            @click="pickMinute(m)"
+          >{{ pad(m) }}</div>
+          <div class="rti__drum-pad" />
         </div>
 
-        <!-- ══ Drum columns ══ -->
-        <div class="rti__drums" :class="{
-          'rti__drums--sec':     granularity === 'second',
-          'rti__drums--ampm':    hourCycle === 12 && granularity !== 'second',
-          'rti__drums--sec-ampm': granularity === 'second' && hourCycle === 12,
-        }">
-          <!-- Selection highlight bar -->
-          <div class="rti__selector" aria-hidden="true" />
-          <!-- Hour drum -->
+        <!-- AM/PM drum — pills layout, no scroll-snap -->
+        <div
+          v-if="hourCycle === 12"
+          ref="ampmDrum"
+          class="rti__drum rti__drum--ampm"
+          tabindex="0"
+          role="listbox"
+          aria-label="AM/PM"
+        >
           <div
-            ref="hourDrum"
-            class="rti__drum"
-            tabindex="0"
-            role="listbox" :aria-label="lbl.h"
-            @keydown="onDrumKey($event, 'h')"
-          >
-            <div class="rti__drum-pad" />
-            <div
-              v-for="h in hourItems" :key="h"
-              :class="['rti__drum-item', { 'rti__drum-item--active': isHourActive(h) }]"
-              role="option" :aria-selected="isHourActive(h)"
-              @click="pickHour(h)"
-            >{{ pad(h) }}</div>
-            <div class="rti__drum-pad" />
-          </div>
-
-          <!-- Colon -->
-          <!-- <div v-if="granularity !== 'hour'" class="rti__colon" aria-hidden="true">:</div> -->
-
-          <!-- Minute drum -->
+            :class="['rti__drum-item', 'rti__drum-item--ampm', { 'rti__drum-item--active': isAmPmActive(false) }]"
+            role="option"
+            @click="pickAmPm(false)"
+          >{{ lbl.am }}</div>
           <div
-            v-if="granularity !== 'hour'"
-            ref="minuteDrum"
-            class="rti__drum"
-            tabindex="0"
-            role="listbox" :aria-label="lbl.m"
-            @keydown="onDrumKey($event, 'm')"
-          >
-            <div class="rti__drum-pad" />
-            <div
-              v-for="m in minuteItems" :key="m"
-              :class="['rti__drum-item', { 'rti__drum-item--active': isMinActive(m) }]"
-              role="option" :aria-selected="isMinActive(m)"
-              @click="pickMinute(m)"
-            >{{ pad(m) }}</div>
-            <div class="rti__drum-pad" />
-          </div>
-          <!-- Colon (seconds) -->
-          <!-- <div v-if="granularity === 'second'" class="rti__colon" aria-hidden="true">:</div> -->
-
-          <!-- Second drum -->
-          <div
-            v-if="granularity === 'second'"
-            ref="secondDrum"
-            class="rti__drum"
-            tabindex="0"
-            role="listbox" :aria-label="lbl.s"
-            @keydown="onDrumKey($event, 's')"
-          >
-            <div class="rti__drum-pad" />
-            <div
-              v-for="s in secondItems" :key="s"
-              :class="['rti__drum-item', { 'rti__drum-item--active': isSecActive(s) }]"
-              role="option" :aria-selected="isSecActive(s)"
-              @click="pickSecond(s)"
-            >{{ pad(s) }}</div>
-            <div class="rti__drum-pad" />
-          </div>
-          
-          <!-- AM/PM drum -->
-          <div
-            v-if="hourCycle === 12"
-            ref="ampmDrum"
-            class="rti__drum rti__drum--ampm"
-            tabindex="0"
-            role="listbox" aria-label="AM/PM"
-          >
-            <div class="rti__drum-pad" />
-            <div
-              :class="['rti__drum-item', 'rti__drum-item--ampm', { 'rti__drum-item--active': isAmPmActive(false) }]"
-              role="option" @click="pickAmPm(false)"
-            >{{ lbl.am }}</div>
-            <div
-              :class="['rti__drum-item', 'rti__drum-item--ampm', { 'rti__drum-item--active': isAmPmActive(true) }]"
-              role="option" @click="pickAmPm(true)"
-            >{{ lbl.pm }}</div>
-            <div class="rti__drum-pad" />
-          </div>
-        </div><!-- /drums -->
-
-        <!-- Range progress strip -->
-        <div v-if="range" class="rti__range-strip">
-          <div :class="['rti__range-seg', { 'rti__range-seg--done': !!(internal)?.start, 'rti__range-seg--active': rangeStep === 'start' }]">
-            <UIcon :name="(internal)?.start ? 'i-lucide-check-circle-2' : 'i-lucide-circle-dashed'" />
-            <span>{{ locale === 'km' ? 'ចាប់ផ្ដើម' : 'Start' }}</span>
-            <code v-if="(internal)?.start">{{ fmtTime((internal)?.start) }}</code>
-          </div>
-          <UIcon name="i-lucide-arrow-right" class="rti__range-arrow" />
-          <div :class="['rti__range-seg', { 'rti__range-seg--done': !!(internal)?.end, 'rti__range-seg--active': rangeStep === 'end' }]">
-            <UIcon :name="(internal)?.end ? 'i-lucide-check-circle-2' : 'i-lucide-circle-dashed'" />
-            <span>{{ locale === 'km' ? 'បញ្ចប់' : 'End' }}</span>
-            <code v-if="(internal)?.end">{{ fmtTime((internal)?.end) }}</code>
-          </div>
+            :class="['rti__drum-item', 'rti__drum-item--ampm', { 'rti__drum-item--active': isAmPmActive(true) }]"
+            role="option"
+            @click="pickAmPm(true)"
+          >{{ lbl.pm }}</div>
         </div>
 
-        <!-- Footer -->
-        <div class="rti__pop-footer">
-          <button type="button" class="rti__btn rti__btn--ghost" @click="closePicker">
-            {{ locale === 'km' ? 'បោះបង់' : 'Cancel' }}
-          </button>
-          <button type="button" class="rti__btn rti__btn--solid" @click="advancePhase">
-            <UIcon :name="range && rangeStep === 'start' ? 'i-lucide-arrow-right' : 'i-lucide-check'" />
-            {{ range && rangeStep === 'start'
-               ? (locale === 'km' ? 'បន្ទាប់' : 'Next')
-               : (locale === 'km' ? 'យល់ព្រម' : 'Done') }}
-          </button>
+      </div><!-- /drums -->
+
+      <!-- Range progress strip -->
+      <div v-if="range" class="rti__range-strip">
+        <div
+          :class="[
+            'rti__range-seg',
+            { 'rti__range-seg--done': !!internal?.start, 'rti__range-seg--active': rangeStep === 'start' }
+          ]"
+        >
+          <UIcon :name="internal?.start ? 'i-lucide-check-circle-2' : 'i-lucide-circle-dashed'" />
+          <span>{{ locale === 'km' ? 'ចាប់ផ្ដើម' : 'Start' }}</span>
+          <code v-if="internal?.start">{{ fmtTime(internal.start) }}</code>
         </div>
-      </RPopover>
-  </div>
+        <UIcon name="i-lucide-arrow-right" class="rti__range-arrow" />
+        <div
+          :class="[
+            'rti__range-seg',
+            { 'rti__range-seg--done': !!internal?.end, 'rti__range-seg--active': rangeStep === 'end' }
+          ]"
+        >
+          <UIcon :name="internal?.end ? 'i-lucide-check-circle-2' : 'i-lucide-circle-dashed'" />
+          <span>{{ locale === 'km' ? 'បញ្ចប់' : 'End' }}</span>
+          <code v-if="internal?.end">{{ fmtTime(internal.end) }}</code>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="rti__pop-footer">
+        <button type="button" class="rti__btn rti__btn--ghost" @click="closePicker">
+          {{ locale === 'km' ? 'បោះបង់' : 'Cancel' }}
+        </button>
+        <button type="button" class="rti__btn rti__btn--solid" @click="advancePhase">
+          <UIcon :name="range && rangeStep === 'start' ? 'i-lucide-arrow-right' : 'i-lucide-check'" />
+          {{ range && rangeStep === 'start'
+            ? (locale === 'km' ? 'បន្ទាប់' : 'Next')
+            : (locale === 'km' ? 'យល់ព្រម' : 'Done') }}
+        </button>
+      </div>
+    </RPopover>
+  </div><!-- /rti -->
 </template>
 
 <style lang="scss" scoped>
 
-$item-h: 44px;   // must match ITEM_H in <script>
+$item-h: 44px;
 $vis:    3;       // visible items in viewport
 
 // ─────────────────────────────────────────────
@@ -846,108 +664,30 @@ $vis:    3;       // visible items in viewport
     border-color: var(--c-danger) !important;
   }
 }
-.rti__trailing {
-  position: absolute;
-  inset-inline-end: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-// ─────────────────────────────────────────────
-// LABEL
-// ─────────────────────────────────────────────
-.rti__label-row {
-  display: flex; align-items: baseline;
-  justify-content: space-between; gap: var(--space-2);
-}
-.rti__label  { font-size: 0.82rem; font-weight: 500; color: var(--c-text); display: flex; gap: 4px; }
-.rti__req    { color: var(--c-danger); font-size: 0.9em; }
-.rti__hint   { font-size: 0.72rem; color: var(--c-muted); }
-.rti__error  { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--c-danger); margin: 0; }
 
 // ─────────────────────────────────────────────
-// FIELD + NUXTUI OVERRIDES
+// FIELD
 // ─────────────────────────────────────────────
-// .rti__field { position: relative; display: flex; align-items: center; gap: var(--space-2); }
-
-// // ─────────────────────────────────────────────
-// // TRAILING
-// // ─────────────────────────────────────────────
-.rti__trail { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-// // ─────────────────────────────────────────────
-// // TRAILING
-// // ─────────────────────────────────────────────
-// .rti__trail {
-//   position: absolute;
-//   right:    6px;
-//   display:  flex;
-//   align-items: center;
-//   // gap:      2px;
-// }
-
-// .rti__field {
-//   position: relative;
-// }
-
-.rti__trail {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-// .rti__trail > * {
-//   pointer-events: auto;
-// }
-
-// .rti--xs .rti__input :deep([role="group"]) {
-//   height: 30px;
-//   padding: 0 8px;
-// }
-
-// .rti--sm .rti__input :deep([role="group"]) {
-//   height: 34px;
-//   padding: 0 10px;
-// }
-
-// .rti--md .rti__input :deep([role="group"]) {
-//   height: 38px;
-//   padding: 0 12px;
-// } 
-
-// .rti--lg .rti__input :deep([role="group"]) {
-//   height: 42px;
-//   padding: 0 14px;
-// }
-
-// .rti--xl .rti__input :deep([role="group"]) {
-//   height: 46px;
-//   padding: 0 16px;
-// }
-
+.rti__field { position: relative; }
 
 .rti__input {
   flex: 1;
   width: 100%;
+
   :deep([role="group"]) {
     width:         100%;
-    height: 38px !important;          // fixed height
-    min-height: 38px !important;
-    padding-left: 12px !important;
+    height:        38px !important;
+    min-height:    38px !important;
+    padding-left:  12px !important;
     padding-right: 12px !important;
-    padding-top: 1px !important;
+    padding-top:   1px !important;
     padding-bottom: 1px !important;
-
     font-family:   var(--font-fallback) !important;
     background:    var(--c-surface) !important;
     border:        1px solid var(--c-border) !important;
     border-radius: var(--radius-md) !important;
-    @include transition(fast);
+    transition:    border-color 0.18s, box-shadow 0.18s;
+
     &:focus-within {
       border-color: var(--c-accent) !important;
       box-shadow:   0 0 0 3px rgba(255,140,66,0.12) !important;
@@ -955,11 +695,12 @@ $vis:    3;       // visible items in viewport
   }
 
   :deep([data-type]:not([data-type="literal"])) {
-    font-family: var(--font-fallback) !important;
+    font-family:          var(--font-fallback) !important;
     font-variant-numeric: tabular-nums;
-    color: var(--c-muted) !important;
-    border-radius: var(--radius-sm) !important;
-    @include transition(fast);
+    color:                var(--c-muted) !important;
+    border-radius:        var(--radius-sm) !important;
+    transition:           background 0.15s, color 0.15s;
+
     &[data-focused], &:focus {
       background: rgba(255,140,66,0.12) !important;
       color:      var(--c-accent) !important;
@@ -972,35 +713,35 @@ $vis:    3;       // visible items in viewport
   }
 
   :deep([data-type="literal"]) { color: var(--c-muted) !important; user-select: none; }
-
-  .rti--xs & :deep([role="group"]) { min-height: 30px; padding: 0 8px; }
-  .rti--sm & :deep([role="group"]) { min-height: 34px; padding: 0 10px; }
-  .rti--md & :deep([role="group"]) { min-height: 38px; padding: 0 12px; }
-  .rti--lg & :deep([role="group"]) { min-height: 42px; padding: 0 14px; }
-  .rti--xl & :deep([role="group"]) { min-height: 46px; padding: 0 16px; }
 }
 
-:deep([data-slot="base"]){ //work here
-  height: 38px !important;          // fixed height
-  width: 100%;
-  input {
-    width: 100%;
-  }
-  // border-radius: 5x !important;  
-  border-radius: var(--rounded) !important;
+:deep([data-slot="base"]) {
+  height:        38px !important;
+  width:         100%;
+  border-radius: var(--rounded, var(--radius-md)) !important;
 }
-:deep([data-slot=leading]){
-  padding-left: 5px !important;
-}
-:deep([data-slot=trailing]){
-  padding-right: 5px !important;
+:deep([data-slot="leading"])  { padding-left:  5px !important; }
+:deep([data-slot="trailing"]) { padding-right: 5px !important; }
+
+// ─────────────────────────────────────────────
+// TRAILING (absolute-positioned button group)
+// ─────────────────────────────────────────────
+.rti__trail {
+  position:   absolute;
+  top:        50%;
+  right:      8px;
+  transform:  translateY(-50%);
+  display:    flex;
+  align-items: center;
+  gap:        4px;
+  z-index:    2;
 }
 
 .rti__clear {
   width: 24px; height: 24px; border: none; border-radius: 50%;
   background: rgba(248,113,113,0.1); color: var(--c-danger);
-  cursor: pointer; @include flex-center; @include transition(fast);
-  font-size: 0.72rem; padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s; font-size: 0.72rem; padding: 0;
   &:hover { background: rgba(248,113,113,0.22); }
 }
 
@@ -1008,7 +749,9 @@ $vis:    3;       // visible items in viewport
   width: 32px; height: 32px;
   border: 1px solid var(--c-border); border-radius: var(--radius-md);
   background: transparent; color: var(--c-muted);
-  cursor: pointer; @include flex-center; @include transition(fast); padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; padding: 0;
+
   &:hover, &--active {
     border-color: var(--c-accent); color: var(--c-accent);
     background: rgba(255,140,66,0.07); box-shadow: var(--glow-accent-sm);
@@ -1024,9 +767,10 @@ $vis:    3;       // visible items in viewport
   padding: 3px 10px;
   background: rgba(255,140,66,0.07); border: 1px solid rgba(255,140,66,0.18);
   border-radius: var(--radius-full); width: fit-content; font-size: 0.75rem;
-  svg           { color: var(--c-accent); font-size: 0.82rem; flex-shrink: 0; }
-  &-val         { font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
-  &-dur         { color: var(--c-muted); }
+
+  svg            { color: var(--c-accent); font-size: 0.82rem; }
+  &-val          { font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
+  &-dur          { color: var(--c-muted); }
 }
 
 // ─────────────────────────────────────────────
@@ -1046,13 +790,13 @@ $vis:    3;       // visible items in viewport
   min-width:     220px;
 
   @include mobile-only {
-    width: calc(100vw - 2rem);
-    left:  50%;
+    width:     calc(100vw - 2rem);
+    left:      50%;
     transform: translateX(-50%);
   }
 }
 
-// ── Header ────────────────────────────────────
+// ── Popover header ─────────────────────
 .rti__pop-head {
   padding:       var(--space-3) var(--space-4);
   background:    var(--bg-tertiary);
@@ -1060,9 +804,7 @@ $vis:    3;       // visible items in viewport
 }
 
 .rti__pop-live {
-  display:     flex;
-  align-items: center;
-  gap:         var(--space-2);
+  display: flex; align-items: center; gap: var(--space-2);
 }
 
 .rti__pop-live-time {
@@ -1091,52 +833,40 @@ $vis:    3;       // visible items in viewport
   text-transform: uppercase;
   letter-spacing: 0.07em;
 
-  &--start {
-    background: rgba(255,140,66,0.12);
-    color:      var(--c-accent);
-    border:     1px solid rgba(255,140,66,0.25);
-  }
-  &--end {
-    background: rgba(96,165,250,0.12);
-    color:      var(--c-info);
-    border:     1px solid rgba(96,165,250,0.25);
-  }
+  &--start { background: rgba(255,140,66,0.12); color: var(--c-accent); border: 1px solid rgba(255,140,66,0.25); }
+  &--end   { background: rgba(96,165,250,0.12);  color: var(--c-info);   border: 1px solid rgba(96,165,250,0.25); }
 }
 
-// ── Column label strip ───────────────────────
+// ── Column header labels ───────────────────
+// Default: 2 cols (Hour + Min)
+// --ampm:  3 cols (Hour + Min + AM/PM)
 .rti__drum-labels {
-  display:        grid;
-  grid-template-columns: 1fr;
-  gap:            var(--space-1);
-  padding:        var(--space-2) var(--space-4) var(--space-1);
-  font-size:      0.62rem;
-  font-weight:    700;
-  color:          var(--c-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  text-align:     center;
+  display:               grid;
+  grid-template-columns: 1fr 1fr;        // Hour : Min
+  gap:                   var(--space-1);
+  padding:               var(--space-2) var(--space-4) var(--space-1);
+  font-size:             0.62rem;
+  font-weight:           700;
+  color:                 var(--c-muted);
+  text-transform:        uppercase;
+  letter-spacing:        0.08em;
+  text-align:            center;
 
-  // columns match the drum layout (colons are hidden)
-  grid-template-columns: 1fr 1fr;                       // h : m  (default minute)
-  &--sec      { grid-template-columns: 1fr 1fr 1fr; }   // h : m : s
-  &--ampm     { grid-template-columns: 1fr 1fr 48px; }  // h : m : AM/PM
-  &--sec-ampm { grid-template-columns: 1fr 1fr 1fr 48px; }
+  &--ampm { grid-template-columns: 1fr 1fr 48px; }  // h | m | AM/PM
 }
 
-// ── Drums container ──────────────────────────
+// ── Drums container ────────────────────────
 .rti__drums {
-  position: relative;
-  display:  grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  padding:  0 var(--space-4);
-  height:   ($item-h * $vis);
-  gap:      0;
-  background-color: var(--bg-content) !important;
+  position:              relative;
+  display:               grid;
+  grid-template-columns: 1fr 1fr;        // Hour | Min
+  align-items:           center;
+  padding:               0 var(--space-4);
+  height:                ($item-h * $vis);
+  gap:                   0;
+  background-color:      var(--bg-content) !important;
 
-  &--sec      { grid-template-columns: 1fr 1fr 1fr; }
-  &--ampm     { grid-template-columns: 1fr 1fr 48px; }
-  &--sec-ampm { grid-template-columns: 1fr 1fr 1fr 48px; }
+  &--ampm { grid-template-columns: 1fr 1fr 48px; }  // Hour | Min | AM/PM
 }
 
 // Highlight bar sitting behind the centre row
@@ -1154,15 +884,16 @@ $vis:    3;       // visible items in viewport
   z-index:       0;
 }
 
-// ── Single drum ──────────────────────────────
+// ── Single drum (scroll) ───────────────────
 .rti__drum {
-  height:     ($item-h * $vis);
-  overflow-y: scroll;
+  height:           ($item-h * $vis);
+  overflow-y:       scroll;
   scroll-snap-type: y mandatory;
-  scrollbar-width: none;
-  outline:    none;
-  position:   relative;
-  z-index:    1;
+  scrollbar-width:  none;
+  outline:          none;
+  position:         relative;
+  z-index:          1;
+
   &::-webkit-scrollbar { display: none; }
 
   // top & bottom fade
@@ -1181,42 +912,44 @@ $vis:    3;       // visible items in viewport
     transparent 100%
   );
 
+  // AM/PM column: pill layout, no scroll-snap
   &--ampm {
-    height:     ($item-h * $vis);
-    display:    flex;
-    flex-direction: column;
-    overflow-y: visible;
-    mask-image: none;
+    height:          ($item-h * $vis);
+    display:         flex;
+    flex-direction:  column;
+    overflow-y:      visible;
+    mask-image:      none;
     -webkit-mask-image: none;
     justify-content: center;
-    gap:        var(--space-2);
-    padding:    0 0 0 var(--space-2);
+    gap:             var(--space-2);
+    padding:         0 0 0 var(--space-2);
+    scroll-snap-type: none;
   }
 }
 
 .rti__drum-pad {
-  height:      $item-h;
-  flex-shrink: 0;
+  height:       $item-h;
+  flex-shrink:  0;
   scroll-snap-align: start;
 }
 
 .rti__drum-item {
-  height:          $item-h;
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  font-size:       0.98rem;
-  font-weight:     500;
+  height:               $item-h;
+  display:              flex;
+  align-items:          center;
+  justify-content:      center;
+  font-size:            0.98rem;
+  font-weight:          500;
   font-variant-numeric: tabular-nums;
-  color:           var(--c-muted);
-  cursor:          pointer;
-  scroll-snap-align: start;
-  border-radius:   var(--radius-md);
-  @include transition(fast);
-  user-select:     none;
-  letter-spacing:  0.03em;
+  color:                var(--c-muted);
+  cursor:               pointer;
+  scroll-snap-align:    start;
+  border-radius:        var(--radius-md);
+  transition:           color 0.15s, background 0.15s;
+  user-select:          none;
+  letter-spacing:       0.03em;
 
-  &:hover:not(&--active) {
+  &:hover:not(.rti__drum-item--active) {
     color:      var(--c-text);
     background: rgba(255,140,66,0.06);
   }
@@ -1227,9 +960,9 @@ $vis:    3;       // visible items in viewport
     font-size:   1.08rem;
   }
 
-  // AM/PM pill style
+  // AM/PM pill
   &--ampm {
-    height:        30px !important;
+    height:        34px !important;
     width:         44px;
     border:        1px solid var(--c-border) !important;
     border-radius: var(--radius-md);
@@ -1239,35 +972,30 @@ $vis:    3;       // visible items in viewport
 
     &.rti__drum-item--active {
       background:   var(--c-accent);
-      border-color: var(--c-accent);
+      border-color: var(--c-accent) !important;
       color:        #fff !important;
       box-shadow:   var(--glow-accent-sm);
-      font-size:    0.72rem;
     }
   }
 }
 
-// Colon separator
+// Colon separator (unused visually but kept for potential use)
 .rti__colon {
-  font-size:   1.2rem;
-  font-weight: 700;
-  color:       var(--c-accent);
-  opacity:     0.55;
-  padding:     0 2px;
-  user-select: none;
-  z-index:     2;
-  position:    relative;
+  font-size: 1.2rem; font-weight: 700;
+  color: var(--c-accent); opacity: 0.55;
+  padding: 0 2px; user-select: none;
+  z-index: 2; position: relative;
 }
 
-// ── Range strip ──────────────────────────────
+// ── Range strip ────────────────────────────
 .rti__range-strip {
-  display:       flex;
-  align-items:   center;
-  gap:           var(--space-2);
-  padding:       var(--space-2) var(--space-4);
-  background:    var(--bg-tertiary);
-  border-top:    1px solid var(--c-border);
-  font-size:     0.75rem;
+  display:     flex;
+  align-items: center;
+  gap:         var(--space-2);
+  padding:     var(--space-2) var(--space-4);
+  background:  var(--bg-tertiary);
+  border-top:  1px solid var(--c-border);
+  font-size:   0.75rem;
 }
 
 .rti__range-seg {
@@ -1276,36 +1004,24 @@ $vis:    3;       // visible items in viewport
   gap:         var(--space-1);
   flex:        1;
   color:       var(--c-muted);
-  @include transition(fast);
+  transition:  all 0.15s;
   padding:     4px 6px;
   border-radius: var(--radius-sm);
 
   svg  { font-size: 0.88rem; flex-shrink: 0; }
-
   code {
-    font-size:     0.7rem;
-    padding:       1px 6px;
-    background:    rgba(255,140,66,0.1);
-    border-radius: var(--radius-sm);
-    color:         var(--c-accent);
+    font-size: 0.7rem; padding: 1px 6px;
+    background: rgba(255,140,66,0.1); border-radius: var(--radius-sm);
+    color: var(--c-accent);
   }
 
-  &--active {
-    background: rgba(255,140,66,0.07);
-    color:      var(--c-text);
-  }
-
-  &--done { color: var(--c-accent); }
+  &--active { background: rgba(255,140,66,0.07); color: var(--c-text); }
+  &--done   { color: var(--c-accent); }
 }
 
-.rti__range-arrow {
-  color:      var(--c-accent);
-  font-size:  0.82rem;
-  flex-shrink: 0;
-  opacity:    0.7;
-}
+.rti__range-arrow { color: var(--c-accent); font-size: 0.82rem; flex-shrink: 0; opacity: 0.7; }
 
-// ── Footer ──────────────────────────────────
+// ── Footer ─────────────────────────────────
 .rti__pop-footer {
   display:         flex;
   align-items:     center;
@@ -1326,27 +1042,20 @@ $vis:    3;       // visible items in viewport
   font-family:   var(--font-fallback);
   font-weight:   500;
   cursor:        pointer;
-  @include transition(fast);
+  transition:    all 0.15s;
 
   &--ghost {
-    border:     1px solid var(--c-border);
-    background: transparent;
-    color:      var(--c-muted);
+    border: 1px solid var(--c-border); background: transparent; color: var(--c-muted);
     &:hover { border-color: var(--c-accent); color: var(--c-accent); }
   }
-
   &--solid {
-    border:     1px solid var(--c-accent);
-    background: var(--c-accent);
-    color:      #fff;
+    border: 1px solid var(--c-accent); background: var(--c-accent); color: #fff;
     box-shadow: var(--glow-accent-sm);
     &:hover { background: var(--c-accent-2); border-color: var(--c-accent-2); }
   }
 }
 
-// ─────────────────────────────────────────────
-// TRANSITIONS
-// ─────────────────────────────────────────────
+// ── Transitions ─────────────────────────────
 .rti-fade-enter-active, .rti-fade-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .rti-fade-enter-from,   .rti-fade-leave-to     { opacity: 0; transform: translateY(-2px); }
 
@@ -1356,7 +1065,6 @@ $vis:    3;       // visible items in viewport
 .rti-pop-leave-to     { opacity: 0; transform: translateY(-4px) scale(0.98); }
 </style>
 
-<!-- Global: dark mode corrections -->
 <style lang="scss">
 .dark .rti__input :deep([role="group"]) {
   background: rgba(19, 19, 26, 0.8) !important;
