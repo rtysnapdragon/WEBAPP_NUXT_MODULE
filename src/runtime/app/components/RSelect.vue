@@ -838,9 +838,9 @@ function fnGenerateTextSubLabel(data, template) {
 //   overflow: hidden !important;
 }
 
-.truncated-select{
-  padding-top: 7px !important;
-}
+// .truncated-select{
+//   padding-top: 7px !important;
+// }
 
 .ui_rselect_trailing{
   display: flex !important; 
