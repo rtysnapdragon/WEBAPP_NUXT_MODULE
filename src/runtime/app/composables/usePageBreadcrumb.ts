@@ -1,5 +1,7 @@
 // composables/usePageBreadcrumb.ts
-
+import { onMounted, onBeforeUnmount } from 'vue';
+// import { useBreadcrumb } from '@bgtm/breadcrumb-nuxt';
+import { useBreadcrumb } from './breadCrumb'
 import type {
   RBreadcrumbState,
 } from '~/types/breadcrumb'
@@ -120,24 +122,3 @@ export const usePageBreadcrumb = (
 //   ],
 // })
 // </script>
-
-// <template>
-//   <RPageHeader>
-
-//     <template #actions>
-
-//       <UButton
-//         label="Create"
-//         icon="i-lucide-plus"
-//       />
-
-//       <UButton
-//         label="Export"
-//         variant="soft"
-//         color="neutral"
-//       />
-
-//     </template>
-
-//   </RPageHeader>
-// </template>

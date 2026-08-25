@@ -17,7 +17,6 @@ defineProps<{
       <!-- Content -->
       <div class="page-header__content">
         <!-- Breadcrumb -->
-        <RBreadCrumb class="mb-1" />
         <!-- Title -->
         <h1 v-if="title" class="page-header__title"> {{ title }} </h1>
         <!-- Subtitle -->
