@@ -1,8 +1,8 @@
 
 export default {
-  userCatch: "oc_user_catch",
-  deviceId: "oc_device_id",
-  dbCode: "oc_database",
+  userCatch: "user_catch",
+  deviceId: "device_id",
+  dbCode: "database",
   langCode: "i18n_redirected",
   fbMessagingToken: "fb_messaging_token",
   GlobalKey: '_',

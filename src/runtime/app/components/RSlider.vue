@@ -86,7 +86,7 @@ const props = defineProps({
   overlay:      { type: Boolean, default: true      },
   dismissible:  { type: Boolean, default: true      },
   preventClose: { type: Boolean, default: false     },
-  isScroll:     { type: Boolean, default: false     },
+  // isScroll:     { type: Boolean, default: false     },
   ui:           { type: Object,  default: () => ({}) },
   // Dirty form guard — when true, clicking outside (overlay) will NOT close the slider.
   // The X button in the header still works (calls closed() explicitly).
@@ -139,37 +139,91 @@ const mergedUI = computed(() => {
 
 /* ── scroll detection ── */
 const refRDrawerBody = ref(null)
-const hasScroll      = ref(false)
+const hasScroll = ref(false)
+
+let resizeObserver = null
+let mutationObserver = null
 
 function checkScroll() {
   const body = refRDrawerBody.value
-  if (!body) return
-  hasScroll.value = body.scrollHeight > body.clientHeight
+
+  if (!body) {
+    hasScroll.value = false
+    return
+  }
+
+  // Force browser layout to be up-to-date
+  const scrollHeight = body.scrollHeight
+  const clientHeight = body.clientHeight
+
+  hasScroll.value = scrollHeight > clientHeight + 1
 }
 
-function observeBody() {
-  if (!refRDrawerBody.value) return
+async function observeBody() {
+  await nextTick()
+
+  const body = refRDrawerBody.value
+
+  if (!body) return
+
+  // Initial check
   checkScroll()
-  window.addEventListener('resize', checkScroll, { passive: true })
+
+  // Detect size changes
+  resizeObserver?.disconnect()
+  resizeObserver = new ResizeObserver(() => {
+    checkScroll()
+  })
+
+  resizeObserver.observe(body)
+
+  // Detect slot/content changes
+  mutationObserver?.disconnect()
+  mutationObserver = new MutationObserver(() => {
+    checkScroll()
+  })
+
+  mutationObserver.observe(body, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  })
+}
+
+function stopObservingBody() {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+
+  mutationObserver?.disconnect()
+  mutationObserver = null
+
+  window.removeEventListener('resize', checkScroll)
 }
 
 onMounted(async () => {
-  await nextTick()
-  observeBody()
+  await observeBody()
+
+  window.addEventListener('resize', checkScroll, { passive: true })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkScroll)
+  stopObservingBody()
 })
 
-watch(isOpen, (open) => {
+watch(isOpen, async (open) => {
   if (open) {
-    setTimeout(observeBody, 120)   // wait for portal paint
+    // USlideover is teleported, so give it time to render
+    await nextTick()
+
+    setTimeout(() => {
+      observeBody()
+    }, 120)
   } else {
-    window.removeEventListener('resize', checkScroll)
+    stopObservingBody()
     hasScroll.value = false
   }
 })
+
 
 function closed() {
   isOpen.value = false
@@ -263,6 +317,7 @@ function closed() {
   width: v-bind('props.width ? props.width + "px" : "420px"') !important;
   max-width: v-bind('props.maxWidth ? props.maxWidth + "px" : "900px"') !important;
   height: 100dvh;
+  min-width: 380px;
 
   // SARIKA surface
   background: var(--glass-bg);
@@ -307,6 +362,8 @@ function closed() {
 .rs-ui-body {
   flex: 1;
   padding: 0 !important;
+  min-height: 0 !important;
+  min-width: 0;
   // overflow: hidden; // scroll controlled by rs-body inside
 
   // overflow-x: hidden !important; // scroll controlled by rs-body inside
@@ -328,7 +385,7 @@ function closed() {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-5);
+  padding: 8px 15px;
   min-height: 64px;
   font-family: var(--font-400);
   width: 100% !important;
@@ -368,15 +425,17 @@ function closed() {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    text-align: center;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: var(--r-full);
     border: none;
     background: transparent;
     color: var(--c-muted);
-    font-size: 18px;
+    // font-size: 18px !important;
     cursor: pointer;
     flex-shrink: 0;
+    padding: 0 !important;
     transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
 
     &:hover {
@@ -392,26 +451,27 @@ function closed() {
   flex-direction: column;
   height: 100%;
   padding: 8px 15px;
-  overflow: hidden;
+  // overflow: hidden;
 
   &--scroll {
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding-right: calc(var(--sp-5) - 4px); // compensate for scrollbar
+    padding-right: 8px !important;
+    // padding-right: calc(var(--sp-4) - 4px); // compensate for scrollbar
 
     // SARIKA scrollbar
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-w-b-3) transparent;
+    // scrollbar-width: thin;
+    // scrollbar-color: var(--color-w-b-3) transparent;
 
-    &::-webkit-scrollbar        { width: 4px; }
-    &::-webkit-scrollbar-track  { background: transparent; }
-    &::-webkit-scrollbar-thumb  {
-      background: var(--color-w-b-3);
-      border-radius: var(--r-full);
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: var(--color-w-b-2);
-    }
+    // &::-webkit-scrollbar        { width: 4px; }
+    // &::-webkit-scrollbar-track  { background: transparent; }
+    // &::-webkit-scrollbar-thumb  {
+    //   background: var(--color-w-b-3);
+    //   border-radius: var(--r-full);
+    // }
+    // &::-webkit-scrollbar-thumb:hover {
+    //   background: var(--color-w-b-2);
+    // }
   }
 }
 
@@ -422,17 +482,18 @@ function closed() {
   flex-direction: row;
   justify-content: flex-end;
   gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-5);
+  // padding: var(--sp-3) var(--sp-5);
+  padding: 8px 15px;
   min-height: 56px;
 }
 
-/* ── dark mode adjustments ── */
-.dark .rs-content {
-  border-left-color: var(--c-border);
-  box-shadow: 0 0 0 1px var(--c-border), var(--glass-shadow);
-}
+// /* ── dark mode adjustments ── */
+// .dark .rs-content {
+//   border-left-color: var(--c-border);
+//   box-shadow: 0 0 0 1px var(--c-border), var(--glass-shadow);
+// }
 
-.dark .rs-content--bottom {
-  border-top-color: var(--c-border);
-}
+// .dark .rs-content--bottom {
+//   border-top-color: var(--c-border);
+// }
 </style>

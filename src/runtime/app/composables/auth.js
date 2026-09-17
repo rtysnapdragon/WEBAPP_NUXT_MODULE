@@ -28,7 +28,7 @@ export const useAuth = async (args) => {
       headers: {
         Authorization: `basic ${config.basicKey}`,
         "Content-Type": "application/json",
-        oc_device_id: deviceId,
+        device_id: deviceId,
       },
       method: "post",
       data: {
@@ -56,11 +56,11 @@ export const useAuth = async (args) => {
       action: "set_authorize_cookie",
       data: {
         cookie: {
-          oc_lang: locale ?? "en",
-          oc_database: dbCode || "",
-          oc_device_id: deviceId,
-          oc_access_token: result.access_token,
-          oc_expire: result.expires,
+          lang: locale ?? "en",
+          database: dbCode || "",
+          device_id: deviceId,
+          access_token: result.access_token,
+          expire: result.expires,
         },
         sameSite: config.sameSite,
       },
