@@ -5,16 +5,18 @@
 </template>
 
 <script setup>
-const props = defineProps(['class'])
+const props = defineProps(["class"]);
 </script>
 
 <style lang="scss" scoped>
 .r-wrapper-page {
   display: flex;
   flex-direction: column;
-  padding: 5px 15px 5px 15px;
+  margin-left: 16px;
+  margin-right: 8px;
+  border-radius: 12px;
   grid-gap: 16px;
-  height: calc(100vh - 66px);
+  height: calc(100vh - 70px);
 }
 @media (max-width: 768px) {
   .r-wrapper-page {

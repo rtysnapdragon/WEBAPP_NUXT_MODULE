@@ -2,31 +2,35 @@
 
 <script setup lang="ts">
 defineProps<{
-  title?: string
-  subtitle?: string
-  description?: string
-  icon?: string
-}>()
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  icon?: string;
+}>();
 </script>
 
 <template>
   <div class="page-header">
     <div class="page-header__left">
       <!-- Icon -->
-      <div v-if="icon" class="page-header__icon-wrap" >  <UIcon :name="icon" class="page-header__icon" /> </div>
+      <div v-if="icon" class="page-header__icon-wrap">
+        <UIcon :name="icon" class="page-header__icon" />
+      </div>
       <!-- Content -->
       <div class="page-header__content">
         <!-- Breadcrumb -->
         <!-- Title -->
-        <h1 v-if="title" class="page-header__title"> {{ title }} </h1>
+        <h1 v-if="title" class="page-header__title">{{ title }}</h1>
         <!-- Subtitle -->
-        <p v-if="subtitle" class="page-header__sub" > {{ subtitle }} </p>
-        <p v-if="description" class="page-header__description sub-text" > {{ description }} </p>
+        <p v-if="subtitle" class="page-header__sub">{{ subtitle }}</p>
+        <p v-if="description" class="page-header__description sub-text">
+          {{ description }}
+        </p>
       </div>
     </div>
 
     <!-- Actions -->
-    <div v-if="$slots.actions" class="page-header__actions" >
+    <div v-if="$slots.actions" class="page-header__actions">
       <slot name="actions" />
     </div>
   </div>
@@ -44,7 +48,7 @@ defineProps<{
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;          // ← important
+  flex: 1; // ← important
   min-width: 0;
 }
 
@@ -58,10 +62,7 @@ defineProps<{
   align-items: center;
   justify-content: space-between;
 
-  margin-top: 15px;
-  margin-bottom: 15px;
-
-  @include mobile-only{
+  @include mobile-only {
     gap: 5px;
     margin-bottom: 10px;
     margin-top: 10px;
@@ -106,7 +107,7 @@ defineProps<{
   }
 
   &__title {
-    font-family: var(--font-400,var(--font-fallback));
+    font-family: var(--font-400, var(--font-fallback));
     font-size: 1.5rem;
     font-weight: bold;
     line-height: 1.2;
