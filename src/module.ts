@@ -38,8 +38,6 @@ export default defineNuxtModule<ModuleOptions>({
     const runtimeAppDir = resolve("./runtime/app"); // Client-side
     const runtimeServerDir = resolve("./runtime/server"); // Server-side
 
-    console.log('🚀 [WebApp Module] Initializing...');
-
     // Transpile
     nuxt.options.build.transpile.push(runtimeAppDir);
     nuxt.options.build.transpile.push(runtimeServerDir);
@@ -107,8 +105,6 @@ export default defineNuxtModule<ModuleOptions>({
 // ====================== SERVER API ======================
 
     // addServerImportsDir(runtimeServerDir);   // Only server directory
-
-    console.log('✅ [WebApp Module] AI Completion API registered at /api/completion');
 
     addImports([
       { name: "ref", from: "vue" },
@@ -218,27 +214,16 @@ export default defineNuxtModule<ModuleOptions>({
     const lang = ["km", "en"];
     const rootDir = nuxt.options.rootDir
 
-    console.log("rootDir:", rootDir)
-
-    console.log("cwd=======>:", process.cwd())
     for (const lan of lang) {
         // Main app language
         const mainLang = path.join(rootDir, "app", "assets", "lang", `${lan}.json`)
         const moduleLang = resolve("./runtime/app/assets/lang", `${lan}.json`)
-        console.log("moduleLang-------------> ", moduleLang)
-        console.log("fs.existsSync(moduleLang) =============> ", fs.existsSync(moduleLang))
-        console.log("Main Lang:", mainLang)
-        console.log("Exists:", fs.existsSync(mainLang))
 
       const assetLangs = layers?.map((l) => {
-        console.log("l=======>:", l)
         const baseDir = path.dirname(
           path.posix.join(...process.cwd().split(/\\+/))
         );
         const p = path.join(process.cwd(), "app", "assets", "lang", `${lan}.json`)
-
-        console.log("Path -------------> ", p)
-        console.log("Exists-------------> ", fs.existsSync(p))
 
         return `${baseDir}/${l}/app/assets/lang/${lan}.json`;
       });
