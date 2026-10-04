@@ -17,7 +17,12 @@
       :disabled="disabled"
       @change="(e) => emit('change', e)"
       @blur="(e) => emit('blur', e)"
-      @focus="(e) => { isFocused = true; emit('focus', e) }"
+      @focus="
+        (e) => {
+          isFocused = true;
+          emit('focus', e);
+        }
+      "
       @invalid="(v) => emit('invalid', v)"
       @add-tag="onAddTag"
       @remove-tag="(v) => emit('removeTag', v)"
@@ -90,7 +95,10 @@
               <i class="ri-loader-4-line rit-spin" />
               <span>{{ loadingLabel }}</span>
             </div>
-            <div v-else-if="visibleSuggestions.length === 0" class="rit-dropdown__empty">
+            <div
+              v-else-if="visibleSuggestions.length === 0"
+              class="rit-dropdown__empty"
+            >
               <slot name="empty" :query="inputQuery">
                 <i class="ri-search-line" />
                 <span>{{ emptyLabel }}</span>
@@ -101,15 +109,25 @@
                 v-for="(item, idx) in visibleSuggestions"
                 :key="idx"
                 class="rit-dropdown__item"
-                :class="{ 'rit-dropdown__item--active': activeSuggestionIdx === idx }"
+                :class="{
+                  'rit-dropdown__item--active': activeSuggestionIdx === idx,
+                }"
                 role="option"
                 :aria-selected="activeSuggestionIdx === idx"
                 type="button"
                 @mousedown.prevent="selectSuggestion(item)"
                 @mouseover="activeSuggestionIdx = idx"
               >
-                <slot name="suggestion" :item="item" :query="inputQuery" :active="activeSuggestionIdx === idx">
-                  <span class="rit-dropdown__text" v-html="highlightMatch(displayItem(item), inputQuery)" />
+                <slot
+                  name="suggestion"
+                  :item="item"
+                  :query="inputQuery"
+                  :active="activeSuggestionIdx === idx"
+                >
+                  <span
+                    class="rit-dropdown__text"
+                    v-html="highlightMatch(displayItem(item), inputQuery)"
+                  />
                 </slot>
               </button>
             </template>
@@ -134,7 +152,10 @@
             <i class="ri-loader-4-line rit-spin" />
             <span>{{ loadingLabel }}</span>
           </div>
-          <div v-else-if="visibleSuggestions.length === 0" class="rit-dropdown__empty">
+          <div
+            v-else-if="visibleSuggestions.length === 0"
+            class="rit-dropdown__empty"
+          >
             <slot name="empty" :query="inputQuery">
               <i class="ri-search-line" />
               <span>{{ emptyLabel }}</span>
@@ -145,15 +166,25 @@
               v-for="(item, idx) in visibleSuggestions"
               :key="idx"
               class="rit-dropdown__item"
-              :class="{ 'rit-dropdown__item--active': activeSuggestionIdx === idx }"
+              :class="{
+                'rit-dropdown__item--active': activeSuggestionIdx === idx,
+              }"
               role="option"
               :aria-selected="activeSuggestionIdx === idx"
               type="button"
               @mousedown.prevent="selectSuggestion(item)"
               @mouseover="activeSuggestionIdx = idx"
             >
-              <slot name="suggestion" :item="item" :query="inputQuery" :active="activeSuggestionIdx === idx">
-                <span class="rit-dropdown__text" v-html="highlightMatch(displayItem(item), inputQuery)" />
+              <slot
+                name="suggestion"
+                :item="item"
+                :query="inputQuery"
+                :active="activeSuggestionIdx === idx"
+              >
+                <span
+                  class="rit-dropdown__text"
+                  v-html="highlightMatch(displayItem(item), inputQuery)"
+                />
               </slot>
             </button>
           </template>
@@ -363,15 +394,24 @@ function onInputKeydown(e) {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function displayItem(item: T): string {
-  if (props.displayValue) return props.displayValue(item)
+function displayItem(item) {
+  if (props.displayValue) {
+    return props.displayValue(item)
+  }
+
   return String(item)
 }
 
-function alreadySelected(item: T): boolean {
-  if (props.duplicate) return false
+function alreadySelected(item) {
+  if (props.duplicate) {
+    return false
+  }
+
   const disp = displayItem(item)
-  return (model.value ?? []).some(v => displayItem(v) === disp)
+
+  return (model.value ?? []).some(
+    v => displayItem(v) === disp
+  )
 }
 
 function selectSuggestion(item) {
@@ -397,7 +437,7 @@ function selectSuggestion(item) {
 }
 
 /** Highlight matching characters in suggestion text */
-function highlightMatch(text: string, query: string): string {
+function highlightMatch(text, query) {
   if (!query) return text
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   return text.replace(
@@ -407,11 +447,11 @@ function highlightMatch(text: string, query: string): string {
 }
 
 // ── Emit forwarding ────────────────────────────────────────────────────────
-function onAddTag(v: T) {
+function onAddTag(v) {
   emit('addTag', v)
 }
 
-function onUpdateModel(v: T[]) {
+function onUpdateModel(v) {
   model.value = v
   emit('update:modelValue', v)
 }
@@ -484,8 +524,8 @@ const mergedUI = computed(() => ({
 
 // ── Host wrapper ─────────────────────────────────────────────────────────
 .rit-root {
-  position:    relative;
-  width:       100%;
+  position: relative;
+  width: 100%;
   font-family: var(--font-fallback);
 }
 
@@ -497,90 +537,123 @@ const mergedUI = computed(() => ({
 
 .rit-u-base,
 .rit-root [data-slot="base"] {
-  display:       flex;
-  flex-wrap:     wrap;
-  align-items:   center;
-  gap:           var(--sp-1);
-  width:         100%;
-  min-height:    38px;
-  padding:       var(--sp-2) var(--sp-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1);
+  width: 100%;
+  min-height: 38px;
+  padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-md) !important;
-  border:        1px solid var(--color-w-b-3) !important;
-  background:    var(--c-surface) !important;
-  color:         var(--c-text) !important;
-  font-family:   var(--font-fallback) !important;
-  font-size:     13px !important;
+  border: 1px solid var(--color-w-b-3) !important;
+  background: var(--c-surface) !important;
+  color: var(--c-text) !important;
+  font-family: var(--font-fallback) !important;
+  font-size: 13px !important;
   transition:
     border-color var(--t-fast) var(--ease-out),
-    box-shadow   var(--t-fast) var(--ease-out),
-    background   var(--t-fast) var(--ease-out);
+    box-shadow var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
 
   // Focus-within ring
   &:focus-within {
     border-color: var(--c-accent) !important;
-    box-shadow:   0 0 0 3px color-mix(in srgb, var(--c-accent) 15%, transparent) !important;
-    outline:      none !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accent) 15%, transparent) !important;
+    outline: none !important;
   }
 
   // highlight prop (validation error uses this too)
   .rit-root [data-highlight] &,
   .rit-root.rit-root--highlight & {
     border-color: var(--c-accent) !important;
-    box-shadow:   0 0 0 3px color-mix(in srgb, var(--c-accent) 15%, transparent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accent) 15%, transparent) !important;
   }
 
   // Disabled
   [data-disabled] &,
   &:has(input:disabled) {
     background: var(--bg-tertiary) !important;
-    opacity:    0.65;
-    cursor:     not-allowed;
+    opacity: 0.65;
+    cursor: not-allowed;
   }
 }
 
 // ── Variant surface overrides ─────────────────────────────────────────────
-.rit-root--soft    .rit-u-base { background: color-mix(in srgb, var(--c-surface) 60%, transparent) !important; border-color: transparent !important; }
-.rit-root--subtle  .rit-u-base { background: color-mix(in srgb, var(--c-muted) 8%, transparent) !important; }
-.rit-root--ghost   .rit-u-base { background: transparent !important; border-color: transparent !important;
-  &:focus-within { background: color-mix(in srgb, var(--c-muted) 6%, transparent) !important; }
+.rit-root--soft .rit-u-base {
+  background: color-mix(in srgb, var(--c-surface) 60%, transparent) !important;
+  border-color: transparent !important;
 }
-.rit-root--none    .rit-u-base { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+.rit-root--subtle .rit-u-base {
+  background: color-mix(in srgb, var(--c-muted) 8%, transparent) !important;
+}
+.rit-root--ghost .rit-u-base {
+  background: transparent !important;
+  border-color: transparent !important;
+  &:focus-within {
+    background: color-mix(in srgb, var(--c-muted) 6%, transparent) !important;
+  }
+}
+.rit-root--none .rit-u-base {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
 
 // ── Size adjustments ──────────────────────────────────────────────────────
-.rit-root--xs .rit-u-base { min-height: 28px; padding: var(--sp-1) var(--sp-2); font-size: 11px !important; }
-.rit-root--sm .rit-u-base { min-height: 32px; padding: var(--sp-1) var(--sp-3); font-size: 12px !important; }
-.rit-root--md .rit-u-base { min-height: 38px; }
-.rit-root--lg .rit-u-base { min-height: 44px; padding: var(--sp-2) var(--sp-4); font-size: 14px !important; }
-.rit-root--xl .rit-u-base { min-height: 50px; padding: var(--sp-3) var(--sp-4); font-size: 15px !important; }
+.rit-root--xs .rit-u-base {
+  min-height: 28px;
+  padding: var(--sp-1) var(--sp-2);
+  font-size: 11px !important;
+}
+.rit-root--sm .rit-u-base {
+  min-height: 32px;
+  padding: var(--sp-1) var(--sp-3);
+  font-size: 12px !important;
+}
+.rit-root--md .rit-u-base {
+  min-height: 38px;
+}
+.rit-root--lg .rit-u-base {
+  min-height: 44px;
+  padding: var(--sp-2) var(--sp-4);
+  font-size: 14px !important;
+}
+.rit-root--xl .rit-u-base {
+  min-height: 50px;
+  padding: var(--sp-3) var(--sp-4);
+  font-size: 15px !important;
+}
 
 // ── Tag item ──────────────────────────────────────────────────────────────
 .rit-u-item,
 .rit-root [data-slot="item"] {
-  display:       inline-flex;
-  align-items:   center;
-  gap:           3px;
-  padding:       2px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
   border-radius: var(--r-full);
-  font-size:     0.72rem !important;
-  font-weight:   600;
-  line-height:   1.4;
-  color:         var(--c-accent) !important;
-  background:    color-mix(in srgb, var(--c-accent) 12%, transparent) !important;
-  border:        1px solid color-mix(in srgb, var(--c-accent) 28%, transparent) !important;
-  font-family:   var(--font-fallback);
-  transition:    background var(--t-fast), border-color var(--t-fast);
-  flex-shrink:   0;
+  font-size: 0.72rem !important;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--c-accent) !important;
+  background: color-mix(in srgb, var(--c-accent) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--c-accent) 28%, transparent) !important;
+  font-family: var(--font-fallback);
+  transition:
+    background var(--t-fast),
+    border-color var(--t-fast);
+  flex-shrink: 0;
 
   // Active (being navigated via keyboard in Reka)
   &[data-state="active"] {
-    background:  color-mix(in srgb, var(--c-accent) 22%, transparent) !important;
+    background: color-mix(in srgb, var(--c-accent) 22%, transparent) !important;
     border-color: var(--c-accent) !important;
-    box-shadow:  var(--glow-accent-sm);
+    box-shadow: var(--glow-accent-sm);
   }
 
   // Disabled tag
   &[data-disabled] {
-    opacity:        0.5;
+    opacity: 0.5;
     pointer-events: none;
   }
 }
@@ -588,77 +661,85 @@ const mergedUI = computed(() => ({
 // ── Tag text ──────────────────────────────────────────────────────────────
 .rit-u-item-text,
 .rit-root [data-slot="itemText"] {
-  font-size:   inherit !important;
-  color:       inherit !important;
+  font-size: inherit !important;
+  color: inherit !important;
   line-height: 1.3;
 }
 
 // ── Tag delete button ─────────────────────────────────────────────────────
 .rit-u-item-delete,
 .rit-root [data-slot="itemDelete"] {
-  display:         inline-flex;
-  align-items:     center;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  width:           14px;
-  height:          14px;
-  border-radius:   50%;
-  border:          none;
-  background:      transparent;
-  color:           color-mix(in srgb, var(--c-accent) 70%, transparent);
-  cursor:          pointer;
-  padding:         0;
-  flex-shrink:     0;
-  transition:      background var(--t-fast), color var(--t-fast);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--c-accent) 70%, transparent);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
 
   &:hover {
     background: color-mix(in srgb, var(--c-accent) 20%, transparent);
-    color:      var(--c-accent);
+    color: var(--c-accent);
   }
 
-  &:disabled { pointer-events: none; }
+  &:disabled {
+    pointer-events: none;
+  }
 }
 
 .rit-u-item-delete-icon,
 .rit-root [data-slot="itemDeleteIcon"] {
-  font-size:   10px !important;
+  font-size: 10px !important;
   line-height: 1;
 }
 
 // ── Native input inside UInputTags ────────────────────────────────────────
 .rit-u-input,
 .rit-root [data-slot="input"] {
-  flex:        1;
-  min-width:   80px;
-  border:      none !important;
-  outline:     none !important;
-  background:  transparent !important;
-  color:       var(--c-text) !important;
-  font-size:   inherit !important;
+  flex: 1;
+  min-width: 80px;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: var(--c-text) !important;
+  font-size: inherit !important;
   font-family: var(--font-fallback) !important;
-  padding:     0;
+  padding: 0;
   line-height: 1.5;
 
-  &::placeholder { color: var(--c-muted) !important; }
-  &:disabled { cursor: not-allowed; }
+  &::placeholder {
+    color: var(--c-muted) !important;
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
 }
 
 // ── Leading / trailing icon slots ─────────────────────────────────────────
 .rit-u-leading,
 .rit-root [data-slot="leading"] {
-  display:     flex;
+  display: flex;
   align-items: center;
   padding-left: var(--sp-3);
-  color:       var(--c-muted);
+  color: var(--c-muted);
   flex-shrink: 0;
 }
 
 .rit-u-trailing,
 .rit-root [data-slot="trailing"] {
-  display:      flex;
-  align-items:  center;
+  display: flex;
+  align-items: center;
   padding-right: var(--sp-3);
-  color:        var(--c-muted);
-  flex-shrink:  0;
+  color: var(--c-muted);
+  flex-shrink: 0;
 }
 
 .rit-u-leading-icon,
@@ -666,79 +747,86 @@ const mergedUI = computed(() => ({
 .rit-root [data-slot="leadingIcon"],
 .rit-root [data-slot="trailingIcon"] {
   font-size: 1rem;
-  color:     var(--c-muted);
+  color: var(--c-muted);
 }
 
 // ── Suggestion dropdown ───────────────────────────────────────────────────
 // Shared content styles used by both UPopover and Transition modes.
 // .rit-dropdown--absolute adds position:absolute for the Transition mode.
 .rit-dropdown {
-  border-radius:   var(--r-lg);
-  border:          1px solid var(--c-border);
-  background:      var(--glass-bg);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-border);
+  background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow:      var(--glass-shadow);
-  overflow:        hidden;
-  max-height:      240px;
-  overflow-y:      auto;
-  min-width:       200px;
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+  min-width: 200px;
 
   // SARIKA scrollbar
   scrollbar-width: thin;
   scrollbar-color: var(--color-w-b-3) transparent;
-  &::-webkit-scrollbar        { width: 4px; }
-  &::-webkit-scrollbar-track  { background: transparent; }
-  &::-webkit-scrollbar-thumb  { background: var(--color-w-b-3); border-radius: var(--r-full); }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-w-b-3);
+    border-radius: var(--r-full);
+  }
 
   // Transition mode: positioned absolute below the input
   &--absolute {
     position: absolute;
-    top:      calc(100% + 4px);
-    left:     0;
-    right:    0;
-    z-index:  50;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 50;
   }
 
   &__loader,
   &__empty {
-    display:         flex;
-    align-items:     center;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    gap:             var(--sp-2);
-    padding:         var(--sp-4);
-    font-size:       0.8125rem;
-    color:           var(--c-muted);
-    font-family:     var(--font-fallback);
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    font-size: 0.8125rem;
+    color: var(--c-muted);
+    font-family: var(--font-fallback);
   }
 
   &__item {
-    display:     flex;
+    display: flex;
     align-items: center;
-    width:       100%;
-    padding:     var(--sp-2) var(--sp-3);
-    border:      none;
-    background:  transparent;
-    color:       var(--c-text);
-    font-size:   0.8125rem;
+    width: 100%;
+    padding: var(--sp-2) var(--sp-3);
+    border: none;
+    background: transparent;
+    color: var(--c-text);
+    font-size: 0.8125rem;
     font-family: var(--font-fallback);
     font-weight: 500;
-    text-align:  left;
-    cursor:      pointer;
-    transition:  background var(--t-fast) var(--ease-out);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--t-fast) var(--ease-out);
 
     &:hover,
     &--active {
       background: color-mix(in srgb, var(--c-accent) 8%, transparent);
-      color:      var(--c-accent);
+      color: var(--c-accent);
     }
   }
 
   &__text {
     flex: 1;
-    overflow:      hidden;
+    overflow: hidden;
     text-overflow: ellipsis;
-    white-space:   nowrap;
+    white-space: nowrap;
   }
 }
 
@@ -746,10 +834,10 @@ const mergedUI = computed(() => ({
 // UPopover teleports [data-slot="content"] to body.
 // .rit-popover-content is injected via ui.content so we can target it globally.
 .rit-popover-content {
-  padding:       0 !important;
-  border:        none !important;
-  background:    transparent !important;
-  box-shadow:    none !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
   border-radius: 0 !important;
   // The inner .rit-dropdown carries all the real surface styles above.
 }
@@ -759,46 +847,53 @@ const mergedUI = computed(() => ({
   display: contents; // no layout impact on .rit-root
 }
 .rit-popover-trigger {
-  display:  block;
-  width:    100%;
-  height:   0;
+  display: block;
+  width: 100%;
+  height: 0;
   position: absolute;
-  bottom:   0;
-  left:     0;
-  right:    0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 // ── Highlight match in dropdown ───────────────────────────────────────────
 .rit-highlight {
-  background:    color-mix(in srgb, var(--c-accent) 22%, transparent);
-  color:         var(--c-accent);
-  font-weight:   700;
+  background: color-mix(in srgb, var(--c-accent) 22%, transparent);
+  color: var(--c-accent);
+  font-weight: 700;
   border-radius: 2px;
-  padding:       0 2px;
+  padding: 0 2px;
 }
 
 // ── Dropdown transition ───────────────────────────────────────────────────
 .rit-drop-enter-active,
 .rit-drop-leave-active {
-  transition: opacity var(--t-fast) var(--ease-out),
-              transform var(--t-fast) var(--ease-out);
+  transition:
+    opacity var(--t-fast) var(--ease-out),
+    transform var(--t-fast) var(--ease-out);
 }
 .rit-drop-enter-from,
 .rit-drop-leave-to {
-  opacity:   0;
+  opacity: 0;
   transform: translateY(-6px) scale(0.98);
 }
 
 // ── Spinner animation ─────────────────────────────────────────────────────
-.rit-spin { animation: rit-spin 0.7s linear infinite; }
-@keyframes rit-spin { to { transform: rotate(360deg); } }
+.rit-spin {
+  animation: rit-spin 0.7s linear infinite;
+}
+@keyframes rit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 // ── Dark mode ────────────────────────────────────────────────────────────
 .dark {
   .rit-u-base,
   .rit-root [data-slot="base"] {
     border-color: var(--color-w-b-2) !important;
-    background:   var(--c-surface) !important;
+    background: var(--c-surface) !important;
   }
 
   .rit-dropdown {
