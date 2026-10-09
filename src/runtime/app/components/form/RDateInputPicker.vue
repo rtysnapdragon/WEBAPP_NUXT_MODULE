@@ -20,12 +20,13 @@
  *   date: shallowRef<CalendarDate | null>(null)
  */
 import { shallowRef, computed, watch, toRaw } from 'vue'
-import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
+import { CalendarDate, today, getLocalTimeZone, parseDate, parseDateTime } from '@internationalized/date'
+import type { DateValue } from '@internationalized/date'
 import { useI18n } from 'vue-i18n'
 
 // ── Props ─────────────────────────────────────────────────────────────────
 const props = withDefaults(defineProps<{
-  modelValue?:    CalendarDate | null
+  modelValue?:    DateValue | Date | string | null
   label?:         string
   labelKm?:       string
   placeholder?:   string
@@ -37,8 +38,8 @@ const props = withDefaults(defineProps<{
   disabled?:      boolean
   clearable?:     boolean
   readonly?:      boolean
-  minValue?:      CalendarDate
-  maxValue?:      CalendarDate
+  minValue?:      DateValue | Date | string
+  maxValue?:      DateValue | Date | string
   ui?:            Record<string, unknown>
 }>(), {
   size:      'sm',
@@ -52,13 +53,49 @@ const emit = defineEmits<{
   blur:                []
 }>()
 
+// ── Value coercion ────────────────────────────────────────────────────────
+// reka-ui's getDefaultDate() calls `value.copy()` on whatever reaches
+// DateFieldRoot/CalendarRoot. Strings, plain {year,month,day} objects, JS
+// Dates, empty strings, etc. have no .copy → throw
+// "defaultValue.copy is not a function". Normalise EVERY inbound value to a
+// real DateValue (CalendarDate) or null (null/undefined/''/unparseable).
+function isDateValue(v: unknown): v is DateValue {
+  const d = v as Partial<DateValue> | null
+  return !!d && typeof (d as { copy?: unknown }).copy === 'function'
+    && typeof d.year === 'number' && typeof d.month === 'number' && typeof d.day === 'number'
+}
+
+function toCalendarDate(v: unknown): CalendarDate | null {
+  if (v === null || v === undefined || v === '') return null
+  if (isDateValue(v)) return toRaw(v) as CalendarDate
+  if (v instanceof Date) {
+    return Number.isNaN(v.getTime())
+      ? null
+      : new CalendarDate(v.getFullYear(), v.getMonth() + 1, v.getDate())
+  }
+  if (typeof v === 'string') {
+    try {
+      const parsed = v.includes('T') ? parseDateTime(v) : parseDate(v)
+      return new CalendarDate(parsed.year, parsed.month, parsed.day)
+    } catch {
+      return null
+    }
+  }
+  if (typeof v === 'object') {
+    const o = v as Record<string, unknown>
+    if (typeof o.year === 'number' && typeof o.month === 'number' && typeof o.day === 'number')
+      return new CalendarDate(o.year, o.month, o.day)
+  }
+  return null
+}
+
 const { locale } = useI18n()
 const isOpen = ref(false)
 // ── Internal state ────────────────────────────────────────────────────────
 // shallowRef = no deep proxy on CalendarDate instances
 const EMPTY = today(getLocalTimeZone()) // stable fallback placeholder
 const selected  = shallowRef<CalendarDate | null>(
-  props.modelValue ? toRaw(props.modelValue) : null
+  toCalendarDate(props.modelValue)
 )
 
 // CRITICAL: The value fed into UInputDate must NEVER be undefined or null.
@@ -71,7 +108,7 @@ const inputValue = computed((): CalendarDate =>
 
 // Keep in sync with parent
 watch(() => props.modelValue, v => {
-  selected.value = v ? toRaw(v) : null
+  selected.value = toCalendarDate(v)
 })
 
 // Emit up
@@ -82,16 +119,16 @@ watch(selected, v => {
 
 // ── Handlers ──────────────────────────────────────────────────────────────
 function onInputUpdate(raw: unknown) {
-  // UInputDate emits the new CalendarDate; strip proxy before storing
-  const v = raw as CalendarDate | null | undefined
+  // UInputDate emits the new CalendarDate — coerce + strip proxy before storing
+  const v = toCalendarDate(raw)
   if (!v) return
-  selected.value = toRaw(v)
+  selected.value = v
 }
 
 function onCalendarUpdate(raw: unknown) {
-  const v = raw as CalendarDate | null | undefined
+  const v = toCalendarDate(raw)
   if (!v) return
-  selected.value = toRaw(v)
+  selected.value = v
 }
 
 function setToday() {
@@ -124,9 +161,9 @@ const formattedDate = computed(() => {
 })
 
 const inputDate = useTemplateRef('inputDate')
-// Raw min/max — must also be stripped of proxy
-const rawMin = computed(() => props.minValue ? toRaw(props.minValue) : undefined)
-const rawMax = computed(() => props.maxValue ? toRaw(props.maxValue) : undefined)
+// Raw min/max — must also be coerced + stripped of proxy
+const rawMin = computed(() => props.minValue ? toCalendarDate(props.minValue) ?? undefined : undefined)
+const rawMax = computed(() => props.maxValue ? toCalendarDate(props.maxValue) ?? undefined : undefined)
 const sizeClasses = computed(() => ({
   xs: '32px',
   sm: '38px',

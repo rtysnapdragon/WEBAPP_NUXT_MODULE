@@ -217,8 +217,27 @@ const hourDrum   = ref(null)
 const minuteDrum = ref(null)
 const ampmDrum   = ref(null)
 
+// Suppress scroll-select while we scroll a drum programmatically, so the
+// debounced handler can't re-pick a mid-animation value. Per-column so
+// scrolling one wheel never mutes another.
+const suppress = { h: false, m: false, ap: false }
+const suppressTimers = { h: null, m: null, ap: null }
+function colOf(el) {
+  if (el === hourDrum.value) return 'h'
+  if (el === minuteDrum.value) return 'm'
+  if (el === ampmDrum.value) return 'ap'
+  return null
+}
+function suppressCol(col) {
+  if (!col) return
+  suppress[col] = true
+  clearTimeout(suppressTimers[col])
+  suppressTimers[col] = setTimeout(() => { suppress[col] = false }, 500)
+}
+
 function scrollDrumTo(el, idx, instant = false) {
   if (!el || idx < 0) return
+  suppressCol(colOf(el))
   el.scrollTo({ top: idx * ITEM_H, behavior: instant ? 'instant' : 'smooth' })
 }
 
@@ -234,6 +253,27 @@ function scrollAllDrums(instant = true) {
 
   if (hourCycle.value === 12)
     scrollDrumTo(ampmDrum.value, t.hour >= 12 ? 1 : 0, instant)
+}
+
+// ── Mouse-wheel / touch scroll selection ──────────────────────────────────
+const scrollTimers = { h: null, m: null, ap: null }
+function onDrumScroll(e, col) {
+  if (suppress[col]) return
+  const el = e.currentTarget
+  if (scrollTimers[col]) clearTimeout(scrollTimers[col])
+  scrollTimers[col] = setTimeout(() => {
+    const idx = Math.round(el.scrollTop / ITEM_H)
+    if (col === 'h') {
+      const h = hourItems.value[idx]
+      if (h != null && !isHourActive(h)) pickHour(h)
+    } else if (col === 'm') {
+      const m = Math.min(Math.max(idx, 0), 59)
+      if (!isMinActive(m)) pickMinute(m)
+    } else {
+      const pm = idx >= 1
+      if (!isAmPmActive(pm)) pickAmPm(pm)
+    }
+  }, 140)
 }
 
 // ── Drum item pick handlers ───────────────────────────────────────────────
@@ -300,6 +340,9 @@ function onDrumKey(e, col) {
     const list = hourItems.value
     const cur  = list.indexOf(hourCycle.value === 12 ? to12h(editingTime.value.hour) : editingTime.value.hour)
     pickHour(list[(cur + dir + list.length) % list.length])
+  } else if (col === 'ap') {
+    const cur = editingTime.value.hour >= 12 ? 1 : 0
+    pickAmPm(((cur + dir + 2) % 2) === 1)
   } else {
     // minute: wrap 0–59
     const cur = editingTime.value.minute
@@ -541,6 +584,7 @@ const labelsClass = computed(() =>
           role="listbox"
           :aria-label="lbl.h"
           @keydown="onDrumKey($event, 'h')"
+          @scroll.passive="onDrumScroll($event, 'h')"
         >
           <div class="rti__drum-pad" />
           <div
@@ -561,6 +605,7 @@ const labelsClass = computed(() =>
           role="listbox"
           :aria-label="lbl.m"
           @keydown="onDrumKey($event, 'm')"
+          @scroll.passive="onDrumScroll($event, 'm')"
         >
           <div class="rti__drum-pad" />
           <div
@@ -572,7 +617,7 @@ const labelsClass = computed(() =>
           <div class="rti__drum-pad" />
         </div>
 
-        <!-- AM/PM drum — pills layout, no scroll-snap -->
+        <!-- AM/PM drum — same scroll wheel as Hour / Min -->
         <div
           v-if="hourCycle === 12"
           ref="ampmDrum"
@@ -580,17 +625,21 @@ const labelsClass = computed(() =>
           tabindex="0"
           role="listbox"
           aria-label="AM/PM"
+          @keydown="onDrumKey($event, 'ap')"
+          @scroll.passive="onDrumScroll($event, 'ap')"
         >
+          <div class="rti__drum-pad" />
           <div
-            :class="['rti__drum-item', 'rti__drum-item--ampm', { 'rti__drum-item--active': isAmPmActive(false) }]"
-            role="option"
+            :class="['rti__drum-item', { 'rti__drum-item--active': isAmPmActive(false) }]"
+            role="option" :aria-selected="isAmPmActive(false)"
             @click="pickAmPm(false)"
           >{{ lbl.am }}</div>
           <div
-            :class="['rti__drum-item', 'rti__drum-item--ampm', { 'rti__drum-item--active': isAmPmActive(true) }]"
-            role="option"
+            :class="['rti__drum-item', { 'rti__drum-item--active': isAmPmActive(true) }]"
+            role="option" :aria-selected="isAmPmActive(true)"
             @click="pickAmPm(true)"
           >{{ lbl.pm }}</div>
+          <div class="rti__drum-pad" />
         </div>
 
       </div><!-- /drums -->
@@ -911,20 +960,6 @@ $vis:    3;       // visible items in viewport
     black #{$item-h * ($vis - 1)},
     transparent 100%
   );
-
-  // AM/PM column: pill layout, no scroll-snap
-  &--ampm {
-    height:          ($item-h * $vis);
-    display:         flex;
-    flex-direction:  column;
-    overflow-y:      visible;
-    mask-image:      none;
-    -webkit-mask-image: none;
-    justify-content: center;
-    gap:             var(--space-2);
-    padding:         0 0 0 var(--space-2);
-    scroll-snap-type: none;
-  }
 }
 
 .rti__drum-pad {
@@ -958,24 +993,6 @@ $vis:    3;       // visible items in viewport
     color:       var(--c-accent);
     font-weight: 700;
     font-size:   1.08rem;
-  }
-
-  // AM/PM pill
-  &--ampm {
-    height:        34px !important;
-    width:         44px;
-    border:        1px solid var(--c-border) !important;
-    border-radius: var(--radius-md);
-    font-size:     0.72rem !important;
-    font-weight:   600;
-    scroll-snap-align: unset;
-
-    &.rti__drum-item--active {
-      background:   var(--c-accent);
-      border-color: var(--c-accent) !important;
-      color:        #fff !important;
-      box-shadow:   var(--glow-accent-sm);
-    }
   }
 }
 

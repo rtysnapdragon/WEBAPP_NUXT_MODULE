@@ -14,7 +14,7 @@
   <!-- ── INLINE mode ─────────────────────────────────────────────────────── -->
   <div v-if="inline" class="rcp-root rcp-root--inline">
     <UColorPicker
-      v-model="model"
+      :model-value="safeModel"
       :as="as"
       :format="resolvedFormat"
       :throttle="throttle"
@@ -71,7 +71,7 @@
           />
           <!-- Hex/value label (hide when trigger-size is xs/icon-only) -->
           <span v-if="showTriggerLabel" class="rcp-trigger__label">
-            {{ displayColor }}
+            {{ displayLabel }}
           </span>
           <!-- Chevron -->
           <i
@@ -97,7 +97,7 @@
 
         <!-- The actual color picker -->
         <UColorPicker
-          v-model="model"
+          :model-value="safeModel"
           :as="as"
           :format="resolvedFormat"
           :throttle="throttle"
@@ -129,6 +129,8 @@
 </template>
 
 <script setup>
+import { ColorTranslator } from 'colortranslator'
+
 const props = defineProps({
   // ── UColorPicker native ─────────────────────────────────────────────────
   as:           { type: String,  default: 'div'     },
@@ -185,6 +187,23 @@ const model = defineModel({ default: undefined })
 const isOpen = ref(false)
 watch(isOpen, (v) => emit(v ? 'open' : 'close'))
 
+// ── Color sanitising ─────────────────────────────────────────────────────────
+// UColorPicker calls `new ColorTranslator(modelValue || defaultValue)`
+// WITHOUT a try/catch in selectorThumbStyle, so any null/undefined/empty
+// or malformed colour string throws:
+//   "The provided string color doesn't have a correct format"
+// Every string that reaches the picker or the swatch must be validated here.
+const FALLBACK_COLOR = '#FFFFFF'
+
+function normalizeColor(v, fallback = FALLBACK_COLOR) {
+  if (typeof v !== 'string' || !v.trim()) return fallback
+  try {
+    return new ColorTranslator(v.trim()).HEX
+  } catch {
+    return fallback
+  }
+}
+
 // ── Backwards-compat: resolve format + defaultValue from init shim ───────────
 const resolvedFormat = computed(() =>
   props.format !== 'hex'
@@ -192,15 +211,25 @@ const resolvedFormat = computed(() =>
     : (props.init?.format ?? props.init?.outputFormat ?? 'hex')
 )
 
-const resolvedDefault = computed(() =>
-  props.defaultValue !== '#FFFFFF'
+const resolvedDefault = computed(() => {
+  const raw = props.defaultValue !== '#FFFFFF'
     ? props.defaultValue
     : (props.init?.color ?? '#FFFFFF')
+  return normalizeColor(raw, FALLBACK_COLOR)
+})
+
+// The value fed into UColorPicker — never null/undefined/'', always a valid colour
+const safeModel = computed(() =>
+  normalizeColor(model.value, resolvedDefault.value)
 )
 
-// ── Display color (what shows on the trigger) ────────────────────────────────
-const displayColor = computed(() =>
-  props.triggerLabel ?? model.value ?? resolvedDefault.value
+// ── Display (what shows on the trigger) ──────────────────────────────────────
+// `displayColor` feeds the swatch background so it MUST be a valid CSS colour.
+// `displayLabel` is the human-readable text (honours `triggerLabel` verbatim).
+const displayColor = computed(() => safeModel.value)
+
+const displayLabel = computed(() =>
+  props.triggerLabel ?? displayColor.value
 )
 
 // Only show the hex label when trigger is md or lg

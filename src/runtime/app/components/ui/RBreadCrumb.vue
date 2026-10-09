@@ -431,6 +431,7 @@ const hasContent = computed(() =>
 
 .rbc-title {
   font-size: 17px;
+  font-family: var(--font-400) !important;
   font-weight: bold !important;
   color: var(--c-text) !important;
   line-height: 1.25;

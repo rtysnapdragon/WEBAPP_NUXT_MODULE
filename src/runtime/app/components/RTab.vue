@@ -1,12 +1,16 @@
 <template>
-  <UTabs ref="refOCTab" v-model="model" :items="items" :orientation="orientation" :default-index="defaultIndex" :ui="ui"
+  <UTabs ref="refRTab" v-model="model" :items="items" :orientation="orientation" :default-index="defaultIndex" :ui="ui" :content="content"
     :variant="props.variant" @change="onChangeTab">
     <template #default="{ item, index, selected, disabled }">
       <slot name="default" v-bind="{ item, index, selected, disabled }" />
     </template>
 
     <template #item="{ item, index, selected, disabled }">
-      <slot name="item" v-bind="{ item, index, selected, disabled }" />
+      <Transition name="rtab-content" mode="out-in">
+        <div :key="String(model) + '-' + index" class="rtab-content">
+          <slot name="item" v-bind="{ item, index, selected, disabled }" />
+        </div>
+      </Transition>
     </template>
 
     <template v-for="r in templateRender" :key="r" #[r]="{ item, index, selected }" class="">
@@ -33,7 +37,8 @@ const props = defineProps([
   "items",
   "isObject",
   "NotClearRoute",
-  "variant"
+  "variant",
+  "content"
 ]);
 const NotClearRoute = computed(() => props.NotClearRoute ?? false);
 const emits = defineEmits(["onChange"]);
@@ -57,9 +62,23 @@ const ui = computed(() => {
   const vertical = props.orientation;
 
   const defaultUI = {
-    wrapper: "relative space-y-4",
+    wrapper: "relative space-y-4 ",
+    // list: 'relative flex p-1 group',
+    // root: 'flex items-center gap-2',
+    // content: 'w-full rounded-md focus-visible:outline-3',
+    // leadingIcon: 'shrink-0',
+    // leadingAvatar: 'shrink-0',
+    // leadingAvatarSize: '',
+    // label: 'truncate',
+    // trailingBadge: 'shrink-0',
+    // trailingBadgeSize: 'sm',
+    trigger:content.value ? '' : 'grow flex-col gap-1',
     list: {
-      base: `${vertical === "vertical" ? "space-y-1.5" : "!flex gap-1.5 nav-oc-tab"
+      trigger: [
+        'r-trigger py-1 group relative inline-flex items-center min-w-0 data-[state=inactive]:text-muted hover:data-[state=inactive]:not-disabled:text-default font-medium rounded-md disabled:cursor-not-allowed disabled:opacity-75',
+        'transition-colors'
+      ],
+      base: `${vertical === "vertical" ? "space-y-1.5 " : "!flex gap-1.5 nav-oc-tab"
         }`,
       background: "bg-transparent dark:bg-transparent",
       padding: "p-0",
@@ -72,12 +91,12 @@ const ui = computed(() => {
         active: "tab-bg-active text-white",
         inactive: "color-sub-text",
         rounded: "ocs-rounded",
-        height: "h-8",
+        height: "!h-8",
         font: "font-normal !tracking-normal",
       },
       marker: {
         wrapper:
-          "focus-visible:!outline-0 focus-visible:!border-0 ease-in-out !h-8",
+          "focus-visible:!outline-0 focus-visible:!border-0 ease-in-out !h-8 transition-all duration-300 transition-all duration-300" ,
         base: "focus-visible:!outline-0 focus-visible:!border-0",
         background: "tab-bg-active-marker",
         rounded: "ocs-rounded",
@@ -107,6 +126,7 @@ const isObject = computed(() =>
 const orientation = computed(() => props.orientation);
 const defaultIndex = computed(() => props.defaultIndex);
 const items = computed(() => props.items);
+const content = computed(() => props.content ?? true)
 const templateRender = computed(() =>
   items.value.filter((e) => e.slot).map((e) => e.slot)
 );
@@ -114,10 +134,10 @@ const onChangeTab = (index) => {
   if (isObject.value) emits("onChange", items.value[index]);
   else emits("onChange", index);
 };
-const refOCTab = ref();
+const refRTab = ref();
 
 function RTab() {
-  return refOCTab.value;
+  return refRTab.value;
 }
 defineExpose({
   RTab,
@@ -133,6 +153,9 @@ defineExpose({
 </script>
 
 <style lang="scss">
+.r-trigger{
+  height: 50px !important;
+}
 .tab-bg-default {
   background-color: var(--bg-wrapper);
   letter-spacing: 0px !important;
@@ -156,6 +179,49 @@ defineExpose({
     &::-webkit-scrollbar {
       display: none !important; // Hide scrollbar on mobile
     }
+  }
+}
+
+/* Tab panel transition */
+.rtab-content {
+  width: 100%;
+  min-width: 0;
+  will-change: opacity, transform;
+}
+
+.rtab-content-enter-active,
+.rtab-content-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rtab-content-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.rtab-content-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* Smooth tab interactions */
+.nav-oc-tab {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .rtab-content-enter-active,
+  .rtab-content-leave-active {
+    transition: none !important;
+  }
+
+  .rtab-content-enter-from,
+  .rtab-content-leave-to {
+    transform: none;
   }
 }
 </style>
