@@ -15,7 +15,7 @@ const props = defineProps(["class"]);
   margin-left: 16px;
   margin-right: 8px;
   border-radius: 12px;
-  grid-gap: 16px;
+  gap: var(--sp-3);
   height: calc(100vh - 70px);
 }
 @media (max-width: 768px) {
