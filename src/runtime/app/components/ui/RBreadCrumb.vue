@@ -377,7 +377,7 @@ const hasContent = computed(() =>
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 4px;      /* sits just above the title inside RPageHeader */
+  // margin-bottom: 4px;      /* sits just above the title inside RPageHeader */
   overflow-x: auto;
   scrollbar-width: none;
 
