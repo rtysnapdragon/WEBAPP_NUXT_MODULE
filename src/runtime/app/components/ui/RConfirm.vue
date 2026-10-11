@@ -4,12 +4,11 @@
     <div v-if="!!confirmStore.data" class="r-confirm">
       <!-- persistent=true means overlay click must NOT close the dialog -->
       <div class="r-confirm__overlay" @click="!confirmStore.data?.persistent && confirmStore.hide()" />
-
       <div class="r-confirm__wrapper">
         <div class="r-confirm__card">
 
           <!-- Icon -->
-          <div
+          <!-- <div
             class="r-confirm__icon"
             :class="typeClasses.iconBg"
           >
@@ -17,7 +16,8 @@
               :class="[typeIcon, typeClasses.iconText]"
               class="r-confirm__icon-svg"
             />
-          </div>
+          </div> -->
+          <!-- <span class="text-2xl font-semibold text-[var(--txt-primary)]">{{ tr('common.confirm') }}</span> -->
 
           <!-- Warning -->
           <div
@@ -76,7 +76,7 @@ confirm.show({
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useConfirmStore } from '../../stores/confirm'
-
+const { tr } = useTr()
 const confirmStore = useConfirmStore();
 
 // const isOpen = computed(() => !!confirmStore.data);
@@ -386,24 +386,17 @@ async function onCancel() {
     max-width: 460px;
     z-index: 1;
 
-    background: #fff;
+    background: var(--bg-c-card);
     color: var(--c-text);
     border-radius: 1rem;
-    border: 1px solid var(--c-border);
     padding: 1.5rem;
 
-    box-shadow:
-      0 25px 50px -12px rgb(0 0 0 / 25%);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    // box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
 
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-
-    .dark & {
-      background: #141414;
-      color: #f9fafb;
-      border-color: rgb(55, 65, 81,0.25);
-    }
   }
 
   &__icon {
@@ -462,14 +455,14 @@ async function onCancel() {
       font-family: var(--font-400);
       font-size: 0.875rem;
       font-weight: 600;
-      color: #991b1b;
+      color: var(--r-c-red, #991b1b);
     }
 
     p {
       font-family: var(--font-400);
       margin-top: 0.25rem;
       font-size: 0.8125rem;
-      color: #b91c1c;
+      color: var(--color-w-b-3, #b91c1c);
       line-height: 1.5;
     }
   }
