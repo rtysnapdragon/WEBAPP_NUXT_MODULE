@@ -10,7 +10,7 @@
 
 <style lang="scss" scoped>
 .r-content {
-  background:    var(--bg-c-card) !important;
+  background:    var(--c-surface) !important;
   border-radius: var(--radius-lg);
   overflow:      hidden;
   padding:15px !important;
