@@ -52,7 +52,7 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.vite.css.preprocessorOptions.scss = {
       ...nuxt.options.vite.css.preprocessorOptions.scss,
       additionalData: `
-        @use "${resolver.resolve('./src/runtime/app/assets/scss/mixins')}" as *;
+        @use "${resolver.resolve('./src/runtime/app/assets/styles/mixin')}" as *;
       `,
     }
 

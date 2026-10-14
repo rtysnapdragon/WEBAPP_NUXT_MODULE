@@ -44,7 +44,6 @@ export default defineNuxtConfig({
   // ── Global SCSS ──
   css: ['./runtime/app/assets/styles/global.scss','./runtime/app/assets/styles/tailwind.css'],
 
-  
   vite: {
     server: {
       fs: {
@@ -53,19 +52,6 @@ export default defineNuxtConfig({
           '../NUXT_MODULES/WEBAPP_NUXT_MODULE'
         ]
       }
-    },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          // `~/` rather than `@/`: the module's own SCSS uses `@/`, but that
-          // alias is not guaranteed to be registered for the preprocessor, and a
-          // bad import path here fails the whole build.
-          additionalData: `
-            @use "~/assets/styles/variables" as *;
-            @use "~/assets/styles/mixins" as *;
-          `,
-        },
-      },
     },
     // server: {
     //   fs: {
