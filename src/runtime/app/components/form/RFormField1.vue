@@ -290,9 +290,9 @@ function handleBlur() {
   &--span-3 { grid-column: span 3; }
   &--span-4 { grid-column: span 4; }
 
-  @include mobile-only {
-    &--span-2, &--span-3, &--span-4 { grid-column: span 1; }
-  }
+  // @include mobile-only {
+  //   &--span-2, &--span-3, &--span-4 { grid-column: span 1; }
+  // }
 
   &__label {
     font-size:   0.82rem;
@@ -318,8 +318,8 @@ function handleBlur() {
     border:      1px solid var(--c-border);
     border-radius: var(--radius-md);
     outline:     none;
-    @include transition(fast);
-    @include focus-ring;
+    // @include transition(fast);
+    // @include focus-ring;
 
     &::placeholder { color: var(--c-muted); }
 
@@ -429,7 +429,7 @@ function handleBlur() {
     cursor:        pointer;
     color:         var(--c-muted);
     font-size:     0.875rem;
-    @include transition(fast);
+    // @include transition(fast);
     &:hover { border-color: var(--c-accent); color: var(--c-accent); }
   }
   &__file-input { display: none; }
@@ -458,7 +458,7 @@ function handleBlur() {
   cursor: pointer;
   padding: 2px;
   position: relative;
-  @include transition(fast);
+  // @include transition(fast);
 
   &--on {
     background: var(--c-accent);
@@ -471,7 +471,7 @@ function handleBlur() {
     height:  20px;
     border-radius: 50%;
     background: #fff;
-    @include transition(fast);
+    // @include transition(fast);
     transform: translateX(0);
 
     .r-toggle--on & { transform: translateX(20px); }

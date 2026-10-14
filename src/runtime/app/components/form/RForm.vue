@@ -1,5 +1,5 @@
 <template>
-  <UForm ref="refOcForm" :validate="validate" :schema="schema" :state="state" @submit="onSubmit" @error="onError">
+  <UForm ref="refRTForm" :validate="validate" :schema="schema" :state="state" @submit="onSubmit" @error="onError">
     <slot />
   </UForm>
 </template>
@@ -9,9 +9,9 @@ const emit = defineEmits(["onSubmit", "onInput", "onError"]);
 const schema = computed(() => props.schema);
 const validate = computed(() => props.validate);
 const state = computed(() => props.state);
-const refOcForm = ref();
+const refRTForm = ref();
 
-defineExpose({ ocForm, submit, clearValidate });
+defineExpose({ RTForm, submit, clearValidate });
 
 mounted(() => { });
 
@@ -24,12 +24,12 @@ async function onError(event) {
 }
 
 function submit() {
-  refOcForm.value.submit();
+  refRTForm.value.submit();
 }
 function clearValidate() {
-  refOcForm.value.clear();
+  refRTForm.value.clear();
 }
-function ocForm() {
-  return refOcForm.value
+function RTForm() {
+  return refRTForm.value
 }
 </script>

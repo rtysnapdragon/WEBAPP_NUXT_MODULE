@@ -38,8 +38,6 @@ function toggleLocale() {
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
-
 .r-theme-toggle {
   display:     flex;
   align-items: center;
@@ -53,8 +51,6 @@ function toggleLocale() {
     background:    transparent;
     color:         var(--c-muted);
     cursor:        pointer;
-    @include flex-center;
-    @include transition(fast);
 
     &:hover {
       color:        var(--c-accent);

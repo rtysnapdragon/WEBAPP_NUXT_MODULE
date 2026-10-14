@@ -805,6 +805,27 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
+@mixin transition($speed: base) {
+  @if      $speed == fast { transition: all 0.15s ease; }
+  @else if $speed == slow { transition: all 0.35s ease; }
+  @else                   { transition: all 0.2s  ease; }
+}
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rfu-wrap {
   display: flex;
   flex-direction: column;
@@ -1123,7 +1144,7 @@ defineExpose({
   box-shadow: var(--glass-shadow, 0 8px 32px rgba(0,0,0,0.08)) !important;
   gap: var(--space-3, 12px) !important;
   text-align: center !important;
-  @include transition;
+  // @include transition;
 
   &[data-dragging="true"], &:focus-within {
     border-color: var(--c-accent, #ff8c42) !important;

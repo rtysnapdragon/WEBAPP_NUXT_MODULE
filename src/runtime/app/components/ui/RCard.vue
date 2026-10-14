@@ -72,7 +72,6 @@ function onClick(event: Event) {
   background:    var(--c-surface);
   border-radius: var(--radius-lg);
   overflow:      hidden;
-  @include transition;
   position: relative;
 
   &::before {
@@ -86,9 +85,9 @@ function onClick(event: Event) {
 
   &--bordered { border: 0.5px solid var(--c-active); }
 
-  &--glass {
-    @include glass;
-  }
+  // &--glass {
+  //   @include glass;
+  // }
 
   &--hoverable:hover {
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);

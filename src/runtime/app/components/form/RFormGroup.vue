@@ -89,7 +89,7 @@ const ui = computed(() => {
     inner: "",
     label: {
       wrapper: "flex content-center items-center justify-between",
-      base: "block font-normal text-[13px]  ocs-truncate color-w-b-2 ocs-input-focus",
+      base: "block font-normal text-[13px]  rty-truncate color-w-b-2 rty-input-focus",
       required:
         "after:content-['*'] after:ms-0.5 after:text-red-500 dark:after:text-red-400",
     },
@@ -141,7 +141,7 @@ const orientation = computed(() => props.orientation);
 </script>
 
 <style>
-.ocs-input-focus:focus {
+.rty-input-focus:focus {
   --tw-ring-shadow: #ff5722 !important;
   border-color: #ff5722;
 }

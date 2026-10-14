@@ -243,6 +243,7 @@ const orientation = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+@use '../assets/styles/mixin' as *;
 // ── Host ──────────────────────────────────────────────────
 .rtl {
   font-family: var(--font-fallback);
@@ -311,7 +312,7 @@ const orientation = computed(() => {
 // Separator / connector line
 .rtl-separator {
   background: var(--c-border) !important;
-  @include transition;
+  // @include transition;
 }
 
 // Date slot

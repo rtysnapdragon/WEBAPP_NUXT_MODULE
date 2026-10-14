@@ -62,12 +62,6 @@ defineProps<{
   align-items: center;
   justify-content: space-between;
 
-  @include mobile-only {
-    gap: 5px;
-    margin-bottom: 10px;
-    margin-top: 10px;
-  }
-
   &__left {
     display: flex;
     align-items: center;

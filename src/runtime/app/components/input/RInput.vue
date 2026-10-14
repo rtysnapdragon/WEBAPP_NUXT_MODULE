@@ -395,7 +395,7 @@ defineExpose({
 }
 
 .rinp-input {
-  @include transition(fast);
+  // @include transition(fast);
   &--ai-typing :deep(input) {
     border-color: var(--c-accent, #ff8c42) !important;
     box-shadow:   0 0 0 3px rgba(255,140,66,0.12) !important;
@@ -444,7 +444,7 @@ defineExpose({
   transition: .2s ease;
   //  background: var(--c-surface);
   // padding: 0 4px;
-  @include transition(fast);
+  // @include transition(fast);
 
   &__text {
     font-size:   0.875rem;
@@ -453,7 +453,7 @@ defineExpose({
     padding:     0 4px;
     display:     inline-block;
     border-radius: 2px;
-    @include transition(fast);
+    // @include transition(fast);
   }
 
   &--up,
@@ -495,7 +495,7 @@ defineExpose({
     cursor:        pointer;
     overflow:      hidden;
     white-space:   nowrap;
-    @include transition(fast);
+    // @include transition(fast);
 
     &:hover:not(:disabled) {
       border-color: var(--c-accent, #ff8c42);
@@ -567,7 +567,7 @@ defineExpose({
     align-items:   center;
     justify-content: center;
     font-size:     0.9rem;
-    @include transition(fast);
+    // @include transition(fast);
 
     &:hover { border-color: var(--c-accent, #ff8c42); color: var(--c-accent, #ff8c42); }
     &:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -630,9 +630,7 @@ defineExpose({
   width:           100%;
   background:      transparent !important;
   font-family:     var(--font-fallback, 'Inter', system-ui, sans-serif) !important;
-  @include transition(fast);
-
-
+  // @include transition(fast);
 
   &:focus {
     // border-color: var(--c-accent, rgb(255, 140, 66,0.2)) !important;

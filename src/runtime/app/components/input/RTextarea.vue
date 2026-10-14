@@ -417,7 +417,7 @@ const mergedUi = computed(() => ({
   cursor:        pointer;
   overflow:      hidden;
   white-space:   nowrap;
-  @include transition(fast);
+  // @include transition(fast);
 
   &:hover:not(:disabled) {
     border-color: var(--c-accent, #ff8c42);
@@ -439,9 +439,9 @@ const mergedUi = computed(() => ({
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  &__label {
-    @include mobile-only { display: none; }
-  }
+  // &__label {
+  //   @include mobile-only { display: none; }
+  // }
 }
 
 // Shimmer sweep
@@ -523,7 +523,7 @@ const mergedUi = computed(() => ({
     align-items:   center;
     justify-content: center;
     font-size:     0.9rem;
-    @include transition(fast);
+    // @include transition(fast);
     &:hover { border-color: var(--c-accent, #ff8c42); color: var(--c-accent, #ff8c42); }
   }
 
@@ -566,7 +566,7 @@ const mergedUi = computed(() => ({
     font-weight:   500;
     font-family:   inherit;
     cursor:        pointer;
-    @include transition(fast);
+    // @include transition(fast);
     &:hover { border-color: var(--c-accent, #ff8c42); color: var(--c-accent, #ff8c42); }
     i { font-size: 0.85rem; }
   }
@@ -585,7 +585,7 @@ const mergedUi = computed(() => ({
     font-family:   inherit;
     cursor:        pointer;
     box-shadow:    0 0 12px rgba(255, 140, 66, 0.2);
-    @include transition(fast);
+    // @include transition(fast);
     &:hover { background: var(--c-accent-2, #ffb347); border-color: var(--c-accent-2, #ffb347); }
     i { font-size: 0.85rem; }
   }

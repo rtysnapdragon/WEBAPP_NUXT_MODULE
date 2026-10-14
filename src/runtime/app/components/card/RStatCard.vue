@@ -49,7 +49,7 @@ withDefaults(defineProps<{
 </template>
 
 <style lang="scss" scoped>
-@use '@/assets/scss/_mixin' as *;
+// @use '@/assets/scss/_mixin' as *;
 
 .r-stat-card {
   background:    var(--c-surface);
@@ -59,11 +59,11 @@ withDefaults(defineProps<{
   display:       flex;
   gap:           var(--space-4);
   align-items:   flex-start;
-  @include transition;
+  // @include transition;
 
   &:hover { box-shadow: var(--glow-accent-sm); }
 
-  &--glass { @include glass; }
+  // &--glass { @include glass; }
 
   &--accent  .r-stat-card__icon-wrap { background: rgba(255,140,66,0.12); color: var(--c-accent); }
   &--success .r-stat-card__icon-wrap { background: rgba(74,222,128,0.12); color: var(--color-green); }
@@ -75,7 +75,7 @@ withDefaults(defineProps<{
     width:         44px;
     height:        44px;
     border-radius: var(--radius-md);
-    @include flex-center;
+    // @include flex-center;
     flex-shrink:   0;
   }
 
@@ -89,7 +89,7 @@ withDefaults(defineProps<{
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    @include truncate;
+    // @include truncate;
   }
 
   &__value {

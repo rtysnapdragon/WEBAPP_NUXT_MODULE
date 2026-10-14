@@ -15,6 +15,5 @@
   overflow:      hidden;
   padding:15px !important;
   min-height: calc(100dvh - 350px) ;
-  @include transition;
 }
 </style>

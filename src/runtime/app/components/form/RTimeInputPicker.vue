@@ -838,11 +838,11 @@ $vis:    3;       // visible items in viewport
   width:         max-content;
   min-width:     220px;
 
-  @include mobile-only {
-    width:     calc(100vw - 2rem);
-    left:      50%;
-    transform: translateX(-50%);
-  }
+  // @include mobile-only {
+  //   width:     calc(100vw - 2rem);
+  //   left:      50%;
+  //   transform: translateX(-50%);
+  // }
 }
 
 // ── Popover header ─────────────────────
