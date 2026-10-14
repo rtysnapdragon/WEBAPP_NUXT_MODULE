@@ -129,3 +129,18 @@ Remove-Item -Recurse -Force node_modules
 Remove-Item -Force package-lock.json
 npm cache clean --force
 npm install
+
+
+
+
+
+
+
+## Release to CDN
+git status
+git add .
+git commit -m "Prepare CDN release"
+git push origin main
+
+git tag v1.0.0
+git push origin v1.0.0
