@@ -37,11 +37,25 @@ export default defineNuxtModule<ModuleOptions>({
     const { resolve } = createResolver(import.meta.url);
     const runtimeAppDir = resolve("./runtime/app"); // Client-side
     const runtimeServerDir = resolve("./runtime/server"); // Server-side
+    const resolver = createResolver(import.meta.url)
 
     // Transpile
     nuxt.options.build.transpile.push(runtimeAppDir);
     nuxt.options.build.transpile.push(runtimeServerDir);
-    
+
+
+    // Auto get mixin as global for scss file
+    nuxt.options.vite = nuxt.options.vite || {}
+    nuxt.options.vite.css = nuxt.options.vite.css || {}
+    nuxt.options.vite.css.preprocessorOptions =
+    nuxt.options.vite.css.preprocessorOptions || {}
+    nuxt.options.vite.css.preprocessorOptions.scss = {
+      ...nuxt.options.vite.css.preprocessorOptions.scss,
+      additionalData: `
+        @use "${resolver.resolve('./src/runtime/app/assets/scss/mixins')}" as *;
+      `,
+    }
+
     const layers: string[] = options.layers || [];
     // Add the runtime directory to the transpile array
     // nuxt.options.build.transpile.push(runtimeAppDir);

@@ -142,8 +142,8 @@ $sizes: (sm: 40px, md: 64px, lg: 88px, xl: 112px);
   display:    inline-flex;
   flex-shrink: 0;
   cursor:     pointer;
-  @include focus-ring;
-  @include transition(fast);
+  // @include focus-ring;
+  // @include transition(fast);
 
   // ── Shape ──
   &--circle { border-radius: 50%; }
@@ -181,7 +181,7 @@ $sizes: (sm: 40px, md: 64px, lg: 88px, xl: 112px);
     border-radius: inherit;
     display:       block;
     pointer-events: none;
-    @include transition(fast);
+    // @include transition(fast);
   }
 
   // ── Overlay (camera icon + label) ──
@@ -197,7 +197,7 @@ $sizes: (sm: 40px, md: 64px, lg: 88px, xl: 112px);
     justify-content: center;
     gap:             4px;
     opacity:         0;
-    @include transition(fast);
+    // @include transition(fast);
   }
 
   &__overlay-icon  { font-size: 1.3rem; }

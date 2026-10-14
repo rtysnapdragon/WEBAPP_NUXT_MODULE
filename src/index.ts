@@ -5,19 +5,19 @@ export interface ExternalModuleOptions {
   message?: string
 }
 
-export function init(options: ExternalModuleOptions = {}) {
-  const element = document.createElement('div')
+// export function init(options: ExternalModuleOptions = {}) {
+//   const element = document.createElement('div')
 
-  element.className = 'external-module'
-  element.textContent = options.message ?? 'External module loaded'
+//   element.className = 'external-module'
+//   element.textContent = options.message ?? 'External module loaded'
 
-  return {
-    mount(target: HTMLElement) {
-      target.replaceChildren(element)
-    },
+//   return {
+//     mount(target: HTMLElement) {
+//       target.replaceChildren(element)
+//     },
 
-    destroy() {
-      element.remove()
-    },
-  }
-}
+//     destroy() {
+//       element.remove()
+//     },
+//   }
+// }
