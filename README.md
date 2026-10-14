@@ -147,3 +147,11 @@ git push origin main
 
 git tag v1.0.0
 git push origin v1.0.0
+
+
+
+## Build CDN with host
+npm run prepack
+npm pack
+will create new file webapp-nuxt-module-1.0.0.tgz
+and need to config in package.json
