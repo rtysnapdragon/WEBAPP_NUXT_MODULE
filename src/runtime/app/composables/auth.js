@@ -24,7 +24,7 @@ export const useAuth = async (args) => {
     }
 
     const response = await axios({
-      url: getUrl("/ocsauth/oauth"),
+      url: getUrl("/rtsauth/oauth"),
       headers: {
         Authorization: `basic ${config.basicKey}`,
         "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export const useAuth = async (args) => {
     const data = e?.response?.data;
     if (data) {
       if (data.error == "invalid_grant" && !isActionLogin) {
-        useCookie("oc_user_data").value = null;
+        useCookie("rt_user_data").value = null;
         navigateTo(localePath("/login"));
       }
       return { error: ref(data), data: ref(null) };
