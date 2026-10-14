@@ -17,9 +17,10 @@ import fs from "fs";
 import path from "path";
 import pkg from "fs-extra";
 const { copySync } = pkg;
-import copyJsonFile from "./runtime/app/utils/copyJsonFile.js";
-import getPages from "./runtime/app/utils/getPages.js";
-import createTsConfigFile from "./runtime/app/utils/createTsConfigFile.js";
+// import copyJsonFile from "./runtime/app/utils/copyJsonFile.js";
+import copyJsonFile from "./utils/copyJsonFile.js";
+import getPages from "./utils/getPages.js";
+import createTsConfigFile from "./utils/createTsConfigFile.js";
 // import { runtimeDir } from "@nuxt/ui/unplugin";
 export interface ModuleOptions {}
 

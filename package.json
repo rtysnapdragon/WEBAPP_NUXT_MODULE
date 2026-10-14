@@ -1,28 +1,28 @@
 {
   "name": "webapp-nuxt-module",
   "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/module.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/module.d.mts",
+      "import": "./dist/module.mjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/module.d.mts"
+      ]
+    }
+  },
   "description": "nuxt module for webapp",
   "repository": {
     "type": "git",
     "url": "https://github.com/rtysnapdragon/WEBAPP_NUXT_MODULE.git"
   },
   "license": "MIT",
-  "type": "module",
-  "main": "./dist/module.mjs",
   "private": false,
-  "exports": {
-    ".": {
-      "import": "./dist/module.mjs",
-      "types": "./dist/types.d.ts"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      ".": [
-        "./dist/types.d.mts"
-      ]
-    }
-  },
   "files": [
     "dist"
   ],
