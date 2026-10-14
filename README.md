@@ -83,6 +83,8 @@ npm install -D sass
 npm install axios
 npm install zod
 npm install v-calendar@3
+npm install defu //If defu is only used during development and is not needed by consumers, you can instead configure your build to externalize it. But since your module imports it at runtime, declaring it as a dependency is generally the safer choice.
+
 
 npm install v-calendar
 npm install vue-screen-utils

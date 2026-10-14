@@ -58,6 +58,7 @@
     "ai": "^7.0.28",
     "axios": "^1.17.0",
     "better-sqlite3": "^12.10.0",
+    "defu": "^6.1.7",
     "flowbite-vue": "^0.2.3",
     "fs-extra": "^11.3.5",
     "nuxt-swiper": "^2.0.2",
