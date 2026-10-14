@@ -39,7 +39,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
+    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit",
+    "types": "./dist/types.d.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.15",

@@ -1,27 +1,27 @@
 const BASE_URL =
-  process.env.NUXT_PUBLIC_API_URL ||
-  process.env.API_URL ||
-  (process.env.NODE_ENV === "production" ? process.env.API_URL_PROD : process.env.API_URL_DEV);
+  import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-    
-const host = window.location.hostname;
+const host =
+  typeof window !== "undefined"
+    ? window.location.hostname
+    : "localhost";
 
 const serverUrl =
   import.meta.env.VITE_API_URL ||
-  `http://${host}:${process.env.SERVER_PORT}`;
+  `http://${host}:${import.meta.env.VITE_SERVER_PORT || 8080}`;
 
 export default {
-  BASE_URL: BASE_URL || 'http://localhost:8080',
-  webUrl: BASE_URL || 'http://localhost:3001',
-  apiUrl: serverUrl || 'http://localhost:8080',
-  basicKey: process.env.BASIC_KEY || 'xxfbghvhbkjlktyiopopýVCXsdwa$334345324#weFZcZVFXB',
+  BASE_URL,
+  webUrl: import.meta.env.VITE_WEB_URL || "http://localhost:3001",
+  apiUrl: serverUrl,
+
+  // Do not expose real secrets in frontend code.
   apiPaths: {
     otherEndpoints: {
-      login: 'api/v1/auth/login',
+      login: "api/v1/auth/login",
     },
-    setup:{
+    setup: {
       createPhase: "api/v1/phases/create",
-    }
-  }
+    },
+  },
 };
-  
