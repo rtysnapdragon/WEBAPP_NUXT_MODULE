@@ -228,7 +228,10 @@ function close() {
     border-radius: var(--radius-md);
     background:    rgba(255,140,66,0.1);
     color:         var(--c-accent);
-    @include flex-center;
+    // @include flex-center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size:     1.1rem;
     flex-shrink:   0;
   }
@@ -259,8 +262,11 @@ function close() {
     background:    transparent;
     color:         var(--c-muted);
     cursor:        pointer;
-    @include flex-center;
-    @include transition(fast);
+    // @include flex-center;
+      display: flex;
+    align-items: center;
+    justify-content: center;
+    // @include transition(fast);
     flex-shrink:   0;
     font-size:     1rem;
 
@@ -336,7 +342,7 @@ function close() {
 .rd-overlay {
   background:      rgba(0,0,0,0.45) !important;
   backdrop-filter: blur(6px) !important;
-  @include transition;
+  // @include transition;
 }
 
 // ── Content panel ─────────────────────────────────────────
@@ -391,7 +397,7 @@ function close() {
 // ── Handle ────────────────────────────────────────────────
 .rd-handle {
   cursor:      grab !important;
-  @include transition(fast);
+  // @include transition(fast);
 
   &::before {
     content:       '' !important;
@@ -401,7 +407,7 @@ function close() {
     border-radius: 999px !important;
     background:    var(--c-border) !important;
     margin:        0 auto !important;
-    @include transition(fast);
+    // @include transition(fast);
   }
 
   &:hover::before { background: var(--c-accent) !important; }

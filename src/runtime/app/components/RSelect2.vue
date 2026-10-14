@@ -480,7 +480,7 @@ const mergedUi = computed(() => ({
   font-family:     inherit;
   gap:             var(--space-2, 8px);
   position:        relative;
-  @include transition(fast);
+  // @include transition(fast);
 
   &:focus, &--open {
     border-color: var(--c-accent, #ff8c42);
@@ -507,14 +507,14 @@ const mergedUi = computed(() => ({
   flex:        1;
   font-size:   13px;
   color:       var(--c-text, #1a1510);
-  @include truncate;
+  // @include truncate;
 }
 
 .rsel__placeholder {
   flex:      1;
   font-size: 12px;
   color:     var(--c-muted, #8a7f72);
-  @include truncate;
+  // @include truncate;
 
   &--color { color: var(--c-accent, #ff8c42); opacity: 1; }
 }
@@ -526,7 +526,7 @@ const mergedUi = computed(() => ({
   transform:    translateY(-50%);
   font-size:    1rem;
   color:        var(--c-muted, #8a7f72);
-  @include transition(fast);
+  // @include transition(fast);
 
   &--open { transform: translateY(-50%) rotate(180deg); }
 }
@@ -555,7 +555,9 @@ const mergedUi = computed(() => ({
   font-size:     12px;
   color:         var(--c-text, #1a1510);
 
-  &-text { max-width: 120px; @include truncate; }
+  &-text { max-width: 120px;
+    //  @include truncate; 
+    }
 
   &-rm {
     border:     none;
@@ -565,7 +567,7 @@ const mergedUi = computed(() => ({
     color:      var(--c-danger, #f87171);
     font-size:  14px;
     display:    flex;
-    @include transition(fast);
+    // @include transition(fast);
     &:hover { color: darken(#f87171, 10%); }
   }
 }
@@ -605,7 +607,7 @@ const mergedUi = computed(() => ({
   overflow:      hidden;
   flex-shrink:   0;
   background:    var(--bg-tertiary, #f1f3f6);
-  @include flex-center;
+  // @include flex-center;
 
   &-img { width: 100%; height: 100%; object-fit: cover; }
   &-fb  { font-size: 1rem; color: var(--c-muted, #8a7f72); }
@@ -621,13 +623,13 @@ const mergedUi = computed(() => ({
 .rsel__opt-label {
   font-size:   13px;
   color:       var(--c-text, #1a1510);
-  @include truncate;
+  // @include truncate;
 }
 
 .rsel__opt-sub {
   font-size: 11px;
   color:     var(--c-muted, #8a7f72);
-  @include truncate;
+  // @include truncate;
 }
 </style>
 
@@ -667,7 +669,7 @@ const mergedUi = computed(() => ({
   border-radius: var(--radius-md, 10px) !important;
   margin:        0 4px !important;
   cursor:        pointer !important;
-  @include transition(fast);
+  // @include transition(fast);
 
   &[data-active-item],
   &:hover {

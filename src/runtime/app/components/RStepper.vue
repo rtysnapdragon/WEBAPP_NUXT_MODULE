@@ -389,21 +389,21 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
     .rs__step  { flex-direction: column; align-items: center; text-align: center; }
     .rs__label { align-items: center; }
 
-    @include mobile-only {
-      // collapse to vertical on mobile
-      flex-direction: column;
-      align-items:    flex-start;
+    // @include mobile-only {
+    //   // collapse to vertical on mobile
+    //   flex-direction: column;
+    //   align-items:    flex-start;
 
-      .rs__connector {
-        width:  2px !important;
-        height: 28px !important;
-        margin: 0 0 0 18px !important;
-        flex:   none !important;
-      }
+    //   .rs__connector {
+    //     width:  2px !important;
+    //     height: 28px !important;
+    //     margin: 0 0 0 18px !important;
+    //     flex:   none !important;
+    //   }
 
-      .rs__step  { flex-direction: row; align-items: flex-start; text-align: left; }
-      .rs__label { align-items: flex-start; }
-    }
+    //   .rs__step  { flex-direction: row; align-items: flex-start; text-align: left; }
+    //   .rs__label { align-items: flex-start; }
+    // }
   }
 
   // Vertical
@@ -436,14 +436,16 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   cursor:         default;
   flex:           1;               // equal width in horizontal
   min-width:      0;
-  @include transition;
+  // @include transition;
 
   &--clickable { cursor: pointer; }
 
   .rs--vertical & { flex: none; width: 100%; }
 
   // ── State colours ──
-  .rs__indicator { @include transition; }
+  .rs__indicator { 
+    // @include transition; 
+  }
 
   &--active .rs__indicator {
     background: var(--c-accent);
@@ -553,8 +555,8 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   font-size:   0.82rem;
   font-weight: 500;
   color:       var(--c-muted);
-  @include transition(fast);
-  @include truncate;
+  // @include transition(fast);
+  // @include truncate;
 
   .rs--lg & { font-size: 0.9rem; }
 }
@@ -562,7 +564,7 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
 .rs__desc {
   font-size: 0.72rem;
   color:     var(--c-muted);
-  @include truncate;
+  // @include truncate;
 
   .rs--lg & { font-size: 0.78rem; }
 }
@@ -582,7 +584,7 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   height:     2px;
   background: var(--c-border);
   border-radius: 2px;
-  @include transition;
+  // @include transition;
   margin:     0 var(--space-1);
 
   .rs--vertical & {
@@ -594,14 +596,14 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
 
   &--done { background: var(--c-accent); }
 
-  @include mobile-only {
-    .rs--horizontal & {
-      flex:   none;
-      width:  2px;
-      height: 24px;
-      margin: 0 0 0 14px;
-    }
-  }
+  // @include mobile-only {
+  //   .rs--horizontal & {
+  //     flex:   none;
+  //     width:  2px;
+  //     height: 24px;
+  //     margin: 0 0 0 14px;
+  //   }
+  // }
 }
 
 // ─────────────────────────────────────────────────────
@@ -654,7 +656,7 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   border-radius: 50%;
   background:    var(--c-border);
   cursor:        pointer;
-  @include transition(fast);
+  // @include transition(fast);
 
   &--active {
     background: var(--c-accent);
@@ -679,7 +681,7 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   font-weight:   500;
   font-family:   var(--font-fallback);
   cursor:        pointer;
-  @include transition(fast);
+  // @include transition(fast);
 
   i { font-size: 0.95rem; }
 
@@ -722,7 +724,7 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   border-radius: 50%;
   background:    rgba(255,140,66,0.1);
   border:        2px solid rgba(255,140,66,0.25);
-  @include flex-center;
+  // @include flex-center;
   box-shadow:    var(--glow-accent);
 
   i {
@@ -751,7 +753,7 @@ $track-gap:      (sm: var(--space-3), md: var(--space-4), lg: var(--space-5));
   font-size:     0.82rem;
   font-family:   var(--font-fallback);
   cursor:        pointer;
-  @include transition(fast);
+  // @include transition(fast);
 
   &:hover { border-color: var(--c-accent); color: var(--c-accent); }
   i { font-size: 0.95rem; }

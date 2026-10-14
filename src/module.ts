@@ -44,16 +44,21 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.build.transpile.push(runtimeServerDir);
 
 
-    // Auto get mixin as global for scss file
-    nuxt.options.vite = nuxt.options.vite || {}
-    nuxt.options.vite.css = nuxt.options.vite.css || {}
-    nuxt.options.vite.css.preprocessorOptions =
-    nuxt.options.vite.css.preprocessorOptions || {}
-    nuxt.options.vite.css.preprocessorOptions.scss = {
-      ...nuxt.options.vite.css.preprocessorOptions.scss,
-      additionalData: `
-        @use "${resolver.resolve('./src/runtime/app/assets/styles/mixin')}" as *;
-      `,
+    // Auto-load global SCSS mixins
+    const mixinPath = resolver.resolve(
+      './runtime/app/assets/styles/mixin.scss'
+    )
+
+    console.log("Mixin Path =============> ", mixinPath)
+
+    nuxt.options.vite.css.preprocessorOptions = {
+      ...nuxt.options.vite.css.preprocessorOptions,
+      scss: {
+        ...nuxt.options.vite.css.preprocessorOptions?.scss,
+        additionalData: `
+          @use "${mixinPath}" as *;
+        `,
+      },
     }
 
     const layers: string[] = options.layers || [];
