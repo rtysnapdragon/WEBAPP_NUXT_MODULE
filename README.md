@@ -155,3 +155,31 @@ npm run prepack
 npm pack
 will create new file webapp-nuxt-module-1.0.0.tgz
 and need to config in package.json
+
+Step 1: Automate or Generate the Tarball Locally
+Make sure your module is correctly configured to include the dist/ directory in package.json (as shown previously):
+{
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepack": "nuxt-module-build build"
+  }
+}
+
+Run the pack command in your module repository:
+```bash
+npm run prepack
+npm pack
+```
+
+Step 2: Create a GitHub Release and Upload the Tarball
+1. Push your code changes and tag your commit in git:
+
+```bash 
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Step 3: Get the Direct Download URL
+Once the release is published, right-click the uploaded .tgz file in the release assets and select Copy Link Address.
