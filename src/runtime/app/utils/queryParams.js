@@ -1,7 +1,7 @@
-import { useRToast } from "#imports";
+import { useToast } from "#imports";
 import queryString from "query-string";
 export default (key, value) => {
-  const toast = useRToast();
+  const toast = useToast();
   const currentUrl = new URL(window.location.href);
   const currentQueryParams = queryString.parse(currentUrl.search);
   if (key == "keep") {

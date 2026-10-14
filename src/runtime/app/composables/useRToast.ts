@@ -1,4 +1,4 @@
-// composables/useRToast.ts
+// composables/useToast.ts
 import { ref } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
@@ -91,7 +91,7 @@ function generateId() {
     .slice(2)}`
 }
 
-export function useRToast() {
+export function useToast() {
   function startTimer(item: RToastItem) {
     if (!item.duration) return
 
@@ -260,7 +260,7 @@ export function useRToast() {
   }
 }
 
-// const toast = useRToast()
+// const toast = useToast()
 
 // // 1. Success
 // toast.add({
