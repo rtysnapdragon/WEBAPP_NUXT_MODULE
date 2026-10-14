@@ -3,6 +3,22 @@ import vue from '@vitejs/plugin-vue'
 import ui from '@nuxt/ui/vite'
 
 export default defineConfig({
+  build: {
+    lib: {
+      entry: 'src/index.ts',
+      formats: ['es'],
+      fileName: 'index',
+    },
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        assetFileNames: (asset) =>
+          asset.name?.endsWith('.css')
+            ? 'style.css'
+            : 'assets/[name]-[hash][extname]',
+      },
+    },
+  },
   plugins: [
     vue(),
     ui({
