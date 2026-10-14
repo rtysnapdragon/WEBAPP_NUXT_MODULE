@@ -3,10 +3,17 @@ const BASE_URL =
   process.env.API_URL ||
   (process.env.NODE_ENV === "production" ? process.env.API_URL_PROD : process.env.API_URL_DEV);
 
+    
+const host = window.location.hostname;
+
+const serverUrl =
+  import.meta.env.VITE_API_URL ||
+  `http://${host}:${process.env.SERVER_PORT}`;
+
 export default {
   BASE_URL: BASE_URL || 'http://localhost:8080',
   webUrl: BASE_URL || 'http://localhost:3001',
-  apiUrl: BASE_URL || 'http://localhost:8080',
+  apiUrl: serverUrl || 'http://localhost:8080',
   basicKey: process.env.BASIC_KEY || 'xxfbghvhbkjlktyiopopýVCXsdwa$334345324#weFZcZVFXB',
   apiPaths: {
     otherEndpoints: {
