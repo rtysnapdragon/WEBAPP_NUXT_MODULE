@@ -102,7 +102,7 @@ export default defineNuxtConfig({
       preprocessorOptions: {
         scss: {
           // Make mixins available in every component <style lang="scss">
-          additionalData: `@use '@/assets/scss/_mixin' as *;`,
+          // additionalData: `@use './src/runtime/app/assets/styles/mixin' as *;`,
         },
       },
     },
