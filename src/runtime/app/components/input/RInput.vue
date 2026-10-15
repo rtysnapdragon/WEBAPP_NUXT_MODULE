@@ -427,7 +427,7 @@ defineExpose({
   :deep(input:focus) + .rinp-float-label,
   .rinp-input:deep(input:not(:placeholder-shown)) + .rinp-float-label {
     top: 0;
-    transform: translateY(-50%);
+    // transform: translateY(-50%);
     font-size: .72rem;
     color: var(--c-accent);
   }
@@ -634,7 +634,7 @@ defineExpose({
 
   &:focus {
     // border-color: var(--c-accent, rgb(255, 140, 66,0.2)) !important;
-    box-shadow:   0 0 0 3px rgba(255,140,66,0.12) !important;
+    // box-shadow:   0 0 0 3px rgba(255,140,66,0.12) !important;
     outline:      none !important;
   }
 
