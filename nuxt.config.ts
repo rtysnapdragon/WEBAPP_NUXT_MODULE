@@ -98,14 +98,14 @@ export default defineNuxtConfig({
     // plugins: [
     //   require('@tailwindcss/vite')()
     // ],
-    css: {
-      preprocessorOptions: {
-        scss: {
-          // Make mixins available in every component <style lang="scss">
-          // additionalData: `@use './src/runtime/app/assets/styles/mixin' as *;`,
-        },
-      },
-    },
+    // css: {
+    //   preprocessorOptions: {
+    //     scss: {
+    //       // Make mixins available in every component <style lang="scss">
+    //       // additionalData: `@use './src/runtime/app/assets/styles/mixin' as *;`,
+    //     },
+    //   },
+    // },
   },
   // // / ── Auto-import composables ──
   // imports: {
