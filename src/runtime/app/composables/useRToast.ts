@@ -91,7 +91,7 @@ function generateId() {
     .slice(2)}`
 }
 
-export function useToast() {
+export function useRToast() {
   function startTimer(item: RToastItem) {
     if (!item.duration) return
 

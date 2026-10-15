@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { toastQueue } from '../../composables/useToast'
-import { useToast } from '../../composables/useToast'
+import { toastQueue } from '../../composables/useRToast'
+import { useRToast } from '../../composables/useRToast'
 
-const toast = useToast()
+const toast = useRToast()
 
 function closeToast(id: string) {
   toast.remove(id)
