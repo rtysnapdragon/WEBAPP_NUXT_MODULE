@@ -14,7 +14,13 @@ const apis = {
   userChangePassword: "/api/user/profile/changePassword",
 
   // module teacher
-  academicYear: "/api/academy/list",
+  oauth2:{
+    connect: 'api/v1/google-drive/auth-url',
+    disconnect: 'api/v1/google-drive/disconnect',
+    list: 'api/v1/google-drive/list',
+    status: 'api/v1/google-drive/status',
+    upload: 'api/v1/google-drive/upload',
+  },
 
   user: {
     getUser: {
