@@ -28,9 +28,9 @@ export const useHttp = async (
       };
     }
 
-    if (!options?.isGlobal) {
-      await useRefreshToken();
-    }
+    // if (!options?.isGlobal) {
+    //   await useRefreshToken();
+    // }
     const httpConfig = useOptions(url, options);
 
     if (!httpConfig) return { data: ref(null), error: ref(true) };

@@ -4,6 +4,7 @@ import helper from "../utils/helper.js";
 import getDeviceId from "../utils/getDeviceId.js";
 import getUrl from "../utils/getUrl.js";
 import isNotEmpty from "../utils/isNotEmpty.js";
+import aesKey from '../utils/aesKey.js'
 
 export default function useOptions(
   url: string,
@@ -16,6 +17,7 @@ export default function useOptions(
   const lang = locale.value ?? "en";
   const dbCookie = useCookie(str.dbCode);
   let authorization = "";
+  const db = aesKey(dbCookie.value)
 
   // if (!options?.isGlobal && !userCatch) return;
 
@@ -47,7 +49,7 @@ export default function useOptions(
       Accept: "application/json, text/javascript, */*; q=0.01",
       lang,
       device_id: deviceId,
-      database: dbCookie.value,
+      database: db,
       ...newHeader,
     },
     ...restOptions,
