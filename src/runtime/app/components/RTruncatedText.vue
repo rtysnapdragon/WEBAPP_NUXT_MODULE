@@ -2,7 +2,6 @@
     <RTooltip :text="text" class="w-full" :content="{ side: side, sideOffset: sideOffset, align:align }">
         <div class="r-text text r-truncate w-full" :style="{ '--lines': lines }" :class="props.class" @click="expand(text)">
             {{ $t(`${text}`) }}
-            {{ console.log("props.class ====================> ", props.class) }}
         </div>
     </RTooltip>
 </template>
