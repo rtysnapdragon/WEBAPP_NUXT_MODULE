@@ -47,6 +47,8 @@ import { usePopper } from '../composables/usePopper'
 const props = defineProps([
   "text",
   "placement",
+  "mode",
+  "content",
   "prevent",
   "locked",
   "isPopper",
@@ -55,6 +57,8 @@ const props = defineProps([
 
 const text = computed(() => props.text);
 const placement = computed(() => props.placement ?? "bottom-start");
+const content = computed(() => props.content)
+const mode = computed(() => props.mode)
 const prevent = computed(() => props.prevent);
 const isGlobal = computed(() => isNotEmpty(props.isGlobal));
 
