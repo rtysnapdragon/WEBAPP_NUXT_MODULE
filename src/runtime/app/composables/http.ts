@@ -15,7 +15,7 @@ export const useHttp = async (
   options: HttpOptions = {}
 ): Promise<Resp> => {
   const toast = useToast();
-  const isOnline = useOnline();
+  const isOnline = useOnline();x
   try {
     if (!isOnline.value) {
       throw {

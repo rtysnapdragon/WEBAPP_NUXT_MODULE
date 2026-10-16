@@ -4,7 +4,7 @@ import helper from "../utils/helper.js";
 import getDeviceId from "../utils/getDeviceId.js";
 import getUrl from "../utils/getUrl.js";
 import isNotEmpty from "../utils/isNotEmpty.js";
-import aesKey from '../utils/aesKey.js'
+import {aesKey} from '../utils/aesKey.js'
 
 export default function useOptions(
   url: string,
