@@ -73,7 +73,7 @@ export const useAuth = async (args) => {
     if (data) {
       if (data.error == "invalid_grant" && !isActionLogin) {
         useCookie("rt_user_data").value = null;
-        navigateTo(localePath("/login"));
+        navigateTo(localePath("/auth/login"));
       }
       return { error: ref(data), data: ref(null) };
     } else {
