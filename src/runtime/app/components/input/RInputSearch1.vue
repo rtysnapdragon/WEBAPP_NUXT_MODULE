@@ -8,8 +8,8 @@
     leading-icon="ri-search-2-line"
     color="primary"
     :ui="{
-      base: `input-search ${props.class ?? ''} ps-9 pe-9`,
       wrapper: `container-oc-input-search relative sm:w-auto ${props.wrapper ?? ''}`,
+      base: `input-search ${props.class ?? ''} ps-9 pe-9`,
       leading: {
         padding: 'ps-9'
       }
