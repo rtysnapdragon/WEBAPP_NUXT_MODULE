@@ -2,6 +2,7 @@ import { ref } from "vue";
 import axios from "axios";
 
 export const useAuth = async (args) => {
+  console.log("args in composables auth useAuth =======> ", args)
   const { str, config } = helper();
   const userCatch = useUserData().value;
   const isOnline = useOnline();
