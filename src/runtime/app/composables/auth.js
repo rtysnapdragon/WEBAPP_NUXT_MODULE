@@ -24,7 +24,7 @@ export const useAuth = async (args) => {
     }
 
     const response = await axios({
-      url: getUrl("/rtsauth/oauth"),
+      url: getUrl("/api/v1/rtsauth/oauth"),
       headers: {
         Authorization: `basic ${config.basicKey}`,
         "Content-Type": "application/json",

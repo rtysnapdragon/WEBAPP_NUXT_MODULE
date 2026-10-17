@@ -369,7 +369,7 @@ function onCloseModal() {
   padding: var(--sp-2) var(--sp-5);
   font-size: 13px;
   color: var(--c-text);
-  font-family: var(--font-400,var(var(--font-fallback)));
+  font-family: var(--font-400,var(--font-fallback));
   overflow-y: auto;
   max-height: calc(100dvh - 4rem - 60px - 56px); // viewport - modal margin - header - footer
 
