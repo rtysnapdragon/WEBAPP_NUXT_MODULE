@@ -14,7 +14,7 @@ const props = defineProps([
   // UInput core
   'size',           // xs sm md lg xl
   'name',
-  'type',           // text|email|password|number|textarea|file|date|tel|url
+  'type',           // text|email|password|number|textarea|file|date|tel|url|search
   'ui',
   'icon',
   'highlight',

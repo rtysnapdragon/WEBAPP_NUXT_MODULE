@@ -16,7 +16,7 @@
       <template #default="{ modelValue,open,ui }" v-if="!multiple">
         <slot name="iconLeading" v-if="$slots.iconLeading" />
         <slot v-if="$slots.leading && isNotEmpty(modelValue) && !modelValue.isDefault" name="leading" :data="modelValue" />
-        <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="truncated-select text-[13px] color-w-b-1 flex-1 w-full text-left"
+        <RTruncatedText :text="tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="truncated-select text-[13px] color-w-b-1 flex-1 w-full text-left"
           v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)" />
         <!-- <div v-else-if="isNotEmpty(modelValue) && !modelValue.isDefault && isEmpty(templateLeading?.labelKey || templateLeading?.labelKeyEn)"  class="flex-1 min-w-0">
           <RTruncatedText :text="$tBy({ en: modelValue.NameEnglish, km: modelValue.Name })" class="text-[13px] color-w-b-1" />
