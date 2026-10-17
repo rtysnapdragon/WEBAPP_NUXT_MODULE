@@ -58,9 +58,9 @@
 
 <script setup>
 import defaultGallery1 from "../../assets/imgs/default-file-img/Gallery1.png";
-import {UseDefaultImagStore} from '../../stores/defaultImage'
+import {UseDefaultImageStore} from '../../stores/defaultImage'
 const toast = useToast();
-const defaultImg = UseDefaultImagStore();
+const defaultImg = UseDefaultImageStore();
 const refInputFile = ref([]);
 const fileImageList = defineModel();
 const props = defineProps([
