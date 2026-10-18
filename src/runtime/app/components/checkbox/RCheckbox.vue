@@ -138,7 +138,7 @@ $rcb-colors: (
   display:     flex;
   align-items: flex-start;
   gap:         var(--sp-2);
-  font-family: var(--font-fallback);
+  font-family: var(--font-400,var(--font-fallback));
   width:       100%;
 
   // ── Sizes ────────────────────────────────────────────────────────────────
@@ -333,11 +333,11 @@ $rcb-colors: (
   display:       block;
   font-size:     var(--rcb-label-size, 0.8125rem);
   font-weight:   500;
-  color:         var(--color-w-b-1);
+  color:         var(--color-w-b-3);
   line-height:   1.4;
   cursor:        pointer;
   user-select:   none;
-  font-family:   var(--font-fallback);
+  font-family:   var(--font-400,var(--font-fallback));
 
   // When disabled
   .rcb-root:has([data-disabled]) & {
@@ -352,7 +352,7 @@ $rcb-colors: (
   font-size:  0.72rem;
   color:      var(--c-muted);
   line-height: 1.4;
-  font-family: var(--font-fallback);
+  font-family: var(--font-400,var(--font-fallback));
 }
 
 // ── Required asterisk ─────────────────────────────────────────────────────
