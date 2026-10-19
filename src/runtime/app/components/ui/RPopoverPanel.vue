@@ -17,8 +17,12 @@
       <slot :open="isOpen" />
     </template>
 
+    <template #anchor v-if="$slots.anchor">
+      <slot name="anchor" :open="isOpen" />
+    </template>
+
     <!-- Panel content slot -->
-    <template #content>
+    <template #content="{ close }">
       <div
         class="rpp-panel"
         :class="[
@@ -72,17 +76,19 @@
 const props = defineProps({
   // ── UPopover native ─────────────────────────────────────────────────────
   /** 'hover' fires on mouseenter; 'click' (default) fires on click */
-  mode:        { type: String,  default: 'click'  },
+  mode:        { type: String,  default: 'click'  }, // click/hover
   /** Popover placement side */
-  side:        { type: String,  default: 'bottom' },
+  side:        { type: String,  default: 'bottom' }, // left/rigth/top/bottom
   /** Alignment along the side axis */
-  align:       { type: String,  default: 'center' },
+  align:       { type: String,  default: 'center' }, // center/end/start
   /** Gap between trigger and panel in px */
-  sideOffset:  { type: Number,  default: 6        },
+  sideOffset:  { type: Number,  default: 6        }, // from triger to panel
   /** Show the small arrow pip */
   arrow:       { type: Boolean, default: false     },
   /** Disable opening */
+  modal:       { type: Boolean, default: false     },
   disabled:    { type: Boolean, default: false     },
+  dismissible: { type: Boolean, default: false     },
   /** ui slot overrides passed straight to UPopover */
   ui:          { type: Object,  default: () => ({}) },
 
@@ -112,7 +118,7 @@ watch(isOpen, (v) => emit(v ? 'open' : 'close'))
 
 // Strip our custom props before forwarding to UPopover so no unknown attrs land on the DOM
 const mergedUI = computed(() => ({
-  content: 'rpp-content',  // zero-padding wrapper — we control padding in .rpp-panel
+  content: 'rpp-content ring-0 shadow-none',  // zero-padding wrapper — we control padding in .rpp-panel // no border with ring-0/shadow-none border-0
   arrow:   'rpp-arrow',
   ...props.ui,
 }))
