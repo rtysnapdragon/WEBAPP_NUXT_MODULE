@@ -104,7 +104,7 @@ export default defineNuxtModule<ModuleOptions>({
       lazy: true,
       locales: [
         { code: 'en', file: 'en.json' },
-        { code: 'km', file: 'km.json' }
+        { code: 'km', file: 'km.json' },
         { code: 'zh', file: 'zh.json' }
       ],
       defaultLocale: 'en'
