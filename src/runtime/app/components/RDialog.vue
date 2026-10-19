@@ -50,9 +50,9 @@
       <!-- host mode: a component, or a message, from the store -->
       <template v-if="host">
         <component
+          v-if="d.component != null"
           :is="d.component"
-          v-if="d.component"
-          v-bind="d.props"
+          v-bind="d.props ?? {}"
           @close="(value: unknown) => store?.close(d.id, 'close', value)"
           @confirm="(value: unknown) => store?.close(d.id, 'confirm', value)"
           @loading="(value: boolean) => store?.setLoading(value, d.id)"
