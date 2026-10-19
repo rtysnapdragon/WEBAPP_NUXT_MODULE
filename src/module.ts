@@ -105,6 +105,7 @@ export default defineNuxtModule<ModuleOptions>({
       locales: [
         { code: 'en', file: 'en.json' },
         { code: 'km', file: 'km.json' }
+        { code: 'zh', file: 'zh.json' },
       ],
       defaultLocale: 'en'
     })
