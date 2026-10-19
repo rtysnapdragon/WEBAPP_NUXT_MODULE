@@ -150,7 +150,8 @@ defineExpose({ isOpen })
   display:          flex;
   flex-direction:   column;
   background:       var(--c-surface);
-  border:           1px solid var(--c-border);
+  // border:           1px solid var(--c-border);
+  border:           none !important;
   border-radius:    var(--r-xl, 16px);
   box-shadow:       var(--glass-shadow);
   overflow:         hidden;
