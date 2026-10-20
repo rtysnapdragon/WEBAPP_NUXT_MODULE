@@ -232,101 +232,101 @@ const onImageClick = (src) => {
   overflow: hidden;
 
   &.size-3xs {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    min-height: 22px;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
   }
 
   &.size-2xs {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    min-height: 26px;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
   }
 
   &.size-xs {
-    width: 30px;
-    height: 30px;
-    min-width: 30px;
-    min-height: 30px;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
   }
 
   &.size-s {
-    width: 35px;
-    height: 35px;
-    min-width: 35px;
-    min-height: 35px;
+    width: 35px !important;
+    height: 35px !important;
+    min-width: 35px !important;
+    min-height: 35px !important;
   }
 
   &.size-sm {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
   }
 
   &.size-m {
-    width: 50px;
-    height: 50px;
-    min-width: 50px;
-    min-height: 50px;
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    min-height: 50px !important;
   }
 
   &.size-ml {
-    width: 80px;
-    height: 80px;
-    min-width: 80px;
-    min-height: 80px;
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px !important;
+    min-height: 80px !important;
   }
 
   &.size-l {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
+    width: 100px !important;
+    height: 100px !important;
+    min-width: 100px !important;
+    min-height: 100px !important;
   }
 
   &.size-xl {
-    width: 130px;
-    height: 130px;
-    min-width: 130px;
-    min-height: 130px;
+    width: 130px !important;
+    height: 130px !important;
+    min-width: 130px !important;
+    min-height: 130px !important;
   }
 
   &.size-2xl {
-    width: 160px;
-    height: 160px;
-    min-width: 160px;
-    min-height: 160px;
+    width: 160px !important;
+    height: 160px !important;
+    min-width: 160px !important;
+    min-height: 160px !important;
   }
 
   &.size-3xl {
-    width: 190px;
-    height: 190px;
-    min-width: 190px;
-    min-height: 190px;
+    width: 190px !important;
+    height: 190px !important;
+    min-width: 190px !important;
+    min-height: 190px !important;
   }
 
   &.size-4xl {
-    width: 220px;
-    height: 220px;
-    min-width: 220px;
-    min-height: 220px;
+    width: 220px !important;
+    height: 220px !important;
+    min-width: 220px !important;
+    min-height: 220px !important;
   }
 
   &.size-ss {
-    width: 18px;
-    height: 18px;
-    min-width: 18px;
-    min-height: 18px;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
   }
 
   &.round-s {
-    border-radius: 10px;
+    border-radius: 10px !important;
 
     img {
-      border-radius: 9px;
+      border-radius: 9px !important;
     }
   }
 
