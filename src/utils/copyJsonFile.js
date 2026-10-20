@@ -1,21 +1,31 @@
+
 const fs = require("fs");
 const path = require("path");
 
-//Deep merge objects (nested keys)
-
+// Deep merge nested objects
 function deepMerge(target = {}, source = {}) {
-  for (const key in source) {
+  for (const key of Object.keys(source)) {
+    const value = source[key];
+
     if (
-      typeof source[key] === "object" &&
-      source[key] !== null &&
-      !Array.isArray(source[key])
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value)
     ) {
-      if (!target[key]) target[key] = {};
-      deepMerge(target[key], source[key]);
+      if (
+        !target[key] ||
+        typeof target[key] !== "object" ||
+        Array.isArray(target[key])
+      ) {
+        target[key] = {};
+      }
+
+      deepMerge(target[key], value);
     } else {
-      target[key] = source[key];
+      target[key] = value;
     }
   }
+
   return target;
 }
 
@@ -28,20 +38,71 @@ export default function mergeJsonFiles({
 
   for (const filePath of inputPaths) {
     const absPath = path.resolve(filePath);
-    if (fs.existsSync(absPath)) {
-      const content = JSON.parse(fs.readFileSync(absPath, "utf-8"));
-      merged = deep ? deepMerge(merged, content) : { ...merged, ...content };
+
+    if (!fs.existsSync(absPath)) {
+      console.warn(`[mergeJsonFiles] File not found: ${absPath}`);
+      continue;
     }
+
+    let content;
+
+    try {
+      const raw = fs.readFileSync(absPath, "utf-8");
+      content = JSON.parse(raw);
+    } catch (error) {
+      console.error("\n❌ Invalid JSON file==================:");
+      console.error(`File-------------: ${absPath}`);
+
+      // Show JSON parsing location when available
+      const match = error.message.match(
+        /(?:position|line)\s+(\d+)(?:\s+column\s+(\d+))?/i
+      );
+
+      if (match) {
+        console.error(
+          `Position: ${match[1]}` +
+            (match[2] ? `, Column: ${match[2]}` : "")
+        );
+      }
+
+      console.error(`Reason: ${error.message}`);
+      throw new Error(
+        `Failed to parse JSON: ${absPath}`,
+        { cause: error }
+      );
+    }
+
+    if (
+      content === null ||
+      typeof content !== "object" ||
+      Array.isArray(content)
+    ) {
+      throw new Error(
+        `Expected a JSON object at the root of: ${absPath}`
+      );
+    }
+
+    merged = deep
+      ? deepMerge(merged, content)
+      : { ...merged, ...content };
   }
 
-  const outDir = path.dirname(outputPath);
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
-  }
+  const absOutputPath = path.resolve(outputPath);
+  const outDir = path.dirname(absOutputPath);
 
-  fs.writeFileSync(outputPath, JSON.stringify(merged, null, 2), "utf-8");
-  // console.log(`✅ Merged → ${outputPath}`);
+  fs.mkdirSync(outDir, { recursive: true });
+
+  fs.writeFileSync(
+    absOutputPath,
+    JSON.stringify(merged, null, 2) + "\n",
+    "utf-8"
+  );
+
+  console.log(`[mergeJsonFiles] Merged successfully: ${absOutputPath}`);
+
+  return merged;
 }
+
 
 // Example usage:
 // import mergeJsonFiles from "../utils/mergeJsonFiles.js";

@@ -231,7 +231,7 @@ export default defineNuxtModule<ModuleOptions>({
     console.log("layers:", layers)
     console.log("layers.length:", layers.length)
     // Merge lang JSON files to app locales
-    const lang = ["km", "en"];
+    const lang = ["km", "en", "zh"];
     const rootDir = nuxt.options.rootDir
 
     for (const lan of lang) {
