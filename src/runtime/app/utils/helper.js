@@ -12,3 +12,22 @@ export default () => {
     api: { ...gHelper.api, ...apis }, 
   };
 };
+
+// export default () => {
+//   const data = JSON.parse(decryptAES(OCAPPCONFIGURATION));
+//   let appConfig;
+
+//   try {
+//     appConfig = OC_CONFIGURATION;
+//   } catch (e) {
+//     appConfig = {};
+//   }
+
+//   const config = {
+//     ...data,
+//     signalRUrl: data.signalRUrl || data.apiUrl,
+//     ...appConfig,
+//   };
+//   const userData = useUserData().value;
+//   return { ...OC_HELPER, ...{ config }, ...{ userData } };
+// };
