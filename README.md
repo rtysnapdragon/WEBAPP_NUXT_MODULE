@@ -69,6 +69,8 @@ That's it! You can now use My Module in your Nuxt app ✨
   # Release new version
   npm run release
   ```
+  npm install wavesurfer.js // audio library
+
 npm install @nuxt/kit
 npm install fs-extra
 npm install nuxt-swiper
