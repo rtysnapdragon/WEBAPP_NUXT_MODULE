@@ -11,8 +11,10 @@
     <!-- Icon section -->
     <slot :name="`${type}icon`">
       <div class="icon" v-if="!noIcon">
-        <i v-if="!loading" :class="[icon]"></i>
-        <div v-else class="loader"></div>
+        <i v-if="!loading && icon.startsWith('ri')" :class="[icon]"></i>
+        <div v-if="loading" class="loader"></div>
+        <i v-if="!loading && !icon.startsWith('<')" :class="[icon]"></i>
+        <UIcon v-if="!loading && !icon.startsWith('ri') && !icon.startsWith('<')" :name="[icon]"></UIcon>
       </div>
     </slot>
     <!-- Slot -->
