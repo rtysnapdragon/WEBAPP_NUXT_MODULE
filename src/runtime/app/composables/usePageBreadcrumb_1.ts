@@ -1,7 +1,7 @@
 // composables/usePageBreadcrumb.ts
 import { onMounted, onBeforeUnmount } from 'vue';
-// import { useBreadcrumb } from '@bgtm/breadcrumb-nuxt';
-import { useBreadcrumb } from './breadCrumb.js'
+// import { useBreadCrumb } from '@bgtm/breadcrumb-nuxt';
+import { useBreadCrumb } from './breadCrumb.js'
 import type {
   RBreadcrumbState,
 } from '~/types/breadcrumb'
@@ -31,7 +31,7 @@ export type PageBreadcrumbConfig = Partial<RBreadcrumbState> & {
 export const usePageBreadcrumb_1 = (
   config: PageBreadcrumbConfig,
 ) => {
-  const breadcrumb = useBreadcrumb()
+  const breadcrumb = useBreadCrumb()
 
   onMounted(() => {
     const { showBack, backAction, ...rest } = config

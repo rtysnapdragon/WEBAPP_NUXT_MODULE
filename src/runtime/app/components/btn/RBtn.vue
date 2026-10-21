@@ -9,12 +9,37 @@
     color,
   ]" @click="actionClick">
     <!-- Icon section -->
-    <slot :name="`${type}icon`">
+    <!-- <slot :name="`${type}icon`">
       <div class="icon" v-if="!noIcon">
-        <i v-if="!loading && icon.startsWith('ri')" :class="[icon]"></i>
-        <div v-if="loading" class="loader"></div>
-        <i v-if="!loading && !icon.startsWith('<')" :class="[icon]"></i>
-        <UIcon v-if="!loading && !icon.startsWith('ri') && !icon.startsWith('<')" :name="[icon]"></UIcon>
+        <i v-if="!loading" :class="[icon]"></i>
+        <div v-else class="loader"></div>
+      </div>
+    </slot> -->
+    <!-- Icon -->
+    <slot :name="`${type}icon`">
+      <div v-if="!noIcon" class="icon">
+        <div v-if="loading" class="loader" />
+
+        <!-- RemixIcon class: ri-arrow-right-up-line -->
+        <i
+          v-else-if="iconType === 'remix-class'"
+          :class="normalizedIcon"
+          aria-hidden="true"
+        />
+
+        <!-- RemixIcon HTML: <i class="ri-arrow-right-up-line"></i> -->
+        <span
+          v-else-if="iconType === 'html'"
+          v-html="normalizedIcon"
+          aria-hidden="true"
+        />
+
+        <!-- Nuxt UI / Nuxt Icon -->
+        <UIcon
+          v-else-if="iconType === 'nuxt'"
+          :name="normalizedIcon"
+          aria-hidden="true"
+        />
       </div>
     </slot>
     <!-- Slot -->
@@ -279,6 +304,41 @@ const icon = computed(() => {
     return "ri-add-line";
   else return props.icon;
 });
+
+// Add more
+const iconType = computed(() => {
+  const value = icon.value?.trim();
+
+  if (!value) return "none";
+
+  // HTML markup, such as <i class="ri-arrow-right-up-line"></i>
+  if (value.startsWith("<")) return "html";
+
+  // RemixIcon CSS class
+  if (value.startsWith("ri-") || value.startsWith("fi ")) {
+    return "remix-class";
+  }
+
+  // Nuxt UI / Nuxt Icon name
+  return "nuxt";
+});
+
+// Add more
+const normalizedIcon = computed(() => {
+  const value = icon.value?.trim();
+
+  if (iconType.value !== "html") return value;
+
+  // Restrict raw HTML to an icon-only element with a class attribute.
+  // For arbitrary custom markup, prefer a component slot instead.
+  const match = value.match(
+    /^<i\s+class=["']([^"'<>]+)["']\s*><\/i>$/
+  );
+
+  return match ? match[1] : "";
+});
+
+
 const typeButton = computed(() => props.typeButton ?? "button");
 const variant = computed(() => props.variant ?? "solid");
 const type = computed(() => props.type ?? "");

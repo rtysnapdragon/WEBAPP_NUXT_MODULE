@@ -1,4 +1,4 @@
-// composables/useBreadcrumb.js
+// composables/useBreadCrumb.js
 // No TypeScript — plain JS composable
 
 const defaultState = () => ({
@@ -33,7 +33,7 @@ const defaultState = () => ({
   separatorIcon: 'i-lucide-chevron-right',
 })
 
-export const useBreadcrumb = () => {
+export const useBreadCrumb = () => {
   const data = useState('breadcrumb', defaultState)
 
   // ── Set any subset of state ──────────────────────────────

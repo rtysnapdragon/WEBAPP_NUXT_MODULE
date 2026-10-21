@@ -1,7 +1,7 @@
 // composables/usePageBreadcrumb.ts
 import { onBeforeUnmount, isRef, unref, watch, type Ref } from 'vue';
-// import { useBreadcrumb } from '@bgtm/breadcrumb-nuxt';
-import { useBreadcrumb } from './breadCrumb'
+// import { useBreadCrumb } from '@bgtm/breadcrumb-nuxt';
+import { useBreadCrumb } from './breadCrumb'
 import type {
   RBreadcrumbItem,
 } from '~/types/breadcrumb'
@@ -84,7 +84,7 @@ function resolveRaw<T>(value: T | Ref<T | undefined> | undefined): T | undefined
 export const usePageBreadcrumb = (
   config: PageBreadcrumbConfig,
 ) => {
-  const breadcrumb = useBreadcrumb()
+  const breadcrumb = useBreadCrumb()
 
   const stop = watch(
     () => ({

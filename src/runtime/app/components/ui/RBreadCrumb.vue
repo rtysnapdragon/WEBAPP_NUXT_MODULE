@@ -1,7 +1,7 @@
 <script setup>
 import { computed, useSlots } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBreadcrumb } from '../../composables/breadCrumb'
+import { useBreadCrumb } from '../../composables/breadCrumb'
 import RTooltip from '../RTooltip.vue'
 
 const props = defineProps({
@@ -10,7 +10,7 @@ const props = defineProps({
   description: { type: String, default: undefined },
   icon:        { type: String, default: undefined },
 
-  // Breadcrumb items — if omitted, reads from useBreadcrumb state
+  // Breadcrumb items — if omitted, reads from useBreadCrumb state
   items:       { type: Array, default: undefined },
 
   // Back button
@@ -21,7 +21,7 @@ const props = defineProps({
   // Separator icon
   separatorIcon: { type: String, default: undefined },
 
-  // Right-side action buttons — if omitted, reads from useBreadcrumb state
+  // Right-side action buttons — if omitted, reads from useBreadCrumb state
   // Shape: [{ label, icon, color, variant, size, to, onClick, disabled, loading, key, render }]
   actions: { type: Array, default: undefined },
 
@@ -35,7 +35,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const crumb  = useBreadcrumb()
+const crumb  = useBreadCrumb()
 const slots  = useSlots()
 const { t }  = useI18n?.() ?? { t: (s) => s }
 
