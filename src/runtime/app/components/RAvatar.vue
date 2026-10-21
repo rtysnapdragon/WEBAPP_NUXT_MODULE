@@ -273,6 +273,13 @@ const onImageClick = (src) => {
     min-height: 50px !important;
   }
 
+  &.size-md {
+    width: 65px !important;
+    height: 65px !important;
+    min-width: 65px !important;
+    min-height: 65px !important;
+  }
+
   &.size-ml {
     width: 80px !important;
     height: 80px !important;
