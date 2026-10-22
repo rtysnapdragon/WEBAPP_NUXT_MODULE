@@ -45,7 +45,9 @@ export const useBreadCrumb = () => {
   const clear = () => {
     data.value = defaultState()
   }
-
+  const add = (d) => {
+    data.value = d;
+  }
   // ── Helpers ───────────────────────────────────────────────
   const setTitle = (title, description, icon) => {
     data.value.title = title
@@ -105,6 +107,7 @@ export const useBreadCrumb = () => {
 
   return {
     data,
+    add,
     set,
     clear,
     setTitle,
