@@ -8,14 +8,16 @@
     <UModal
       ref="ref_content_h"
       v-model:open="isOpen"
-      :transition="true"
+      :transition="transition"
       :fullscreen="isFullScreen"
       :dismissible="noClose"
       :close-icon="closeIcon || 'ri-close-line'"
       :hide-header="noHeader"
       :hide-footer="noFooter"
       :content="{ style: { minWidth: modalWidthValue } }"
+      :appear="appear"
       :ui="mergedUI"
+      v-if="!forTable"
     >
       <!-- ── HEADER ── -->
       <template #header>
@@ -43,6 +45,9 @@
             </div>
           </div>
         </slot>
+        <div class="sub-title" v-if="$slots.subTitle">
+          <slot name="subTitle"></slot>
+        </div>
       </template>
 
       <!-- ── BODY ── -->
@@ -63,6 +68,38 @@
         </div>
       </template>
     </UModal>
+
+     <Teleport to="body" v-else>
+    <div
+      class="ocs-wrapper-modal"
+      :class="isOpen ? 'modal-ani-show' : ''"
+      v-show="isOpen"
+    >
+      <div class="overlay" @click.self="fnOverlayClose()">
+        <div class="ocs-modal" :class="props.height">
+          <div class="oc-modal-header" v-if="$slots.header">
+            <div class="title">
+              <slot name="header" />
+            </div>
+            <div
+              :class="['btn-close', noClose ? '!hidden' : '']"
+              @click="isOpen = false"
+            >
+              <i class="ri-close-large-fill"></i>
+            </div>
+          </div>
+
+          <div class="oc-modal-body" ref="ref_body_h">
+            <slot />
+          </div>
+
+          <div class="oc-modal-footer" v-if="$slots.footer">
+            <slot name="footer" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
   </div>
 </template>
 
@@ -99,10 +136,22 @@ const props = defineProps({
   noFooter:     { type: Boolean, default: false     },
   overflowAuto: { type: Boolean, default: false     },
   ui:           { type: Object,  default: () => ({}) },
+  transition:   { type: Boolean, default: true     },
+  overlay:      { type: Boolean, default: false     },
+  preventClose: { type: Boolean, default: false     },
+  appear:       { type: Boolean, default: false     },
+  width:        { type: String,  default: 'fit-content' },
+  height:       { type: String,  default: 'auto' },
+  forTable:     { type: Boolean, default: false     },
 })
 
 const noClose = computed(() => props.noClose)
-
+const forTable = computed(() => props.forTable ?? false);
+const transition = computed(() => props.transition);
+const overlay = computed(() => props.overlay);
+const preventClose = computed(() => props.preventClose);
+const fullscreen = computed(() => props.fullscreen);
+const appear = computed(() => props.appear);
 const emit = defineEmits(['onClose'])
 
 // Bug 8 fix: never use v-html for user-supplied strings — use {{ }} instead.

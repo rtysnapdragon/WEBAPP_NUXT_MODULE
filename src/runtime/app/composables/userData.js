@@ -1,6 +1,6 @@
 import { ref } from "vue";
 const secretKey = "rtuserdata";
-const key = "rt_user_data";
+const key = "rty_user_data";
 
 export const useUserData = (val) => {
   try {
