@@ -1,4 +1,4 @@
-// composables/usePageBreadcrumb.ts
+// composables/usePageBreadCrumb.ts
 import { onMounted, onBeforeUnmount } from 'vue';
 // import { useBreadCrumb } from '@bgtm/breadcrumb-nuxt';
 import { useBreadCrumb } from './breadCrumb.js'
@@ -53,7 +53,7 @@ export const usePageBreadcrumb_1 = (
 
 // Example usage
 
-// usePageBreadcrumb({
+// usePageBreadCrumb({
 //   showBack: true,
 
 //   backTooltip: 'Back to dashboard',
