@@ -59,6 +59,7 @@ const defaultState = () => ({
   // Right side: buttons … or a full custom render (rightTemplate wins over `actions`)
   actions: [],               // [{ key, label, icon, color, variant, size, to, onClick, disabled, loading, render }]
   rightTemplate: undefined,  // functional component `(props) => VNode`
+  leftTemplate: undefined,  // functional component `(props) => VNode`
 
   // Left popover button: { icon, label, tooltip, color, variant, size, onClick, render }
   leftButton: undefined,
@@ -73,6 +74,7 @@ const ALIASES = {
   hasBack: 'showBack',
   fnBack: 'backAction',
   template: 'rightTemplate',
+  leftTemplate: 'leftTemplate',
   breadcrumbs: 'items',
   hasAction: 'actions',
 }
@@ -155,6 +157,7 @@ const RESOLVERS = {
     return typeof fn === 'function' ? fn : undefined
   },
   rightTemplate: (v) => toRender(unref(v)),
+  leftTemplate: (v) => toRender(unref(v)),
   items: (v) => normalizeItems(resolveDeep(toValue(v))),
   actions: (v) => normalizeActions(resolveDeep(toValue(v))),
   leftButton: (v) => normalizeLeftButton(resolveDeep(toValue(v))),
@@ -192,6 +195,7 @@ const normalizeStatePatch = (payload = {}) => {
   if ('items' in out) out.items = normalizeItems(resolveDeep(out.items))
   if ('actions' in out) out.actions = normalizeActions(resolveDeep(out.actions))
   if ('rightTemplate' in out) out.rightTemplate = toRender(out.rightTemplate)
+  if ('leftTemplate' in out) out.leftTemplate = toRender(out.leftTemplate)
   if ('leftButton' in out) out.leftButton = normalizeLeftButton(resolveDeep(out.leftButton))
   return out
 }
@@ -252,6 +256,7 @@ export const useBreadCrumb = (options) => {
     data.value.backTooltip = undefined
     data.value.actions = []
     data.value.rightTemplate = undefined
+    data.value.leftTemplate = undefined
     data.value.leftButton = undefined
   }
 
@@ -263,6 +268,11 @@ export const useBreadCrumb = (options) => {
   /** @param {Function|object|null} component  functional component OR defineComponent object */
   const setRightTemplate = (component) => {
     data.value.rightTemplate = toRender(component)
+  }
+
+  /** @param {Function|object|null} component  functional component OR defineComponent object */
+  const setLeftTemplate = (component) => {
+    data.value.leftTemplate = toRender(component)
   }
 
   /** @param {{ icon?, label?, tooltip?, color?, variant?, size?, onClick?, render? }|null} config */
@@ -327,6 +337,7 @@ export const useBreadCrumb = (options) => {
     setActions,
     setHasAction,
     setRightTemplate,
+    setLeftTemplate,
     setLeftButton,
   }
 }
