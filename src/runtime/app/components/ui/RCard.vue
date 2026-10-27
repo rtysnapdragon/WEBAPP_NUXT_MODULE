@@ -30,7 +30,7 @@ function onClick(event: Event) {
     { 'r-card--glass': glass, 'r-card--hoverable': hoverable, 'r-card--bordered': hasBorder }
   ]" @click="onClick">
     <!-- Header -->
-    <div v-if="title || $slots.header" class="r-card__header">
+    <div v-if="$slots.header || title" class="r-card__header">
       <slot name="header">
         <div class="r-card__title-wrap">
           <UIcon v-if="icon" :name="icon" class="r-card__icon" />
