@@ -1,6 +1,6 @@
 <template>
   <div class="oc-profile-info">
-    <RCAvatar
+    <RAvatar
       :size="size"
       :round="round"
       :border="border"
@@ -21,6 +21,8 @@
 
 <script setup>
 import { computed } from "vue";
+import RViewInfo from './RViewInfo.vue'
+import RAvatar from './RAvatar.vue'
 const props = defineProps([
   "src",
   "gender",

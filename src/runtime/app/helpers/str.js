@@ -2,7 +2,7 @@
 export default {
   userCatch: "user_catch",
   deviceId: "device_id",
-  dbCode: "database",
+  dbCode: "rty_database",
   langCode: "i18n_redirected",
   fbMessagingToken: "fb_messaging_token",
   GlobalKey: '_',
