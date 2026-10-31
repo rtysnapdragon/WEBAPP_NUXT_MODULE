@@ -67,7 +67,6 @@ import {
   endOfMonth,
 } from "date-fns";
 
-import { useRuntimeConfig } from "#imports";
 import helper from "./helper";
 class RDate {
   constructor(date, end) {
