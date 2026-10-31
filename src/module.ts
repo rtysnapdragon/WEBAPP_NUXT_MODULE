@@ -9,7 +9,7 @@ import {
   addLayout,
   addRouteMiddleware,
   addServerHandler,
-  addServerImportsDir
+  addServerImportsDir,
 } from "@nuxt/kit";
 
 import { defu } from 'defu'
@@ -43,7 +43,6 @@ export default defineNuxtModule<ModuleOptions>({
     // Transpile
     nuxt.options.build.transpile.push(runtimeAppDir);
     nuxt.options.build.transpile.push(runtimeServerDir);
-
 
     // Auto-load global SCSS mixins
     // const mixinPath = resolver.resolve(

@@ -32,6 +32,7 @@ const props = defineProps({
   // Left-side popover button — renders next to the back button / breadcrumb trail.
   // Shape: { icon, label, tooltip, color, variant, size, render, onClick }
   leftButton: { type: Object, default: undefined },
+  leftTemplate: { type: [Function, Object], default: undefined },
 })
 
 const router = useRouter()
@@ -133,6 +134,11 @@ const resolvedLeftButton = computed(() => {
   return cfg && typeof cfg === 'object' ? cfg : undefined
 })
 
+const resolvedLeftTemplate = computed(() => {
+  const fn = props.leftTemplate ?? crumb.data.value?.leftTemplate
+  return typeof fn === 'function' ? fn : undefined
+})
+
 const leftButtonRender = computed(() => {
   const fn = resolvedLeftButton.value?.render
   return typeof fn === 'function' ? fn : undefined
@@ -167,9 +173,19 @@ const hasContent = computed(() =>
   >
     <!-- LEFT: icon + title/description + back + breadcrumb items -->
     <div class="rbc-left">
+      <!-- Full override: consumer takes over the entire right side -->
+      <slot
+        name="actions"
+        :actions="resolvedActions"
+        :template="resolvedLeftTemplate"
+      >
+        <!-- Fully custom right-side render (functional component from state/prop) -->
+        <component :is="resolvedLeftTemplate" v-if="resolvedLeftTemplate" />
+      </slot>
+
       <!-- Heading (icon + title) -->
       <div
-        v-if="iconComputed || titleComputed || $slots.icon || $slots.title"
+        v-if="(iconComputed || titleComputed || $slots.icon || $slots.title) && !resolvedLeftTemplate"
         class="rbc-heading"
       >
         <slot name="icon">

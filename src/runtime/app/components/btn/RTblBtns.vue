@@ -176,6 +176,19 @@ function handleAction(action) {
   open.value = false
 }
 
+function click1(e, per, label, action) {
+  if (dataMenu.getActionPermission(per) == 1) {
+    emit("actionClick", e, action);
+  } else {
+    toast.add({
+      title: `You don't have permission to ${label}.`,
+      description: `Contact to administrator for permission.`,
+      duration: 5000,
+      type: "warning",
+    });
+  }
+}
+
 function click(e, per, label, action) {
   if (action?.disabled || action?.loading) {
     console.log('disabled or loading=======================>')
@@ -254,17 +267,17 @@ function getCurrentTop(child) {
   }
 }
 
-watch(
-  () => use,
-  (value) => {
-    if (value !== 'nuxtui') {
-      toast.add({
-        title: 'Incorrect usage!'
-      })
-    }
-  },
-  { immediate: true }
-)
+// watch(
+//   () => use,
+//   (value) => {
+//     if (value !== 'nuxtui') {
+//       toast.add({
+//         title: 'Incorrect usage!'
+//       })
+//     }
+//   },
+//   { immediate: true }
+// )
 
 </script>
 

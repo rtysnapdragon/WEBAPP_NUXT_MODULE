@@ -302,6 +302,11 @@ const icon = computed(() => {
     props.icon?.toLowerCase() == "add"
   )
     return "ri-add-line";
+  else if (
+    props.type?.toLowerCase() == "key" ||
+    props.icon?.toLowerCase() == "key"
+  )
+    return "ri-key-2-line";
   else return props.icon;
 });
 

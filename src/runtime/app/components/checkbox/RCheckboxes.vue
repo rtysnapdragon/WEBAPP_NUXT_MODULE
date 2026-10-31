@@ -1,9 +1,24 @@
+
 <template>
-  <div class="oc-checkbox-group-container ocs-rounded-m" :class="isBorder ? 'oc-border' : ''">
-    <RCheckbox v-model="checkbox" v-for="(option, i) in options" :label="option.label"
-      :id="`${isNotEmpty(option.id) ? option.id : option.pk ? option.pk : option.value}${i}`" v-bind="option"
-      :disabled="disabled || option.disabled" :name="props.name" :ui="ui" class="flex gap-1.5">
-      <template #label v-if="$slots.label">
+  <div
+    class="rty-checkbox-group-container"
+    :class="isBorder ? 'rty-border' : ''"
+    role="group"
+  >
+    <RCheckbox
+      v-for="(option, index) in normalizedOptions"
+      :key="option.id ?? option.pk ?? option.value ?? index"
+      :model-value="isSelected(option)"
+      @update:model-value="setSelected(option, $event)"
+      :label="option.label"
+      :id="`${option.id ?? option.pk ?? option.value ?? 'checkbox'}-${index}`"
+      :disabled="disabled || option.disabled"
+      :name="name"
+      :ui="ui"
+      :value="undefined"
+      class="flex gap-1.5"
+    >
+      <template v-if="$slots.label" #label>
         <slot name="label" v-bind="option" />
       </template>
     </RCheckbox>
@@ -11,31 +26,93 @@
 </template>
 
 <script setup>
-const checkbox = defineModel();
-const props = defineProps(["options", "disabled", "name", "ui", "isBorder"]);
-const options = computed(() => props.options);
-const disabled = computed(() => props.disabled);
-const ui = computed(() => props.ui);
-const isBorder = computed(() => props.isBorder ?? true)
-mounted(() => { });
+import { computed } from 'vue'
+import RCheckbox from './RCheckbox.vue'
+
+const model = defineModel({
+  default: () => [],
+})
+
+const props = defineProps({
+  options: {
+    type: Array,
+    default: () => [],
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  name: {
+    type: String,
+    default: undefined,
+  },
+  ui: {
+    type: Object,
+    default: () => ({}),
+  },
+  isBorder: {
+    type: Boolean,
+    default: true,
+  },
+})
+
+const normalizedOptions = computed(() => props.options ?? [])
+
+function optionValue(option) {
+  return option && typeof option === 'object'
+    ? option.value
+    : option
+}
+
+function selectedValues() {
+  const value = model.value
+
+  if (Array.isArray(value)) {
+    return value.map(optionValue)
+  }
+
+  if (value === null || value === undefined || value === '') {
+    return []
+  }
+
+  return [optionValue(value)]
+}
+
+function isSelected(option) {
+  return selectedValues().some(
+    value => value === optionValue(option),
+  )
+}
+
+function setSelected(option, checked) {
+  const value = optionValue(option)
+
+  if (value === undefined || value === null) return
+  if (props.disabled || option.disabled) return
+
+  const current = selectedValues()
+  const next = checked
+    ? [...new Set([...current, value])]
+    : current.filter(item => item !== value)
+
+  model.value = next
+}
 </script>
 
 <style lang="scss" scoped>
-.oc-checkbox-group-container {
+.rty-checkbox-group-container {
   position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 20px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 
-  &.oc-border {
+  &.rty-border {
     border: 1px solid var(--color-w-b-4);
+    border-radius: 10px;
     padding: 8px 12px;
   }
-
-  padding-top: 8px;
-  padding-bottom:8px;
-  padding-left: unset;
-  padding-right: unset;
 }
 </style>

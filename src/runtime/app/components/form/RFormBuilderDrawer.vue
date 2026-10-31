@@ -221,6 +221,7 @@ defineExpose({
   jumpTo: (v) => refForm.value?.jumpTo(v),
   disabledTab: (i, disabled) => refForm.value?.disabledTab(i, disabled),
   refInput: () => refForm.value?.refInput(),
+  resetForm
 });
 </script>
 
