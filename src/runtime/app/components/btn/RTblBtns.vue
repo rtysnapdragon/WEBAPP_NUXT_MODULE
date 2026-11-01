@@ -102,10 +102,12 @@
 import { FwbDropdown, FwbListGroup, FwbListGroupItem } from "flowbite-vue";
 const { t } = useI18n();
 import RTooltip from '../RTooltip.vue'
+import { useRToast } from "../../composables/useRToast.js";
 const props = defineProps(["items", "closeInside","use"]);
 const close = computed(() => props.closeInside);
 const dataMenu = useMenuStore();
-const toast = useToastStore();
+const toast = useRToast()
+// const toast = useToastStore();
 const open = ref(false)
 const model = computed(() => {
   return props.items;

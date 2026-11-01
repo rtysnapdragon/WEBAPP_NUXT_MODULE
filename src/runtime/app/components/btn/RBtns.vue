@@ -109,6 +109,15 @@ watch(() => screen.isMobile, (n) => {
   console.log(n, '===>>>', refDropdown.value)
 })
 function fnClick(type, list) {
+   if (list.disabled) return;
+
+  // Execute callback if provided (use emit @click directly)
+  if (typeof list.click === "function") {
+        // list.click(list)?.();
+    // list.click?.();
+    list.click?.(list);
+  }
+
   emit("click", type, list);
 }
 </script>

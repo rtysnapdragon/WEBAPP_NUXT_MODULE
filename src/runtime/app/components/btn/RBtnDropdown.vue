@@ -28,7 +28,8 @@
 
 <script setup>
 const dataMenu = useMenuStore();
-const toast = useToast();
+import { useRToast } from "../../composables/useRToast.js";
+const toast = useRToast();
 const props = defineProps(["items", "use", "placement"]);
 const items = computed(() => props.items);
 const use = computed(() => props.use ?? "nuxtui");

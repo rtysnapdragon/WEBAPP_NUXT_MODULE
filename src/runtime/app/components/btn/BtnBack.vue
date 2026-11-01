@@ -37,7 +37,8 @@
 </template>
 
 <script setup>
-const toast = useToast();
+import { useRToast } from "../../composables/useRToast.js";
+const toast = useRToast();
 const props = useBreadCrumb();
 // color-sub-text
 function fnBack() {

@@ -12,6 +12,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { useRToast } from "../../composables/useRToast.js";
 const dataMenu = useMenuStore();
 const props = defineProps([
   'type',
@@ -63,7 +64,7 @@ const showIfAllowed = computed(() =>
   per == 1 ? true : props.showIfAllowed ?? true
 );
 const emit = defineEmits(["click"]);
-const toast = useToast();
+const toast = useRToast();
 function fnClick() {
   if (per == 1) {
     emit("click");

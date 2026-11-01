@@ -320,12 +320,12 @@ function closed() {
   min-width: 380px;
 
   // SARIKA surface
-  background: var(--glass-bg);
+  background: var(--bg-c-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   color: var(--c-text);
-  border-left: 1px solid var(--c-border);
-  box-shadow: var(--glass-shadow);
+  border: none !important;
+  // box-shadow: var(--glass-shadow);
 
   // radius token (consumed by NuxtUI internally via --ui-radius)
   --ui-radius: var(--r-xl);
@@ -345,14 +345,14 @@ function closed() {
   height: auto !important;
   max-height: 92dvh;
   border-left: none;
-  border-top: 1px solid var(--c-border);
+  border-top: none;
   border-radius: var(--r-xl) var(--r-xl) 0 0 !important;
 }
 
 /* ── NuxtUI slot wrappers (string classes we inject via ui prop) ── */
 .rs-ui-header {
   padding: 0 !important;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--c-border) !important;
   min-height: 0 !important;
   width: 100% !important;
   display: flex !important;
@@ -364,6 +364,7 @@ function closed() {
   padding: 0 !important;
   min-height: 0 !important;
   min-width: 0;
+  border: none !important;
   // overflow: hidden; // scroll controlled by rs-body inside
 
   // overflow-x: hidden !important; // scroll controlled by rs-body inside
@@ -374,7 +375,7 @@ function closed() {
   padding: 0 !important;
   width: 100% !important;
   display: flex !important;
-  border-top: 1px solid var(--c-border);
+  border-top: 1px solid var(--c-border) !important;
   justify-content: flex-end !important;
   align-items: center !important;
 }
@@ -487,7 +488,7 @@ function closed() {
   min-height: 56px;
 }
 
-// /* ── dark mode adjustments ── */
+// // /* ── dark mode adjustments ── */
 // .dark .rs-content {
 //   border-left-color: var(--c-border);
 //   box-shadow: 0 0 0 1px var(--c-border), var(--glass-shadow);

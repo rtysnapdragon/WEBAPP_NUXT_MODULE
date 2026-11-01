@@ -54,8 +54,8 @@
 </template>
 <script setup>
 import { computed } from "vue";
-
-const toast = useToast();
+import { useRToast } from "../../composables/useRToast.js";
+const toast = useRToast();
 const emit = defineEmits(["click"]);
 const props = defineProps([
   "variant",
