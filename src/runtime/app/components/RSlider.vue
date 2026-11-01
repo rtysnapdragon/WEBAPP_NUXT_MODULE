@@ -238,7 +238,7 @@ function closed() {
   on .r-slider-host which is an ancestor in the *cascade* (not DOM) sense.
   All actual portal element styling is in the GLOBAL block below.
 -->
-<!-- <style lang="scss" scoped>
+<style lang="scss" scoped>
 
 .r-slider-host {
   // Expose token overrides as custom props so the global block can read them
@@ -246,7 +246,7 @@ function closed() {
   --rs-max-width:  v-bind("props.maxWidth ? props.maxWidth + 'px' : '900px'");
   display: contents; // host div adds zero layout impact
 }
-</style> -->
+</style>
 
 <!--
   GLOBAL (non-scoped) block — targets the teleported portal DOM.
@@ -352,7 +352,8 @@ function closed() {
 /* ── NuxtUI slot wrappers (string classes we inject via ui prop) ── */
 .rs-ui-header {
   padding: 0 !important;
-  border-bottom: 1px solid var(--c-border) !important;
+  border-bottom: 1px solid var(--r-border-card) !important;
+  // border-bottom: 1px solid var(--c-border) !important;
   min-height: 0 !important;
   width: 100% !important;
   display: flex !important;
@@ -375,7 +376,7 @@ function closed() {
   padding: 0 !important;
   width: 100% !important;
   display: flex !important;
-  border-top: 1px solid var(--c-border) !important;
+  border-top: 1px solid var(--r-border-card) !important;
   justify-content: flex-end !important;
   align-items: center !important;
 }
