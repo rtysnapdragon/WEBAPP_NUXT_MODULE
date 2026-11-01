@@ -6,6 +6,7 @@ import femaleImg from "../assets/imgs/profile_female.png"
 import maleImg from "../assets/imgs/profile_male.png"
 import defaultBanner from "../assets/imgs/default-no-img.png"
 import defaultProduct from "../assets/imgs/placeholder.png"
+import imageBgTransparent from"../assets/imgs/img_bg_transparent.png"
 
 export const UseDefaultImageStore = defineStore("defaultImageStore", {
   actions: {
@@ -24,6 +25,7 @@ export const UseDefaultImageStore = defineStore("defaultImageStore", {
         m: maleImg,
         banner: defaultBanner,
         product: defaultProduct,
+        trBg:imageBgTransparent
       }
 
       const fallback = fallbackMap[
