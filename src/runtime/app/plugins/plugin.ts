@@ -7,6 +7,7 @@ import tBy from "../utils/tBy.js";
 import getDeviceId from "../utils/getDeviceId.js";
 import queryParams from "../utils/queryParams.js";
 import copyWith from "../utils/copyWith.js";
+import { useScreenStore } from "../stores/screen"
 
 export default defineNuxtPlugin((nuxtApp) => {
   const screen = useScreenStore();
@@ -17,7 +18,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   };
 
   updateSize(); // Initial size
-  window.addEventListener("resize", updateSize);
+  window?.addEventListener("resize", updateSize);
 
   // Cleanup in dev HMR
   if (import.meta.hot) {
@@ -29,13 +30,13 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const online = ref(true);
 
-  online.value = navigator.onLine;
+  online.value = navigator?.onLine;
 
-  window.addEventListener("online", () => {
+  window?.addEventListener("online", () => {
     online.value = true;
   });
 
-  window.addEventListener("offline", () => {
+  window?.addEventListener("offline", () => {
     online.value = false;
   });
 

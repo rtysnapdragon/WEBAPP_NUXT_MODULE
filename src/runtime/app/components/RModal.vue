@@ -69,37 +69,37 @@
       </template>
     </UModal>
 
-     <Teleport to="body" v-else>
-    <div
-      class="ocs-wrapper-modal"
-      :class="isOpen ? 'modal-ani-show' : ''"
-      v-show="isOpen"
-    >
-      <div class="overlay" @click.self="fnOverlayClose()">
-        <div class="ocs-modal" :class="props.height">
-          <div class="oc-modal-header" v-if="$slots.header">
-            <div class="title">
-              <slot name="header" />
+    <Teleport to="body" v-else>
+      <div
+        class="ocs-wrapper-modal"
+        :class="isOpen ? 'modal-ani-show' : ''"
+        v-show="isOpen"
+      >
+        <div class="overlay" @click.self="fnOverlayClose()">
+          <div class="ocs-modal" :class="props.height">
+            <div class="oc-modal-header" v-if="$slots.header">
+              <div class="title">
+                <slot name="header" />
+              </div>
+              <div
+                :class="['btn-close', noClose ? '!hidden' : '']"
+                @click="isOpen = false"
+              >
+                <i class="ri-close-large-fill"></i>
+              </div>
             </div>
-            <div
-              :class="['btn-close', noClose ? '!hidden' : '']"
-              @click="isOpen = false"
-            >
-              <i class="ri-close-large-fill"></i>
+
+            <div class="oc-modal-body" ref="ref_body_h">
+              <slot />
             </div>
-          </div>
 
-          <div class="oc-modal-body" ref="ref_body_h">
-            <slot />
-          </div>
-
-          <div class="oc-modal-footer" v-if="$slots.footer">
-            <slot name="footer" />
+            <div class="oc-modal-footer" v-if="$slots.footer">
+              <slot name="footer" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </Teleport>
+    </Teleport>
   </div>
 </template>
 
@@ -234,13 +234,14 @@ function onCloseModal() {
   max-height: calc(100dvh - 4rem);
 
   // SARIKA glass surface
-  background: var(--bg-content) !important;
+  background: var(--c-bg) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   color: var(--c-text) !important;
-  border: 1px solid var(--c-border);
+  // border: 1px solid var(--c-border);
+  border: none !important;
   border-radius: var(--r-xl) !important;
-  box-shadow: var(--glass-shadow) !important;
+  // box-shadow: var(--glass-shadow) !important;
   overflow: hidden;
 
   // Zero out NuxtUI's slot default paddings — we control each slot
@@ -259,14 +260,14 @@ function onCloseModal() {
   height: 100dvh !important;
   max-height: 100dvh !important;
   border-radius: 0 !important;
-  border: none;
+  border: none !important;
 }
 
 /* ── NuxtUI slot wrappers (injected via ui prop strings) ── */
 .rm-ui-header {
   padding: 0 !important;
   min-height: 0 !important;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 0.2px solid var(--c-border);
 
   // Bug 4 fix: one clean value, no conflicting overrides.
   // Actual height is driven by rm-header padding below.
@@ -283,8 +284,8 @@ function onCloseModal() {
   padding: 5px !important;
   border-radius: 50% !important;
   background-color: transparent !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 35px !important;
+  height: 35px !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,11 +294,12 @@ function onCloseModal() {
   flex: 1;
   padding: 0 !important;
   overflow: hidden; // scroll controlled inside rm-body
+  border: none !important;
 }
 
 .rm-ui-footer {
   padding: 0 !important;
-  border-top: 1px solid var(--c-border);
+  border-top: 0.2px solid var(--c-border);
 }
 
 .rm-ui-wrapper {
@@ -390,8 +392,8 @@ function onCloseModal() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   border-radius: var(--r-full) !important;
   border: 1px solid var(--c-border);
   background: transparent;
@@ -407,9 +409,13 @@ function onCloseModal() {
   // Bug 3 fix: was `.btn-close { :hover { ... } }` — child combinator inside
   // a class rule, styling children of .btn-close, not the button itself.
   &:hover {
-    background: var(--c-hover);
-    border-color: var(--c-accent);
-    color: var(--c-accent);
+    // background: var(--c-hover);
+    border-color: var(--color-w-b-5);
+    // color: var(--c-border);
+  }
+
+  i{
+    font-size: 15px;
   }
 }
 

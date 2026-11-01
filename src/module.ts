@@ -13,9 +13,10 @@ import {
 } from "@nuxt/kit";
 
 import { defu } from 'defu'
-import fs from "fs";
+// import fs from "fs";
 import path from "path";
 import pkg from "fs-extra";
+import fs from 'fs-extra';
 const { copySync } = pkg;
 // import copyJsonFile from "./runtime/app/utils/copyJsonFile.js";
 import copyJsonFile from "./utils/copyJsonFile.js";
@@ -171,7 +172,16 @@ export default defineNuxtModule<ModuleOptions>({
         fs.rmSync(destDir, { recursive: true, force: true });
       }
 
-      copySync(srcDir, destDir, { overwrite: true });
+      // copySync(srcDir, destDir, { overwrite: true });  // original
+      
+      // Ensure destination directory exists
+      fs.ensureDirSync(destDir);
+
+      // Copy files
+      fs.copySync(srcDir, destDir, {
+        overwrite: true,
+        errorOnExist: false,
+      });
     });
 
     // add layouts
