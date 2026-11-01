@@ -420,7 +420,7 @@ defineExpose({
     color: var(--c-text, #1a1510) !important;
     border-radius: var(--rounded);
     outline: none !important;
-    border: 1px solid var(--c-border);
+    border: 0.5px solid var(--c-border);
     background: transparent !important;
   }
 
@@ -429,7 +429,7 @@ defineExpose({
   :deep(textarea:focus) {
     border-color: var(--c-accent, #ff8c42) !important;
     outline: none !important;
-    box-shadow: 0 0 0 1px var(--color-w-b-4,rgba(255, 140, 66, 0.12)) !important;
+    box-shadow: 0 0 0 0.5px var(--color-w-b-4,rgba(255, 140, 66, 0.12)) !important;
     // box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.12) !important;
   }
 
