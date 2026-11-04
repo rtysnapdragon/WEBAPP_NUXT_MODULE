@@ -1,292 +1,166 @@
 
-<script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
-const props = defineProps({
-  value: {
-    type: Number,
-    default: 0,
-  },
-  duration: {
-    type: Number,
-    default: 800,
-  },
-  decimals: {
-    type: Number,
-    default: 0,
-  },
-  format: {
-    type: String,
-    default: 'standard', // standard | compact | percent
-    validator: (value) =>
-      ['standard', 'compact', 'percent'].includes(value),
-  },
-  locale: {
-    type: String,
-    default: undefined,
-  },
-  prefix: {
-    type: String,
-    default: '',
-  },
-  suffix: {
-    type: String,
-    default: '',
-  },
-  isIncrease: {
-    type: Boolean,
-    default: null,
-  },
-  fallback: {
-    type: String,
-    default: '—',
-  },
-  isFullNum: {
-    type: Boolean,
-    default: true,
-  },
-})
+type NumberFormat = 'standard' | 'compact' | 'percent'
 
-const displayed = ref(0)
-let animationFrame = null
-let mounted = false
-
-const ease = (t) =>
-  t < 0.5
-    ? 4 * t * t * t
-    : 1 - Math.pow(-2 * t + 2, 3) / 2
-
-// const formatter = computed(() => {
-//   const decimals = Math.max(0, Math.floor(props.decimals || 0))
-
-//   const options = props.format === 'compact'
-//     ? {
-//         notation: 'compact',
-//         maximumFractionDigits: Math.max(decimals, 1),
-//       }
-//     : {
-//         minimumFractionDigits: decimals,
-//         maximumFractionDigits: decimals,
-//       }
-
-//   if (props.isIncrease !== null) {
-//     options.signDisplay = 'never'
-//   }
-
-//   if (props.format === 'percent') {
-//     options.style = 'percent'
-//   }
-
-//   try {
-//     return new Intl.NumberFormat(props.locale, options)
-//   } catch {
-//     return new Intl.NumberFormat(undefined, options)
-//   }
-// })
-const formatter = computed(() => {
-  const decimals = Math.max(0, Math.floor(props.decimals || 0))
-
-  const options = props.isFullNum
-    ? {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-      }
-    : props.format === 'compact'
-      ? {
-          notation: 'compact',
-          maximumFractionDigits: Math.max(decimals, 1),
-        }
-      : {
-          minimumFractionDigits: decimals,
-          maximumFractionDigits: decimals,
-        }
-
-  if (props.format === 'percent') {
-    options.style = 'percent'
-  }
-
-  try {
-    return new Intl.NumberFormat(props.locale, options)
-  } catch {
-    return new Intl.NumberFormat(undefined, options)
-  }
-})
-const sign = computed(() => {
-  if (props.isIncrease === true) return '+'
-  if (props.isIncrease === false) return '-'
-  return ''
-})
-
-const render = (number) => {
-  const value = formatter.value.format(Math.abs(number))
-
-  return `${props.prefix}${sign.value}${value}${props.suffix}`
+interface Props {
+  value: number | string
+  duration?: number
+  prefix?: string
+  suffix?: string
+  separator?: boolean
+  format?: NumberFormat
+  compactDigits?: number
+  startOnMount?: boolean
 }
 
-const finalText = computed(() => {
-  if (props.value == null || !Number.isFinite(Number(props.value))) {
-    return props.fallback
-  }
-
-  return render(Number(props.value))
+const props = withDefaults(defineProps<Props>(), {
+  duration: 1500,
+  prefix: '',
+  suffix: '',
+  separator: true,
+  format: 'standard',
+  compactDigits: 1,
+  startOnMount: true
 })
 
-const displayedText = computed(() => render(displayed.value))
+const current = ref(0)
 
-function stopAnimation() {
+let animationFrame: number | null = null
+
+const target = computed(() => {
+  const number = Number(props.value)
+  return Number.isFinite(number) ? Math.trunc(number) : 0
+})
+
+// const displayValue = computed(() => {
+//   const value = Math.trunc(current.value)
+
+//   if (props.format === 'compact') {
+//     return new Intl.NumberFormat('en', {
+//       notation: 'compact',
+//       maximumFractionDigits: props.compactDigits,
+//       minimumFractionDigits: 0
+//     }).format(value)
+//   }
+
+//   return props.separator
+//     ? value.toLocaleString()
+//     : String(value)
+// })
+const displayValue = computed(() => {
+  const value = Math.trunc(current.value)
+
+  switch (props.format) {
+    case 'compact':
+      return new Intl.NumberFormat('en', {
+        notation: 'compact',
+        maximumFractionDigits: props.compactDigits,
+        minimumFractionDigits: 0
+      }).format(value)
+
+    case 'percent':
+      return `${value}%`
+
+    case 'standard':
+    default:
+      return props.separator
+        ? value.toLocaleString()
+        : String(value)
+  }
+})
+function cancelAnimation() {
   if (animationFrame !== null) {
     cancelAnimationFrame(animationFrame)
     animationFrame = null
   }
 }
 
-function animateTo(target, from = displayed.value) {
-  stopAnimation()
+function animateCount(from: number, to: number) {
+  cancelAnimation()
 
-  target = Number(target)
-
-  if (!Number.isFinite(target)) {
-    displayed.value = 0
+  if (from === to || props.duration <= 0) {
+    current.value = to
     return
   }
 
-  if (!mounted || props.duration <= 0) {
-    displayed.value = target
-    return
-  }
+  const startTime = performance.now()
+  const duration = props.duration
 
-  const startValue = from
-  let startTime
+  function update(now: number) {
+    const progress = Math.min((now - startTime) / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
 
-  const tick = (timestamp) => {
-    if (startTime === undefined) startTime = timestamp
-
-    const progress = Math.min(
-      (timestamp - startTime) / props.duration,
-      1,
-    )
-
-    displayed.value = startValue + (
-      target - startValue
-    ) * ease(progress)
+    current.value = Math.trunc(from + (to - from) * eased)
 
     if (progress < 1) {
-      animationFrame = requestAnimationFrame(tick)
+      animationFrame = requestAnimationFrame(update)
     } else {
-      displayed.value = target
+      current.value = to
       animationFrame = null
     }
   }
 
-  animationFrame = requestAnimationFrame(tick)
+  animationFrame = requestAnimationFrame(update)
 }
 
-watch(
-  () => props.value,
-  (newValue) => {
-    if (newValue == null || !Number.isFinite(Number(newValue))) {
-      stopAnimation()
-      return
-    }
-
-    animateTo(newValue)
-  },
-)
-
-watch(
-  () => props.duration,
-  () => animateTo(props.value),
-)
+watch(target, (next, previous) => {
+  animateCount(previous, next)
+})
 
 onMounted(() => {
-  mounted = true
-  displayed.value = 0
-  animateTo(props.value, 0)
+  if (props.startOnMount) {
+    current.value = 0
+    animateCount(0, target.value)
+  } else {
+    current.value = target.value
+  }
 })
 
-onBeforeUnmount(() => {
-  mounted = false
-  stopAnimation()
-})
+
+onBeforeUnmount(cancelAnimation)
 </script>
 
 <template>
-  <span class="animated-number">
-    <span
-      class="animated-number__value"
-      aria-hidden="true"
-    >
-      {{ displayedText }}
-    </span>
-
-    <span class="animated-number__sr">
-      {{ finalText }}
-    </span>
+  <span class="num-count" aria-live="off">
+    {{ prefix || '' }}{{ displayValue || '' }}{{ suffix || '' }}
   </span>
 </template>
 
-<style lang="scss" scoped>
-.animated-number {
-  position: relative;
+<style scoped lang="scss">
+.num-count {
   display: inline-block;
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
-
-  &__value {
-    display: inline-block;
-    font-size: 30px;
-    font-weight: 900;
-  }
-
-  &__sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-  }
+  white-space: nowrap;
+  color: var(--c-text);
 }
 </style>
 
 
-<!--
-Displays 14,546
-<AnimatedNumber :value="14546" :is-full-num="true" />
 
-Displays 14.5K
-<AnimatedNumber :value="14546" format="compact" />
+<!-- 2,400+
+<NumCount :value="2400" suffix="+" />
 
-Displays +14,546
-<AnimatedNumber
-  :value="14546"
-  :is-full-num="true"
-  :is-increase="true"
-/>
+2.4K+
+<NumCount :value="2400" format="compact" suffix="+" />
 
-<AnimatedNumber
-  :value="12.5"
-  :decimals="1"
-  format="standard"
-  suffix="%"
-  :is-increase="true"
-/>
+50K+
+<NumCount :value="50000" format="compact" compact-digits="0" suffix="+" />
 
-<AnimatedNumber
-  :value="8.2"
-  :decimals="1"
-  suffix="%"
-  :is-increase="false"
-/>
+10M+
+<NumCount :value="10000000" format="compact" compact-digits="0" suffix="+" />
 
-Displays 14.5K
-<AnimatedNumber
-  :value="14546"
-  format="compact"
-/>
+$2.5M
+<NumCount :value="2500000" format="compact" prefix="$" /> -->
+<!-- <NumCount :value="2400" format="standard" />
+<NumCount :value="2400" format="compact" />
+<NumCount :value="98" format="percent" />
 
---->
+Usage examples
+Format	Value	Output
+standard	2400	2,400
+standard	50000	50,000
+compact	2400	2.4K
+compact	1500000	1.5M
+percent	98	98% -->
