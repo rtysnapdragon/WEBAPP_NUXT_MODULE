@@ -1,0 +1,149 @@
+@use "sass:map";
+
+/* ============================================
+   RBadge — color tokens + shared variant rules
+   · Static fixed colors per name (same in light/dark): --r-badge-{name}-{fill|on|fg}-{light|dark}
+   · Theme-aware colors for current mode:               --r-badge-{name}, -on, -fg
+   · Add a color: add one entry to $r-badge-colors → <RBadge color="name" />
+   Wire it next to the others: @use "badge";
+   ============================================ */
+
+// name: (fill, on = text on fill, fg-light / fg-dark = text on soft | subtle | outline)
+// optional: fill-dark, on-dark (only when the fill itself flips with the theme)
+$r-badge-colors: (
+  primary: (fill: #d11717, on: #fff,     fg-light: #a61212, fg-dark: #f87171),
+  red:     (fill: #dc2626, on: #fff,     fg-light: #b91c1c, fg-dark: #fca5a5),
+  orange:  (fill: #ff8c42, on: #1a1510,  fg-light: #c2410c, fg-dark: #fdba74),
+  yellow:  (fill: #ffb347, on: #1a1510,  fg-light: #a16207, fg-dark: #fde047),
+  lime:    (fill: #84cc16, on: #1a1510,  fg-light: #4d7c0f, fg-dark: #bef264),
+  green:   (fill: #15803d, on: #fff,     fg-light: #166534, fg-dark: #86efac),
+  emerald: (fill: #047857, on: #fff,     fg-light: #065f46, fg-dark: #6ee7b7),
+  teal:    (fill: #0f766e, on: #fff,     fg-light: #115e59, fg-dark: #5eead4),
+  cyan:    (fill: #0e7490, on: #fff,     fg-light: #155e75, fg-dark: #67e8f9),
+  sky:     (fill: #0369a1, on: #fff,     fg-light: #075985, fg-dark: #7dd3fc),
+  blue:    (fill: #2563eb, on: #fff,     fg-light: #1d4ed8, fg-dark: #93c5fd),
+  violet:  (fill: #7c3aed, on: #fff,     fg-light: #6d28d9, fg-dark: #c4b5fd),
+  purple:  (fill: #9333ea, on: #fff,     fg-light: #7e22ce, fg-dark: #d8b4fe),
+  pink:    (fill: #db2777, on: #fff,     fg-light: #be185d, fg-dark: #f9a8d4),
+  rose:    (fill: #e11d48, on: #fff,     fg-light: #be123c, fg-dark: #fda4af),
+  gray:    (fill: #4b5563, on: #fff,     fg-light: #374151, fg-dark: #d1d5db),
+  neutral: (fill: #111827, on: #fff,     fg-light: #374151, fg-dark: #e5e7eb, fill-dark: #f9fafb, on-dark: #111827),
+);
+
+// Semantic names (Nuxt UI style) → palette color. Re-point here to re-theme.
+$r-badge-aliases: (secondary: violet, success: green, info: blue, warning: orange, error: red, danger: red);
+
+// Tint strength of soft / subtle backgrounds and subtle ring
+$r-badge-mix: (light: (soft: 10%, ring: 26%), dark: (soft: 16%, ring: 32%));
+
+@mixin r-badge-theme($mode) {
+  @each $name, $_c in $r-badge-colors {
+    --r-badge-#{$name}:    var(--r-badge-#{$name}-fill-#{$mode});
+    --r-badge-#{$name}-on: var(--r-badge-#{$name}-on-#{$mode});
+    --r-badge-#{$name}-fg: var(--r-badge-#{$name}-fg-#{$mode});
+  }
+  @each $alias, $target in $r-badge-aliases {
+    --r-badge-#{$alias}:    var(--r-badge-#{$target});
+    --r-badge-#{$alias}-on: var(--r-badge-#{$target}-on);
+    --r-badge-#{$alias}-fg: var(--r-badge-#{$target}-fg);
+  }
+  --r-badge-mix-soft: #{map.get(map.get($r-badge-mix, $mode), soft)};
+  --r-badge-mix-ring: #{map.get(map.get($r-badge-mix, $mode), ring)};
+}
+
+:root {
+  @each $name, $c in $r-badge-colors {
+    --r-badge-#{$name}-fill-light: #{map.get($c, fill)};
+    --r-badge-#{$name}-on-light:   #{map.get($c, on)};
+    --r-badge-#{$name}-fg-light:   #{map.get($c, fg-light)};
+    --r-badge-#{$name}-fill-dark:  #{map.get($c, fill-dark) or map.get($c, fill)};
+    --r-badge-#{$name}-on-dark:    #{map.get($c, on-dark) or map.get($c, on)};
+    --r-badge-#{$name}-fg-dark:    #{map.get($c, fg-dark)};
+  }
+  @each $alias, $target in $r-badge-aliases {
+    @each $mode in light, dark {
+      @each $part in fill, on, fg {
+        --r-badge-#{$alias}-#{$part}-#{$mode}: var(--r-badge-#{$target}-#{$part}-#{$mode});
+      }
+    }
+  }
+  @include r-badge-theme(light);
+}
+
+.dark {
+  @include r-badge-theme(dark);
+}
+
+/* ── Shared rules (RBadge + RBadgeUi) ── */
+.r-badge {
+  --b-fill: var(--r-badge-neutral);
+  --b-on:   var(--r-badge-neutral-on);
+  --b-fg:   var(--r-badge-neutral-fg);
+
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+  &--solid {
+    background-color: var(--b-fill);
+    color: var(--b-on);
+    box-shadow: none;
+    --b-dot: var(--b-on);
+  }
+
+  &--outline {
+    background-color: transparent;
+    color: var(--b-fg);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--b-fg) 55%, transparent);
+    --b-dot: var(--b-fill);
+  }
+
+  &--soft,
+  &--subtle {
+    background-color: color-mix(in oklab, var(--b-fg) var(--r-badge-mix-soft), transparent);
+    color: var(--b-fg);
+    --b-dot: var(--b-fill);
+  }
+
+  &--soft {
+    box-shadow: none;
+  }
+
+  &--subtle {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--b-fg) var(--r-badge-mix-ring), transparent);
+  }
+
+  &--pill {
+    border-radius: var(--radius-full);
+  }
+
+  // Force a mode regardless of the page theme (prop `mode`)
+  @each $mode, $v in $r-badge-mix {
+    &--mode-#{$mode} {
+      --r-badge-mix-soft: #{map.get($v, soft)};
+      --r-badge-mix-ring: #{map.get($v, ring)};
+    }
+  }
+
+  &__dot {
+    flex-shrink: 0;
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: var(--b-dot, currentColor);
+
+    &.is-pulse {
+      animation: r-badge-pulse 1.8s ease-out infinite;
+    }
+  }
+}
+
+@keyframes r-badge-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--b-dot, currentColor) 55%, transparent); }
+  100% { box-shadow: 0 0 0 0.5em transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .r-badge__dot.is-pulse {
+    animation: none;
+  }
+}
