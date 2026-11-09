@@ -7,7 +7,7 @@ import tBy from "../utils/tBy.js";
 import getDeviceId from "../utils/getDeviceId.js";
 import queryParams from "../utils/queryParams.js";
 import copyWith from "../utils/copyWith.js";
-import { useScreenStore } from "../stores/screen"
+import { useScreenStore } from "../stores/screen.js"
 
 export default defineNuxtPlugin((nuxtApp) => {
   const screen = useScreenStore();
