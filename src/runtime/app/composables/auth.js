@@ -2,7 +2,6 @@ import { ref } from "vue";
 import axios from "axios";
 
 export const useAuth = async (args) => {
-  console.log("args in composables auth useAuth =======> ", args)
   const { str, config } = helper();
   const userCatch = useUserData().value;
   const isOnline = useOnline();
@@ -11,7 +10,6 @@ export const useAuth = async (args) => {
   const dbCode = useCookie(str.dbCode).value;
   const isActionLogin =
     isNotEmpty(args?.username) || isNotEmpty(args?.password);
-
   try {
     if (!isOnline.value) {
       throw {
@@ -24,56 +22,61 @@ export const useAuth = async (args) => {
       };
     }
 
+    console.log("args -----> ", args);
+
     const response = await axios({
-      url: getUrl("/api/v1/rtsauth/oauth"),
+      url: getUrl(args.isNew ? "/api/v1/auth/register" : "/api/v1/auth/login"),
       headers: {
-        Authorization: `basic ${config.basicKey}`,
         "Content-Type": "application/json",
-        device_id: deviceId,
+        r_device_id: deviceId,
       },
       method: "post",
       data: {
-        Username: args?.username ?? "username",
-        Password: args?.password ?? "password",
-        RememberMe: args?.rememberMe ?? true,
-        RefreshToken: isActionLogin ? null : userCatch?.refresh_token,
+        username: args?.username ?? "username",
+        password: args?.password ?? "password",
+        remember: args?.remember ?? "remember",
       },
     });
 
-    let result = response.data;
+    // Spring returns: { data: { accessToken, refreshToken, tokenType, userId, username, email, organizationId, roles, permissions } }
+    const payload = response.data?.data ?? response.data;
 
-    result = {
-      token_type: result.token_type,
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
-      expires_in: result.expires_in,
-      expires: result.expires,
-      refresh_lifetime: result.refresh_lifetime,
+    let result = {
+      token_type: payload.tokenType ?? "Bearer",
+      r_access_token: payload.accessToken,
+      r_refresh_token: payload.refreshToken,
+      expires_in: 86400,
+      user_id: payload.userId,
+      username: payload.username,
+      email: payload.email,
+      organization_id: payload.organizationId,
+      roles: payload.roles ?? [],
+      permissions: payload.permissions ?? [],
     };
 
     result.created_at = new Date();
     useUserData(result);
-    useAuthorizeIframe({
-      action: "set_authorize_cookie",
-      data: {
-        cookie: {
-          lang: locale ?? "en",
-          database: dbCode || "",
-          device_id: deviceId,
-          access_token: result.access_token,
-          expire: result.expires,
-        },
-        sameSite: config.sameSite,
-      },
-    });
+    // useAuthorizeIframe({
+    //   action: "set_authorize_cookie",
+    //   data: {
+    //     cookie: {
+    //       r_lang: locale ?? "en",
+    //       r_database: dbCode || "",
+    //       r_device_id: deviceId,
+    //       r_access_token: result.access_token,
+    //       r_expire: result.expires,
+    //     },
+    //     sameSite: config.sameSite,
+    //   },
+    // });
 
     return { data: ref(result), error: ref(null) };
   } catch (e) {
-    const data = e?.response?.data;
+    const data = e?.response?.data.data;
     if (data) {
       if (data.error == "invalid_grant" && !isActionLogin) {
-        useCookie("rty_user_data").value = null;
-        navigateTo(localePath("/login"));
+        useCookie("r_user_data").value = null;
+        navigateTo("/auth/login");
       }
       return { error: ref(data), data: ref(null) };
     } else {

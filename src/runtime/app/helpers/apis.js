@@ -7,19 +7,19 @@ const apis = {
   auth: "/ocsauth/oauth",
 
   // Users
-  userInfo: "/api/user/profile/info",
+  userInfo: "/api/v1/users/me",
   userUpdate: "/api/user/profile/update",
   userInfoChangePhone: "/api/user/profile/changePhone",
   userChangeEmail: "/api/user/profile/changeEmail",
   userChangePassword: "/api/user/profile/changePassword",
 
   // module teacher
-  oauth2:{
-    connect: 'api/v1/google-drive/auth-url',
-    disconnect: 'api/v1/google-drive/disconnect',
-    list: 'api/v1/google-drive/list',
-    status: 'api/v1/google-drive/status',
-    upload: 'api/v1/google-drive/upload',
+  oauth2: {
+    connect: "api/v1/google-drive/auth-url",
+    disconnect: "api/v1/google-drive/disconnect",
+    list: "api/v1/google-drive/list",
+    status: "api/v1/google-drive/status",
+    upload: "api/v1/google-drive/upload",
   },
 
   user: {
@@ -758,7 +758,7 @@ const apis = {
       create: "api/calendar/create",
       update: "api/calendar/update",
       delete: "api/calendar/delete",
-      checkExistCode: "api/calendar/existcode"
+      checkExistCode: "api/calendar/existcode",
     },
     attRule: {
       list: "api/employee_attendance_rule/list",
@@ -768,7 +768,7 @@ const apis = {
       create: "api/employee_attendance_rule/create",
       update: "api/employee_attendance_rule/update",
       delete: "api/employee_attendance_rule/delete",
-      checkExistCode: "api/employee_attendance_rule/checked_exit_code"
+      checkExistCode: "api/employee_attendance_rule/checked_exit_code",
     },
     attRuleDetail: {
       list: "api/employee_attendance_rule_detail/list",
@@ -798,7 +798,6 @@ const apis = {
       checkCodeExist: "api/leavetype/existcode",
       checkSymbolExist: "api/leavetype/existsymbol",
       rowOrder: "api/leavetype/row_order",
-
     },
     ALBalance: {
       list: "api/albalance/list",
@@ -927,10 +926,10 @@ const apis = {
         delete: "api/hobby/delete",
       },
       bank: {
-        list: 'api/employeebank/list',
-        create: 'api/employeebank/create',
-        update: 'api/employeebank/update',
-        delete: 'api/employeebank/delete',
+        list: "api/employeebank/list",
+        create: "api/employeebank/create",
+        update: "api/employeebank/update",
+        delete: "api/employeebank/delete",
       },
       empTypeAddress: {
         birth: "BIRTH",
@@ -1012,11 +1011,11 @@ const apis = {
       checkExistedCode: "api/position/checkexistedcode",
     },
     bank: {
-      list: 'api/banklist/list',
-      create: 'api/banklist/create',
-      update: 'api/banklist/update',
-      delete: 'api/banklist/delete',
-      checkExistedCode: 'api/banklist/checkexistedcode',
+      list: "api/banklist/list",
+      create: "api/banklist/create",
+      update: "api/banklist/update",
+      delete: "api/banklist/delete",
+      checkExistedCode: "api/banklist/checkexistedcode",
     },
     nationality: {
       list: "api/nationality/list",
@@ -1176,85 +1175,85 @@ const apis = {
       report: "api/evaluation/report",
     },
   },
-  canteen:{
-    cash:{
-      listCashier:'api/cashreceipt/listcashier',
+  canteen: {
+    cash: {
+      listCashier: "api/cashreceipt/listcashier",
     },
-    cashCollection:{
-      list:'api/canteen_cash_collection/list',
-      listDetail:"api/cash_collection/list",
-      detailList:'api/canteen_cash_collection/detail',
-      receiptSummary:"api/cash_collection/receipt_summary",
-      create:"api/cash_collection/create",
-      receiptFormReport:"api/cash_collection/receipt_form_report",
-      annaulList:'api/canteen_cash_collection/actual_detail'
-    }
+    cashCollection: {
+      list: "api/canteen_cash_collection/list",
+      listDetail: "api/cash_collection/list",
+      detailList: "api/canteen_cash_collection/detail",
+      receiptSummary: "api/cash_collection/receipt_summary",
+      create: "api/cash_collection/create",
+      receiptFormReport: "api/cash_collection/receipt_form_report",
+      annaulList: "api/canteen_cash_collection/actual_detail",
+    },
   },
-   payroll: {
-      salaryLabel: {
-        list: 'api/salary_label/list',
-        update: 'api/salary_label/update',
-        clear: 'api/salary_label/clear',
-        listMigrateBranch: 'api/salary_label/list_migrate_branch',
-        migrate: 'api/salary_label/migrate',
-      },
-      salaryGrading: {
-        list: 'api/salary_grade/list',
-        checkExistCode: 'api/salary_grade/check_exist_code',
-        create: 'api/salary_grade/create',
-        update: 'api/salary_grade/update',
-        delete: 'api/salary_grade/delete',
-      },
-      currency: {
-        list: 'api/payroll/currency/list',
-        create: 'api/payroll/currency/create',
-        update: 'api/payroll/currency/update',
-        delete: 'api/payroll/currency/delete',
-        checkCodeExist: 'api/payroll/currency/check_code_exist',
-        getBaseCurrency: 'api/payroll/currency/get_base',
-      },
-      currencyNote: {
-        list: 'api/payroll/currency/note/list',
-        create: 'api/payroll/currency/note/create',
-        update: 'api/payroll/currency/note/update',
-        delete: 'api/payroll/currency/note/delete',
-      },
-      exchangeRate: {
-        list: 'api/payroll/exchange_rate/list',
-        get: 'api/payroll/exchange_rate/get',
-        create: 'api/payroll/exchange_rate/create',
-        update: 'api/payroll/exchange_rate/update',
-        delete: 'api/payroll/exchange_rate/delete',
-      },
-      salaryManagement: {
-        list: 'api/payroll/salary_management/list',
-        create: 'api/payroll/salary_management/create',
-        update: 'api/payroll/salary_management/update',
-        delete: 'api/payroll/salary_management/delete',
-        employeeList: 'api/payroll/salary_management/employeelist',
-        basicSalary: 'api/payroll/salary_management/basicsalary',
-      },
-      seniorityBonusRange:{
-        list: "api/senioritybonusrange/list",
-        create: "api/senioritybonusrange/create",
-        update: "api/senioritybonusrange/update",
-        delete: "api/senioritybonusrange/delete",
-        migrate: "api/senioritybonusrange/migrate",
-        clear: "api/senioritybonusrange/clear",
-        listMigrateBranch: "api/senioritybonusrange/list_migrate_branch",
-        checkCodeExist: "api/senioritybonusrange/existcode",
-      },
-      taxCalculationRange:{
-        list: "api/taxcalculationrange/list",
-        create: "api/taxcalculationrange/create",
-        update: "api/taxcalculationrange/update",
-        delete: "api/taxcalculationrange/delete",
-        migrate: "api/taxcalculationrange/migrate",
-        clear: "api/taxcalculationrange/clear",
-        listMigrateBranch: "api/taxcalculationrange/list_migrate_branch",
-        checkCodeExist: "api/taxcalculationrange/existcode",
-      },
+  payroll: {
+    salaryLabel: {
+      list: "api/salary_label/list",
+      update: "api/salary_label/update",
+      clear: "api/salary_label/clear",
+      listMigrateBranch: "api/salary_label/list_migrate_branch",
+      migrate: "api/salary_label/migrate",
     },
+    salaryGrading: {
+      list: "api/salary_grade/list",
+      checkExistCode: "api/salary_grade/check_exist_code",
+      create: "api/salary_grade/create",
+      update: "api/salary_grade/update",
+      delete: "api/salary_grade/delete",
+    },
+    currency: {
+      list: "api/payroll/currency/list",
+      create: "api/payroll/currency/create",
+      update: "api/payroll/currency/update",
+      delete: "api/payroll/currency/delete",
+      checkCodeExist: "api/payroll/currency/check_code_exist",
+      getBaseCurrency: "api/payroll/currency/get_base",
+    },
+    currencyNote: {
+      list: "api/payroll/currency/note/list",
+      create: "api/payroll/currency/note/create",
+      update: "api/payroll/currency/note/update",
+      delete: "api/payroll/currency/note/delete",
+    },
+    exchangeRate: {
+      list: "api/payroll/exchange_rate/list",
+      get: "api/payroll/exchange_rate/get",
+      create: "api/payroll/exchange_rate/create",
+      update: "api/payroll/exchange_rate/update",
+      delete: "api/payroll/exchange_rate/delete",
+    },
+    salaryManagement: {
+      list: "api/payroll/salary_management/list",
+      create: "api/payroll/salary_management/create",
+      update: "api/payroll/salary_management/update",
+      delete: "api/payroll/salary_management/delete",
+      employeeList: "api/payroll/salary_management/employeelist",
+      basicSalary: "api/payroll/salary_management/basicsalary",
+    },
+    seniorityBonusRange: {
+      list: "api/senioritybonusrange/list",
+      create: "api/senioritybonusrange/create",
+      update: "api/senioritybonusrange/update",
+      delete: "api/senioritybonusrange/delete",
+      migrate: "api/senioritybonusrange/migrate",
+      clear: "api/senioritybonusrange/clear",
+      listMigrateBranch: "api/senioritybonusrange/list_migrate_branch",
+      checkCodeExist: "api/senioritybonusrange/existcode",
+    },
+    taxCalculationRange: {
+      list: "api/taxcalculationrange/list",
+      create: "api/taxcalculationrange/create",
+      update: "api/taxcalculationrange/update",
+      delete: "api/taxcalculationrange/delete",
+      migrate: "api/taxcalculationrange/migrate",
+      clear: "api/taxcalculationrange/clear",
+      listMigrateBranch: "api/taxcalculationrange/list_migrate_branch",
+      checkCodeExist: "api/taxcalculationrange/existcode",
+    },
+  },
 };
 
 export default apis;
