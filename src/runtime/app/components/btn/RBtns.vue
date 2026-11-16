@@ -102,11 +102,10 @@ const refDropdown = ref()
 
 /* ── 3-dot menu state ───────────────────────────────────────────────────── */
 const openMenu = ref(false)
-function toggleMenu() { openMenu.value = !openMenu.value; console.log(openMenu.value, '===>>>'); }
+function toggleMenu() { openMenu.value = !openMenu.value;}
 function closeMenu()    { openMenu.value = false }
 
 watch(() => screen.isMobile, (n) => {
-  console.log(n, '===>>>', refDropdown.value)
 })
 function fnClick(type, list) {
    if (list.disabled) return;

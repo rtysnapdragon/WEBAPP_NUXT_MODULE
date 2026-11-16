@@ -10,7 +10,7 @@ export default function useOptions(
   options?: HttpOptions
 ): HeaderResult | undefined {
   const { str, config } = helper();
-  const userCatch = useUserData().value;
+  const userCatch = useUserData();
   const locale = useCookie(str.langCode);
   const deviceId = getDeviceId();
   const lang = locale.value ?? "en";
@@ -28,8 +28,8 @@ export default function useOptions(
   //   const jwtToken = useCookie('access_token').value;
   //   authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
   // }
-    const jwtToken = useCookie('access_token').value;
-    authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
+  const accessToken = useCookie('r_access_token').value || userCatch.value?.access_token;
+  authorization = accessToken ? `Bearer ${accessToken}` : `basic ${config.basicKey}`;
   let newHeader;
 
   if (isNotEmpty(options?.headers)) {

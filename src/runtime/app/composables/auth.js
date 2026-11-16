@@ -1,8 +1,10 @@
 import { ref } from "vue";
 import axios from "axios";
+import {useAuthorizeIframe} from './useAuthorizeIframe'
+import { useUserData } from './userData'
 
 export const useAuth = async (args) => {
-  console.log("args in composables auth useAuth =======> ", args)
+  console.log("args in composables auth useAuth -------------------> ", args)
   const { str, config } = helper();
   const userCatch = useUserData().value;
   const isOnline = useOnline();
@@ -25,7 +27,13 @@ export const useAuth = async (args) => {
     }
 
     const response = await axios({
-      url: getUrl("/api/v1/rtsauth/oauth"),
+      url: getUrl(
+        !args.isNew
+          ? "/api/v1/auth/login"
+          : isRefreshing
+            ? "/api/v1/auth/refresh"
+            : "/api/v1/auth/register"
+      ),
       headers: {
         Authorization: `basic ${config.basicKey}`,
         "Content-Type": "application/json",
@@ -33,22 +41,27 @@ export const useAuth = async (args) => {
       },
       method: "post",
       data: {
-        Username: args?.username ?? "username",
-        Password: args?.password ?? "password",
-        RememberMe: args?.rememberMe ?? true,
-        RefreshToken: isActionLogin ? null : userCatch?.refresh_token,
+        ...args,
+        username: args?.username ?? "username",
+        password: args?.password ?? "password",
+        rememberMe: args?.remember_me ?? true,
+        refreshToken: isActionLogin ? null : userCatch?.refresh_token || useCookie('r_refresh_token').value,
       },
     });
 
-    let result = response.data;
+    let result = response.data?.data;
+    console.log("result after auth --------- ",result)
 
     result = {
-      token_type: result.token_type,
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
+      token_type: result.tokenType,
+      access_token: result.accessToken,
+      refresh_token: result.refreshToken,
       expires_in: result.expires_in,
       expires: result.expires,
       refresh_lifetime: result.refresh_lifetime,
+      organization_id: result.organizationId,
+      roles: result.roles,
+      permissions:result.permissions,
     };
 
     result.created_at = new Date();
@@ -72,7 +85,7 @@ export const useAuth = async (args) => {
     const data = e?.response?.data;
     if (data) {
       if (data.error == "invalid_grant" && !isActionLogin) {
-        useCookie("rty_user_data").value = null;
+        useCookie("r_user_data").value = null;
         navigateTo(localePath("/login"));
       }
       return { error: ref(data), data: ref(null) };

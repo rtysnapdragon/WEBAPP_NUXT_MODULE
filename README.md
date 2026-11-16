@@ -94,6 +94,7 @@ npm install @easylogic/colorpicker
 npm install @popperjs/core
 npx nuxt upgrade
 
+npm install crypto-js
 </details>
 
 <!-- Badges -->
