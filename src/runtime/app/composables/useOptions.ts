@@ -7,7 +7,7 @@ import isNotEmpty from "../utils/isNotEmpty.js";
 
 export default function useOptions(
   url: string,
-  options?: HttpOptions
+  options?: HttpOptions,
 ): HeaderResult | undefined {
   const { str, config } = helper();
   const userCatch = useUserData();
@@ -28,8 +28,8 @@ export default function useOptions(
   //   const jwtToken = useCookie('access_token').value;
   //   authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
   // }
-  const accessToken = useCookie('r_access_token').value || userCatch.value?.access_token;
-  authorization = accessToken ? `Bearer ${accessToken}` : `basic ${config.basicKey}`;
+    const jwtToken = useCookie('access_token').value;
+    authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
   let newHeader;
 
   if (isNotEmpty(options?.headers)) {
