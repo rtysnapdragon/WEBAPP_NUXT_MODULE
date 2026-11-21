@@ -1,370 +1,179 @@
+import { cpSync, existsSync, readdirSync } from 'node:fs'
+import { basename, join } from 'node:path'
 import {
-  defineNuxtModule,
-  installModule,
-  addImportsDir,
-  createResolver,
-  addPlugin,
   addComponentsDir,
-  addImports,
+  addImportsDir,
   addLayout,
+  addPlugin,
   addRouteMiddleware,
   addServerHandler,
   addServerImportsDir,
-} from "@nuxt/kit";
+  createResolver,
+  defineNuxtModule,
+} from '@nuxt/kit'
+import copyJsonFile from './utils/copyJsonFile.js'
+import createTsConfigFile from './utils/createTsConfigFile.js'
+import getPages from './utils/getPages.js'
 
-import { defu } from 'defu'
-// import fs from "fs";
-import path from "path";
-import pkg from "fs-extra";
-import fs from 'fs-extra';
-const { copySync } = pkg;
-// import copyJsonFile from "./runtime/app/utils/copyJsonFile.js";
-import copyJsonFile from "./utils/copyJsonFile.js";
-import getPages from "./utils/getPages.js";
-import createTsConfigFile from "./utils/createTsConfigFile.js";
-// import { runtimeDir } from "@nuxt/ui/unplugin";
-export interface ModuleOptions {}
+export interface ModuleOptions {
+  /** Sibling Nuxt layers (folder names next to the host project) whose pages/lang files are merged. */
+  layers?: string[]
+  /** Key for /api/completion. Prefer the NUXT_ANTHROPIC_API_KEY environment variable. */
+  anthropicApiKey?: string
+}
+
+const LANGS = ['km', 'en', 'zh'] as const
+
+/** Real runtime scripts only: skips the .d.ts / .d.mts files emitted by `nuxt-module-build`. */
+const isRuntimeScript = (file: string) =>
+  /\.[cm]?[jt]s$/.test(file) && !/\.d\.[cm]?ts$/.test(file)
+
+/** Node-only build helpers that must never be offered as client auto-imports. */
+const NODE_ONLY_UTILS =
+  /\/utils\/(?:copyJsonFile|createTsConfigFile|getComponentPaths|getPages)\.[cm]?[jt]s$/
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: "webapp-nuxt-module",
-    configKey: "webappModule",
+    name: 'webapp-nuxt-module',
+    configKey: 'webappModule',
+    compatibility: { nuxt: '>=4.0.0' },
   },
 
-  defaults: {},
-  // defaults: {
-  //   anthropicApiKey: ''
-  // },
-  async setup(options: Record<any, any>, nuxt) {
-    const { resolve } = createResolver(import.meta.url);
-    const runtimeAppDir = resolve("./runtime/app"); // Client-side
-    const runtimeServerDir = resolve("./runtime/server"); // Server-side
-    const resolver = createResolver(import.meta.url)
+  defaults: {
+    layers: [],
+    anthropicApiKey: '',
+  },
 
-    // Transpile
-    nuxt.options.build.transpile.push(runtimeAppDir);
-    nuxt.options.build.transpile.push(runtimeServerDir);
+  // Nuxt installs these automatically (and before this module's setup runs),
+  // so the host app does not need to list them in its own `modules`.
+  moduleDependencies: {
+    '@nuxt/ui': { version: '^4.8.2' },
+    '@nuxt/icon': {},
+    '@nuxt/content': {},
+    // @nuxtjs/i18n v10 reads `locales` / `langDir` from the HOST's nuxt.config
+    // (per layer), so options injected from a module are ignored. Define them there.
+    '@nuxtjs/i18n': {},
+    '@pinia/nuxt': {},
+    '@vueuse/nuxt': { version: '>=14.0.0' },
+    'nuxt-swiper': {},
+  },
 
-    // Auto-load global SCSS mixins
-    // const mixinPath = resolver.resolve(
-    //   './runtime/app/assets/styles/mixin.scss'
-    // )
+  setup(options, nuxt) {
+    const { resolve } = createResolver(import.meta.url)
+    const runtimeDir = resolve('./runtime')
+    const appDir = resolve('./runtime/app')
+    const serverDir = resolve('./runtime/server')
+    const layers = options.layers ?? []
 
+    // The runtime ships as source (.vue/.ts), so Vite/Nitro must transpile it.
+    nuxt.options.build.transpile.push(runtimeDir)
 
-    // nuxt.options.vite.css.preprocessorOptions = {
-    //   ...nuxt.options.vite.css.preprocessorOptions,
-    //   scss: {
-    //     ...nuxt.options.vite.css.preprocessorOptions?.scss,
-    //     additionalData: `
-    //       @use "${mixinPath}" as *;
-    //     `,
-    //   },
-    // }
-
-    const layers: string[] = options.layers || [];
-    // Add the runtime directory to the transpile array
-    // nuxt.options.build.transpile.push(runtimeAppDir);
-    // // Add global.scss to the global CSS array
-    nuxt.options.css = nuxt.options.css || [];
-    nuxt.options.css.push(
-      resolve(runtimeAppDir, "assets", "styles", "tailwind.css")
-    );
-    nuxt.options.css.push(
-      resolve(runtimeAppDir, "assets", "styles", "global.scss")
-    ); 
-
-    nuxt.options.css.push(
-      resolve(runtimeAppDir, "assets", "styles", "date.scss")
-    ); 
-    nuxt.options.serverHandlers.push({
-      route: '/api/completion',
-      handler: resolve(runtimeServerDir, 'api/completion.post.js')
-    });
-
-    nuxt.options.nitro.publicAssets ||= []
-    nuxt.options.nitro.publicAssets.push({
-      dir: resolve('./', 'public'),
-      baseURL: '/',
-    })
-
-    nuxt.options.runtimeConfig.anthropicApiKey = options.anthropicApiKey
-    //  nuxt.options.serverHandlers.push({
-    //   route: "/api/completion",
-    //   handler: resolver.resolve("./runtime/server/api/completion.post")
-    // });
-
-    // CSS (client only)
-    // nuxt.options.css = nuxt.options.css || [];
-    // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/tailwind.css"));
-    // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/global.scss"));
-    // nuxt.options.css.push(resolve(runtimeAppDir, "assets/styles/date.scss"));
-// Only if the host already has @nuxtjs/i18n installed
-    nuxt.options.i18n = defu(nuxt.options.i18n || {}, {
-      langDir: '_locales',
-      lazy: true,
-      locales: [
-        { code: 'en', file: 'en.json' },
-        { code: 'km', file: 'km.json' },
-        { code: 'zh', file: 'zh.json' }
-      ],
-      defaultLocale: 'en'
-    })
-    // Install external modules
-    const modulesToInstall = [
-      "@nuxt/ui",
-      "@vueuse/nuxt",
-      "nuxt-swiper",
-      "@nuxt/content",
-      "@pinia/nuxt",
-      "@nuxtjs/i18n",
-      // "nuxt-content-assets",
-    ];
-    for (const mod of modulesToInstall) {
-      await installModule(mod);
-    }
-// ====================== SERVER API ======================
-
-    // addServerImportsDir(runtimeServerDir);   // Only server directory
-
-    addImports([
-      { name: "ref", from: "vue" },
-      { name: "reactive", from: "vue" },
-      { name: "computed", from: "vue" },
-      { name: "watch", from: "vue" },
-      { name: "onMounted", from: "vue" },
-      { name: "onUpdated", from: "vue" },
-      { name: "onUnmounted", from: "vue" },
-      { name: "toRefs", from: "vue" },
-      { name: "useAttrs", from: "vue" },
-      { name: "useSlots", from: "vue" },
-      { name: "provide", from: "vue" },
-      { name: "inject", from: "vue" },
-      { name: "nextTick", from: "vue" },
-      { name: "defineProps", from: "vue" },
-      { name: "defineEmits", from: "vue" },
-    ]);
-
-    // add import utils, stores, composables
-    const dirsToAdd = ["utils", "composables", "stores"];
-    for (const dir of dirsToAdd) {
-      addImportsDir(resolve(runtimeAppDir, dir));
+    // ── Styles (Tailwind v4 + Nuxt UI entry first, then Sass) ─────────────────
+    for (const file of ['tailwind.css', 'global.scss', 'date.scss']) {
+      nuxt.options.css.push(join(appDir, 'assets', 'styles', file))
     }
 
-    // add middleware
-    const middlewareDir = resolve(runtimeAppDir, "middlewares");
-    if (fs.existsSync(middlewareDir)) {
-      const middlewareFiles = fs
-        .readdirSync(middlewareDir)
-        .filter((file) => file.endsWith(".js"));
-      middlewareFiles.forEach((file) => {
-        const name = file.replace(/\.js$/, ""); // Remove .js extension
-        const filePath = resolve(middlewareDir, file);
-        addRouteMiddleware({ name: name, path: filePath, global: false });
-      });
-    }
-
-    // Copy fonts from runtime to assets/fonts
-    nuxt.hook("build:before", () => {
-      const srcDir = resolve("./runtime/app/assets/fonts");
-      const destDir = path.join(nuxt.options.rootDir, "assets/fonts");
-
-      if (fs.existsSync(destDir)) {
-        fs.rmSync(destDir, { recursive: true, force: true });
-      }
-
-      // copySync(srcDir, destDir, { overwrite: true });  // original
-      
-      // Ensure destination directory exists
-      fs.ensureDirSync(destDir);
-
-      // Copy files
-      fs.copySync(srcDir, destDir, {
-        overwrite: true,
-        errorOnExist: false,
-      });
-    });
-
-    // add layouts
-    const layoutsDir = resolve(runtimeAppDir, "layouts");
-    if (fs.existsSync(layoutsDir)) {
-      const layoutFiles = fs
-        .readdirSync(layoutsDir)
-        .filter((file) => file.endsWith(".vue"));
-      layoutFiles.forEach((file) => {
-        const name = file.replace(/\.vue$/, ""); // Remove .vue extension
-        addLayout(resolve(layoutsDir, file), name);
-      });
-    }
-
-    // Add components and recursively
+    // ── Components: ONE registration, scanned recursively ────────────────────
+    // Every runtime/app/components/**/*.vue becomes globally resolvable by its
+    // file name (RBtn.vue -> <RBtn />), so module components can use each other
+    // with no `import`. Do NOT set `prefix`: it would rename BtnBack.vue to
+    // RBtnBack and break every unprefixed tag used inside the module.
     addComponentsDir({
-      path: resolve(runtimeAppDir, "components"),
-      prefix: options.prefix || "",
+      path: join(appDir, 'components'),
       pathPrefix: false,
-    });
-    const componentsDir = path.join(runtimeAppDir, "components");
-    function addComponentsFromDir(
-      directory: string,
-      baseDir: string = componentsDir
-    ) {
-      const items = fs.readdirSync(directory, { withFileTypes: true });
-      items.forEach((item) => {
-        const itemPath = path.join(directory, item.name);
-        if (item.isDirectory()) {
-          addComponentsDir({
-            path: resolve(
-              runtimeAppDir,
-              "components",
-              path.relative(baseDir, itemPath).replace(/\\/g, "/")
-            ),
-            prefix: options.prefix || "",
-            pathPrefix: false,
-          });
-          // // Recursively process subdirectories
-          addComponentsFromDir(itemPath, baseDir);
-        }
-      });
-    }
-    addComponentsFromDir(componentsDir);
-    // // Add plugin
-    const pluginsDir = resolve(runtimeAppDir, "plugins")
-    for (const file of fs.readdirSync(pluginsDir)) {
-      if (/\.(js|ts|mjs)$/.test(file)) {
-        addPlugin(resolve(pluginsDir, file))
+      extensions: ['vue'],
+    })
+
+    // ── Functions: utils, composables, stores (named + default exports) ──────
+    // Top-level files only (Nuxt convention). Sub-folders such as utils/chart/**
+    // stay internal and are imported explicitly by the files that need them.
+    addImportsDir([
+      join(appDir, 'utils'),
+      join(appDir, 'composables'),
+      join(appDir, 'stores'),
+    ])
+    addServerImportsDir(join(serverDir, 'utils'))
+
+    nuxt.hook('imports:extend', (imports) => {
+      for (let i = imports.length - 1; i >= 0; i--) {
+        if (NODE_ONLY_UTILS.test(imports[i]!.from.replace(/\\/g, '/'))) imports.splice(i, 1)
       }
+    })
+    // Vue APIs (ref, computed, watch, onMounted, ...) are already auto-imported by
+    // Nuxt itself. defineProps/defineEmits are compiler macros: never import them.
+
+    // ── Server ───────────────────────────────────────────────────────────────
+    addServerHandler({
+      route: '/api/completion',
+      method: 'post',
+      handler: join(serverDir, 'api', 'completion.post'),
+    })
+    nuxt.options.runtimeConfig.anthropicApiKey ||= options.anthropicApiKey || ''
+
+    // ── Public assets (must live inside runtime/ to be published) ────────────
+    const publicDir = join(runtimeDir, 'public')
+    if (existsSync(publicDir)) {
+      nuxt.hook('nitro:config', (nitroConfig) => {
+        const nitro = nitroConfig as { publicAssets?: { dir: string, baseURL?: string }[] }
+        nitro.publicAssets ||= []
+        nitro.publicAssets.push({ dir: publicDir, baseURL: '/' })
+      })
     }
-    // addPlugin(resolve(runtimeAppDir, "plugins", "plugin"));
-    addPlugin(resolve(runtimeAppDir, "plugins", "assets"));
 
+    // ── Plugins / middleware / layouts (auto-registered from runtime/app) ────
+    const listFiles = (dir: string, test: (f: string) => boolean) =>
+      existsSync(dir) ? readdirSync(dir).filter(test) : []
 
-    console.log("layers:", layers)
-    console.log("layers.length:", layers.length)
-    // Merge lang JSON files to app locales
-    const lang = ["km", "en", "zh"];
+    for (const file of listFiles(join(appDir, 'plugins'), isRuntimeScript)) {
+      addPlugin(join(appDir, 'plugins', file))
+    }
+    for (const file of listFiles(join(appDir, 'middlewares'), isRuntimeScript)) {
+      addRouteMiddleware({
+        name: basename(file).replace(/\.[cm]?[jt]s$/, ''),
+        path: join(appDir, 'middlewares', file),
+        global: false,
+      })
+    }
+    for (const file of listFiles(join(appDir, 'layouts'), f => f.endsWith('.vue'))) {
+      addLayout(join(appDir, 'layouts', file), file.replace(/\.vue$/, ''))
+    }
+
+    // ── Fonts: copy into the host app, never delete anything there ───────────
+    nuxt.hook('build:before', () => {
+      const from = join(appDir, 'assets', 'fonts')
+      if (existsSync(from)) {
+        cpSync(from, join(nuxt.options.rootDir, 'assets', 'fonts'), { recursive: true, force: true })
+      }
+    })
+
+    // ── i18n: merge module + host language files where @nuxtjs/i18n will read them ──
+    // i18n v10 resolves <root>/<restructureDir>/<langDir> from the host's config,
+    // so derive the target from it instead of hard-coding <root>/_locales.
     const rootDir = nuxt.options.rootDir
-
-    for (const lan of lang) {
-        // Main app language
-        const mainLang = path.join(rootDir, "app", "assets", "lang", `${lan}.json`)
-        const moduleLang = resolve("./runtime/app/assets/lang", `${lan}.json`)
-
-      const assetLangs = layers?.map((l) => {
-        const baseDir = path.dirname(
-          path.posix.join(...process.cwd().split(/\\+/))
-        );
-        const p = path.join(process.cwd(), "app", "assets", "lang", `${lan}.json`)
-
-        return `${baseDir}/${l}/app/assets/lang/${lan}.json`;
-      });
-      assetLangs.push(mainLang)
-
-      console.log("assetLangs:", assetLangs)
-
-      const output = path.join(rootDir, "_locales", `${lan}.json`)
-
-      console.log("Output:", output)
-
-      // Add current working directory's assets path at the beginning
-      assetLangs.unshift(
-        `${path.posix.join(
-          ...process.cwd().split(/\\+/)
-        )}/app/assets/lang/${lan}.json`
-      );
-
-
-      const inputPaths = [ //If you want to merge both the app and the module
-        resolve("./runtime/app/assets/lang", `${lan}.json`),           // module
-        path.join(rootDir, "assets", "lang", `${lan}.json`),           // app
-        path.join(rootDir, "app", "assets", "lang", `${lan}.json`)     // app (Nuxt app dir, if used)
-      ].filter(fs.existsSync)
+    const i18nConfig = (nuxt.options as { i18n?: { restructureDir?: string, langDir?: string } }).i18n
+    const localesDir = join(rootDir, i18nConfig?.restructureDir ?? 'i18n', i18nConfig?.langDir ?? 'locales')
+    for (const lang of LANGS) {
+      const inputPaths = [
+        join(appDir, 'assets', 'lang', `${lang}.json`), // module
+        join(rootDir, 'assets', 'lang', `${lang}.json`), // host
+        join(rootDir, 'app', 'assets', 'lang', `${lang}.json`), // host (Nuxt 4 app dir)
+      ].filter(existsSync)
 
       copyJsonFile({
         inputPaths,
-        outputPath: path.join(rootDir, "_locales", `${lan}.json`),
-        deep: false
+        outputPath: join(localesDir, `${lang}.json`),
+        deep: false,
       })
-
-      // const moduleLang = resolve("./runtime/app/assets/lang", `${lan}.json`) //If your goal is to copy the module's language files into _locales WEBAPP_NUXT_MODULE/runtime/app/assets/lang --> CEREMONY_WEBAPP_NUXT/_locales
-
-      // console.log(moduleLang)
-      // console.log(fs.existsSync(moduleLang))
-
-      // copyJsonFile({
-      //   inputPaths: [moduleLang],
-      //   outputPath: path.join(rootDir, "_locales", `${lan}.json`),
-      //   deep: false
-      // })
-
-      // copyJsonFile({
-      //   inputPaths: [moduleLang],
-      //   outputPath: path.join(rootDir, "_locales", `${lan}.json`),
-      //   deep: false
-      // })
-      // copyJsonFile({
-      //   inputPaths: assetLangs.reverse(),
-      //   outputPath: `${path.posix.join(
-      //     ...process.cwd().split(/\\+/)
-      //   )}/_locales/${lan}.json`,
-      //   deep: false,
-      // });
     }
 
-    // Create tsconfig.json file
-    createTsConfigFile(layers);
+    createTsConfigFile(layers)
 
-    // Create km routes when generate
-    nuxt.hook("nitro:config", async (nitroConfig) => {
+    // ── Prerender the /km routes when generating ─────────────────────────────
+    nuxt.hook('nitro:config', (nitroConfig) => {
       if (nitroConfig.prerender?.routes) {
-        const pages = [...["pages"], ...layers.map((l) => `../${l}/pages`)];
-        const routes = [
-          "/km",
-          ...getPages(pages).map((r: string) => `/km/${r}`),
-        ];
-
-        nitroConfig.prerender.routes.push(...routes);
+        const pages = ['pages', ...layers.map(l => `../${l}/pages`)]
+        nitroConfig.prerender.routes.push('/km', ...getPages(pages).map((r: string) => `/km/${r}`))
       }
-    });
+    })
   },
-});
-
-
-// import { defineNuxtModule, addPlugin, createResolver, addComponentsDir } from '@nuxt/kit'
-
-// // Module options TypeScript interface definition
-// export interface ModuleOptions {}
-
-// export default defineNuxtModule<ModuleOptions>({
-//   meta: {
-//     name: 'my-module',
-//     configKey: 'myModule',
-//   },
-//   // Default configuration options of the Nuxt module
-//   defaults: {},
-//   setup(_options, _nuxt) {
-//     const resolver = createResolver(import.meta.url)
-
-//     addComponentsDir({
-//       path: resolver.resolve("./runtime/app/components"),
-//       pathPrefix: false,
-//       extensions: ["vue"],
-//       prefix: "",
-//     });
-
-//     addComponentsDir({
-//       path: resolver.resolve("./runtime/app/utils"),
-//       pathPrefix: false,
-//       extensions: ["js"],
-//       prefix: "",
-//     });
-
-//     addComponentsDir({
-//       path: resolver.resolve("./runtime/app/composables"),
-//       pathPrefix: false,
-//       extensions: ["js"],
-//       prefix: "",
-//     });
-    
-//     // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
-//     addPlugin(resolver.resolve('./runtime/plugin'))
-//   },
-// })
+})

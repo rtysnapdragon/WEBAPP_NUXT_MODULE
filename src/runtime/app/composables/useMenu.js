@@ -11,7 +11,6 @@ export default function useMenu() {
   const roles = computed(
     () => userProfile.getData?.roles ?? []
   );
-
   const matches = (required, granted) => {
     if (!required) return true;
 

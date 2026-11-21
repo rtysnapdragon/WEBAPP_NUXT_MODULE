@@ -1,411 +1,332 @@
 <template>
-  <div class="w-full">
-    <!-- date range picker -->
-    <VDatePicker v-if="dateRangePicker" ref="refDatePicker" v-model="date" :columns="columns" is-range
-      v-bind="{ ...attrs, ...$attrs }" :attributes="attributes" :min-date="minDate" :max-date="maxDate" :masks="masks"
-      :popover="popover">
-      <template #default="{ togglePopover, inputValue, inputEvents }" v-if="!predefined">
-        <UInput ref="refInput" readonly @click="togglePopover"
-          :modelValue="isNotEmpty(inputValue?.start) && isNotEmpty(inputValue?.end) ? `${inputValue.start} - ${inputValue.end}` : ''"
-          v-on="inputEvents" :disabled="disabled" :placeholder="placeholder" :ui="defaultUI" size="xs"
-          icon="ri-calendar-schedule-line" trailing autocomplete="off" inputClass="ocs-input-date cursor-pointer" />
+  <div class="ui-rdp-root w-full" :class="$attrs.class" :style="$attrs.style">
+    <!-- ── Range ── -->
+    <VDatePicker
+      v-if="dateRangePicker"
+      ref="refDatePicker"
+      v-model="date"
+      is-range
+      :columns="pickerColumns"
+      v-bind="pickerBind($attrs)"
+      :attributes="attributes"
+      :min-date="minDate"
+      :max-date="maxDate"
+      :masks="pickerMasks"
+      :popover="popover"
+    >
+      <!-- no default slot when `predefined` → renders the calendar inline -->
+      <template v-if="!predefined" #default="{ togglePopover, inputValue }">
+        <UInput
+          ref="refInput"
+          readonly
+          :model-value="rangeText(inputValue)"
+          :disabled="disabled"
+          :placeholder="placeholder"
+          :ui="inputUi"
+          size="xs"
+          icon="ri-calendar-schedule-line"
+          trailing
+          autocomplete="off"
+          @click="togglePopover"
+        />
       </template>
     </VDatePicker>
 
-    <VDatePicker ref="refDatePicker" v-model="date" v-bind="{ ...attrs, ...$attrs }" :mode="mode"
-      :hide-time-header="false" :attributes="attributes" :min-date="minDate" :max-date="maxDate" v-if="!dateRangePicker"
-      :masks="masks" :popover="popover" class="custom-scrollbar" :is24hr="is24hr" :isRequired="true">
+    <!-- ── Single / time / dateTime ── -->
+    <VDatePicker
+      v-else
+      ref="refDatePicker"
+      v-model="date"
+      v-bind="pickerBind($attrs)"
+      :mode="mode"
+      :hide-time-header="false"
+      :attributes="attributes"
+      :min-date="minDate"
+      :max-date="maxDate"
+      :masks="pickerMasks"
+      :popover="popover"
+      :is24hr="is24hr"
+      is-required
+    >
       <template #default="{ inputValue, inputEvents }">
-        <!-- <input ref="refInput" :value="inputValue" v-on="inputEvents" @focus="onFocus" @input="onInput"
-          :disabled="disabled" :placeholder="placeholder"  
-          trailing autocomplete="off" /> -->
-        <UInput ref="refInput" :modelValue="inputValue" v-on="inputEvents" @focus="onFocus" @input="onInput"
-          :disabled="disabled" :placeholder="placeholder" :ui="defaultUI" size="xs" icon="ri-calendar-schedule-line"
-          trailing autocomplete="off" inputClass="ocs-input-date" />
+        <UInput
+          ref="refInput"
+          :model-value="inputValue"
+          v-on="inputEvents"
+          :disabled="disabled"
+          :placeholder="placeholder"
+          :ui="inputUi"
+          size="xs"
+          icon="ri-calendar-schedule-line"
+          trailing
+          autocomplete="off"
+          @focus="onFocus"
+          @input="onInput"
+        />
       </template>
     </VDatePicker>
   </div>
 </template>
-<script setup>
-// import { format } from 'date-fns'
-import { DatePicker as VDatePicker } from "v-calendar";
-import "v-calendar/dist/style.css";
-import { computed } from "vue";
-import { useScreens } from "vue-screen-utils";
 
-const isOpen = ref(false);
-const refDatePicker = ref();
+<script setup>
+import { DatePicker as VDatePicker } from 'v-calendar'
+import 'v-calendar/dist/style.css'
+import { computed, ref, watch, unref, onBeforeUnmount } from 'vue'
+import { useScreens } from 'vue-screen-utils'
+
+// class/style go to our root; everything else is forwarded to v-calendar (see pickerBind).
+defineOptions({ inheritAttrs: false })
+
+const props = defineProps({
+  modelValue:      null,
+  attrs:           Object,   // extra v-calendar attrs, merged over the defaults
+  mode:            String,   // date | time | dateTime
+  attributes:      Object,
+  placeholder:     null,
+  dateRangePicker: Boolean,
+  minDate:         null,
+  maxDate:         null,
+  masks:           null,
+  ui:              null,     // Nuxt UI 4 UInput slots: { root, base, leadingIcon, trailingIcon }
+  disabled:        Boolean,
+  is24hr:          Boolean,
+  columns:         null,
+  predefined:      Boolean,
+  // legacy no-ops, kept so existing callers don't leak them into v-calendar
+  hideTimeHeader:  Boolean,
+  format:          String,
+  label:           null,
+  variant:         String,
+})
+
+const emit = defineEmits(['update:modelValue', 'close'])
+
+const refDatePicker = ref()
 const refInput = ref()
 
-onClickOutside(refDatePicker, (e) => {
-  refDatePicker.value?.hidePopover();
-});
+// UInput v4 exposes `inputRef` (the <input>) — the old v2 `onBlur()` / `.input` are gone.
+const inputEl = () => unref(refInput.value?.inputRef)
 
-let timeout
-// Handle input blur
-function onInput(e) {
-  const val = e?.target?.value;
+const date = computed({
+  get: () => props.modelValue,
+  set: (value) => {
+    emit('update:modelValue', value)
+    emit('close')
+  },
+})
 
-  if (val == '' || val == null || val == undefined) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      // refDatePicker.value?.updateValue(getZeroTimeDate())
-      fnReset()
-    }, 1000);
-  }
+// ── v-calendar config ──
+const baseAttrs = computed(() => ({
+  transparent: true,
+  borderless: true,
+  color: 'primary',
+  'is-dark': { selector: 'html', darkClass: 'dark' },
+  'first-day-of-week': 2,
+  ...props.attrs,
+}))
 
+function pickerBind(a) {
+  const { class: _c, style: _s, ...rest } = a
+  return { ...baseAttrs.value, ...rest }
 }
 
-// Optional: Handle input to re-show popover
-// function onInput(e) {
-//   if (!e?.target?.value && mode.value === 'time') {
-//     refDatePicker.value?.showPopover?.()
-//   }
-// }
+const popover = { visibility: 'click', placement: 'bottom' }
 
-// Optional: On focus, set time if empty
-function onFocus() {
-  if (date.value == null || date.value == '') {
-    if (mode.value === 'time') {
-      date.value = getZeroTimeDate()
-    }
+// v-calendar tokens (DD / YYYY) — not date-fns ones (dd / yyyy). Caller's `masks` wins.
+const pickerMasks = computed(() => {
+  if (props.masks) return props.masks
+  switch (props.mode) {
+    case 'time':     return { input: 'HH:mm:ss' }
+    case 'dateTime': return { input: 'MMM DD, YYYY HH:mm:ss' }
+    default:         return { input: 'MMM DD, YYYY' }
   }
+})
+
+const { mapCurrent } = useScreens({ xs: '0px', sm: '640px', md: '768px', lg: '1024px' })
+const pickerColumns = mapCurrent(
+  isNotEmpty(props.columns) ? props.columns : { lg: 2, md: 2, sm: 2 },
+  1,
+)
+
+const dateRangePicker = computed(() => props.dateRangePicker)
+
+const rangeText = (iv) =>
+  isNotEmpty(iv?.start) && isNotEmpty(iv?.end) ? `${iv.start} - ${iv.end}` : ''
+
+// ── UInput v4 ui: hook classes per slot, caller's `ui` appended (strings/arrays only) ──
+function mergeSlots(base, user = {}) {
+  return Object.fromEntries(
+    [...new Set([...Object.keys(base), ...Object.keys(user || {})])].map((k) => [
+      k,
+      [base[k], user?.[k]].flat().filter((v) => typeof v === 'string' && v).join(' '),
+    ]),
+  )
 }
 
+const inputUi = computed(() => mergeSlots({
+  root:         'ui-rdp-input-root relative w-full',
+  base:         'ui-rdp-input',
+  leadingIcon:  'ui-rdp-icon',
+  trailingIcon: 'ui-rdp-icon',
+}, props.ui))
+
+// ── Behaviour ──
 function getZeroTimeDate() {
   const d = new Date()
   d.setHours(0, 0, 0, 0)
   return d
 }
 
-const popover = ref({
-  visibility: "click",
-  placement: "bottom",
-});
-
-const props = defineProps({
-  modelValue: null,
-  attrs: Object,
-  mode: String,
-  hideTimeHeader: Boolean,
-  attributes: Object,
-  format: String,
-  label: null,
-  placeholder: null,
-  dateRangePicker: Boolean,
-  minDate: null,
-  maxDate: null,
-  masks: null,
-  ui: null,
-  variant: String, // variants:outline,solid,none
-  class: String,
-  disabled: Boolean,
-  is24hr: Boolean,
-  columns: null,
-  predefined: Boolean
-});
-
-const emit = defineEmits(["update:model-value", "close"]);
-
-const date = computed({
-  get: () => props.modelValue,
-  set: (value) => {
-    emit("update:model-value", value);
-    emit("close");
-  },
-});
-
-const attrs = computed(() => ({
-  ...{
-    transparent: true,
-    borderless: true,
-    color: "primary",
-    "is-dark": { selector: "html", darkClass: "dark" },
-    "first-day-of-week": 2,
-  },
-  ...props.attrs,
-}));
-const predefined = computed(() => props.predefined);
-const mode = computed(() => props.mode);
-const hide = computed(() => props.hideTimeHeader);
-const attributes = computed(() => props.attributes);
-const labelFormat = computed(() => props.format);
-const label = computed(() => props.label);
-const minDate = computed(() => props.minDate);
-const maxDate = computed(() => props.maxDate);
-const variantClass = computed(() => props.variant ?? "outline");
-const nClass = computed(() => props.class ?? "");
-const is24hr = computed(() => props.is24hr);
-
-// const masks = computed(() => props.masks ?? { input: 'MMM DD,YYYY' })
-// const masks = ref({
-//   input: 'MMM DD,YYYY',
-// });
-
-const masks = computed(() => {
-  //by RTY
-  switch (props.mode) {
-    case "time":
-      return { input: "HH:mm:ss" }; // 12-hour time
-    case "dateTime":
-      return { input: "MMM dd, yyyy HH:mm:ss" };
-    default:
-      return { input: "MMM DD, YYYY" };
+function onFocus() {
+  if ((date.value == null || date.value === '') && props.mode === 'time') {
+    date.value = getZeroTimeDate()
   }
-});
+}
 
-const disabled = computed(() => props.disabled);
-const placeholder = computed(() => props.placeholder);
+// Cleared input → reset after 1s. Any further typing cancels the pending reset
+// (previously only the *empty* branch cleared the timer, so retyping got wiped).
+let timeout
+function onInput(e) {
+  clearTimeout(timeout)
+  const val = e?.target?.value
+  if (val === '' || val == null) timeout = setTimeout(fnReset, 1000)
+}
+onBeforeUnmount(() => clearTimeout(timeout))
 
-// date range picker
-const { mapCurrent } = useScreens({
-  xs: "0px",
-  sm: "640px",
-  md: "768px",
-  lg: "1024px",
-});
-const columns = mapCurrent(
-  isNotEmpty(props.columns) ? props.columns : { lg: 2, md: 2, sm: 2 },
-  1
-);
-
-// const columns = computed(() => {
-//   if(isNotEmpty(props.columns)) {
-//     return mapCurrent(props.columns, 1)
-//   } else return mapCurrent({ lg: 2, md: 2, sm: 2 }, 1)
-// })
-
-// if(isNotEmpty(props.columns)) {
-//     return mapCurrent(props.columns, 1)
-//   } else return mapCurrent({ lg: 2, md: 2, sm: 2 }, 1)
-
-const dateRangePicker = computed(() => isNotEmpty(props.dateRangePicker));
-
-const ui = computed(() => {
-  const defaultUI = {
-    base: `color-w-b-1 ring-1 ring-inset w-full !justify-between ${isOpen.value
-      ? "ring-primary dark:ring-primary"
-      : "ring-gray-300 dark:ring-gray-700"
-      }`,
-    rounded: "ocs-rounded-input",
-    shadow: "shadow-none",
-    font: "font-normal",
-    icon: {
-      base: "text-lg flex justify-center items-center",
-    },
-  };
-  const resultUI = { ...defaultUI, ...props.ui };
-  return resultUI;
-});
-
-const defaultUI = {
-  root:'ui-rinput-root relative w-full',
-  placeholder: "placeholder:text-xs",
-  base: "ui-rinput-base color-w-b-1 w-full text-left",
-  file: {
-    base: "file:hidden",
-  },
-  gap: {
-    xs: "gap-x-2",
-  },
-  padding: {
-    xs: "px-3 py-2.5",
-  },
-  leading: {
-    padding: {
-      xs: "ps-10",
-    },
-  },
-  trailing: {
-    padding: {
-      xs: "pe-10",
-    },
-  },
-  icon: {
-    base: "flex justify-center items-center",
-  },
-};
-
-watch(() => date.value, (n) => {
+watch(date, (n) => {
   if (dateRangePicker.value) {
     if (n?.end) {
-      refDatePicker.value?.updateValue(n);
-      refInput.value?.onBlur();
-    }
-  } else {
-    if (n) {
-      refInput.value?.onBlur();
-    }
-  }
-
-  if (n == null || n == undefined || n == '') {
-    if (!dateRangePicker.value) {
       refDatePicker.value?.updateValue(n)
+      inputEl()?.blur()
     }
+  } else if (n) {
+    inputEl()?.blur()
+  } else if (n == null || n === '') {
+    refDatePicker.value?.updateValue(n)
   }
-
-  console.log('--->>>', n)
 }, { deep: true })
 
 function datePicker() {
-  return refDatePicker.value;
+  return refDatePicker.value
 }
 
-function fnReset(){
+function fnReset() {
   date.value = ''
   refDatePicker.value?.updateValue('')
   setTimeout(() => {
-    refInput.value.input.value = ''
-  }, 100);
-  
+    const el = inputEl()
+    if (el) el.value = ''
+  }, 100)
 }
 
-defineExpose({ datePicker ,fnReset});
+defineExpose({ datePicker, fnReset })
 </script>
 
+<!--
+  GLOBAL (non-scoped): the real <input> lives inside UInput and the calendar popover is
+  v-calendar's own DOM, so scoped CSS can't reach either. No !important on our own input
+  (Tailwind 4 utilities are in @layer, unlayered CSS wins); `!important` is kept only where we
+  fight v-calendar's own *unlayered* stylesheet.
+-->
 <style lang="scss">
-.date-picker-container {
-  border-radius: 10px;
-  position: absolute;
-  transform: translate(0px, 10px);
-  z-index: 30;
-}
-
-.vc-popover-content-wrapper {
-  z-index: 999 !important;
-}
-
-.vc-header .vc-arrow:hover {
-  background: var(--vc-day-content-hover-bg) !important;
-}
-
-//by RTY start
-.vc-time-picker {
-  padding: 8px 9px;
-
-  .vc-time-header {
-    font-size: var(--vc-text-xs) !important;
-    font-weight: var(--vc-font-semibold) !important;
-    line-height: 17px;
-    display: none !important;
-  }
-}
-
-.vc-time-picker>*+* {
-  margin-top: 0px !important;
-}
-
-.vc-time-select-group {
-  background: var(--bg-content) !important;
-  padding: 0 5px;
-
-  svg {
-    width: 25px;
-    height: 30px;
-  }
-}
-
-.vc-time-select-group select {
+// ── Input (matches RInput) ──
+.ui-rdp-input {
+  width: 100%;
+  height: 38px;
+  padding-block: 0;
+  padding-inline: 12px 40px; // trailing icon
+  font-family: var(--font-400);
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  line-height: 18px;
+  letter-spacing: 0.5px;
+  text-align: left;
+  color: var(--c-text);
   background: transparent;
-  padding: 0px 7px;
+  border: 1px solid var(--color-w-b-4);
+  border-radius: var(--r-md);
+  box-shadow: none;
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease-in-out), box-shadow var(--t-fast) var(--ease-in-out);
+
+  &:focus,
+  &:focus-visible {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accent) 12%, transparent);
+  }
+
+  &::placeholder { font-size: 12px; color: var(--c-muted); }
+  &[readonly] { cursor: pointer; }
+
+  &:disabled {
+    background: var(--bg-tertiary);
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 }
 
-.vc-base-select select.vc-align-right {
-  text-align: center;
+.ui-rdp-icon {
+  font-size: 16px;
+  color: var(--c-muted);
 }
 
-.vc-base-select {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  font-size: 10px;
-  font-weight: 10px;
-}
+// ── v-calendar popover / panel ──
+.vc-popover-content-wrapper { z-index: 999 !important; }
 
-.vc-base-select .vc-focus {
-  // select dropdown
-  font-size: 15px;
-}
-
-.vc-time-select-group select {
-  background: var(--bg-content) !important;
-  padding: 0px 9px;
-}
-
-//by RTY end
-
-.vc-date-picker-content {
-  background-color: var(--bg-content) !important;
-  border: 1px solid var(--color-w-b-4) !important;
-}
-
+.vc-date-picker-content,
 .vc-popover-content {
   background-color: var(--bg-content) !important;
   border: 1px solid var(--color-w-b-4) !important;
 }
 
+.vc-header .vc-arrow:hover { background: var(--vc-day-content-hover-bg) !important; }
+
 .vc-nav-title:hover,
 .vc-nav-arrow:hover,
-.vc-nav-item:hover {
-  background-color: var(--vc-day-content-hover-bg);
-}
+.vc-nav-item:hover { background-color: var(--vc-day-content-hover-bg); }
 
 .vc-focus:focus-within {
   outline: 0;
   box-shadow: none !important;
 }
 
-.vc-pane-layout> :not([hidden])~ :not([hidden]) {
+.vc-pane-layout > :not([hidden]) ~ :not([hidden]) {
   --tw-divide-x-reverse: 0;
   border-right-width: calc(1px * var(--tw-divide-x-reverse));
   border-left-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)));
   border-color: var(--color-w-b-4) !important;
 }
 
-// .dark {
-//   .vc-pane-layout> :not([hidden])~ :not([hidden]) {
-//     border-color: rgb(31 41 55);
-//   }
-// }
+// ── v-calendar time picker (shared with RTimePicker's popover) ──
+.vc-time-picker {
+  padding: 8px 9px;
 
-[type="text"] {
-  &::placeholder {
-    color: var(--color-w-b-3) !important;
+  > * + * { margin-top: 0 !important; }
+
+  .vc-time-header { display: none !important; }
+}
+
+.vc-time-select-group {
+  padding: 0 5px;
+  background: var(--bg-content) !important;
+
+  svg { width: 25px; height: 30px; }
+
+  select {
+    padding: 0 9px;
+    background: var(--bg-content) !important;
   }
 }
 
-.ui-rinput-base {
-  font-family: var(--font-400);
-  font-size: 12px;
-  color: var(--color-w-b-1);
-  font-weight: var(--font-medium);
-  line-height: 18px;
-  height: 38px !important;
-  letter-spacing: 0.5px;
-  border-radius: 11px !important;
-  width: 100% !important;
-}
+.vc-base-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  font-size: 10px;
 
-.ocs-input-date {
-  box-shadow: none !important;
-  border: 1px solid var(--color-w-b-4) !important;
-  border-radius: 8px !important;
-  background-color: transparent !important;
-
-  &:focus {
-    border: 1px solid var(--color-primary) !important;
-  }
-
-  &:disabled {
-    background: var(--bg-wrapper-50) !important;
-  }
-
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none !important;
-    margin: 0 !important;
-  }
+  select.vc-align-right { text-align: center; }
+  .vc-focus { font-size: 15px; } // select dropdown
 }
 </style>

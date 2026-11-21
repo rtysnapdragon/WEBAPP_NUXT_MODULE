@@ -95,6 +95,15 @@ npm install @popperjs/core
 npx nuxt upgrade
 
 npm install crypto-js
+
+
+
+## TankStack Table Library
+npm install @tanstack/vue-table
+npm install @tanstack/vue-store
+<!-- npm install @tanstack/vue-table@^9  -->
+npm i sortablejs // sort dragging smooth move row recorder
+
 </details>
 
 <!-- Badges -->

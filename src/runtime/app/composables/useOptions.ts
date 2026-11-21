@@ -28,7 +28,7 @@ export default function useOptions(
   //   const jwtToken = useCookie('access_token').value;
   //   authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
   // }
-    const jwtToken = useCookie('access_token').value;
+    const jwtToken = userCatch.value?.access_token || useCookie('r_access_token').value;
     authorization = jwtToken ? `Bearer ${jwtToken}` : `basic ${config.basicKey}`;
   let newHeader;
 

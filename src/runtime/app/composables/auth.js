@@ -1,18 +1,16 @@
 import { ref } from "vue";
 import axios from "axios";
-import {useAuthorizeIframe} from './useAuthorizeIframe'
-import { useUserData } from './userData'
+import { useUserData } from "./userData"
 
 export const useAuth = async (args) => {
-  console.log("args in composables auth useAuth =======> ", args)
+  console.log( "useAuth args ========== ", args)
   const { str, config } = helper();
   const userCatch = useUserData().value;
   const isOnline = useOnline();
   const locale = useCookie(str.langCode).value;
   const deviceId = getDeviceId();
   const dbCode = useCookie(str.dbCode).value;
-  const isActionLogin =
-    isNotEmpty(args?.username) || isNotEmpty(args?.password);
+  const isActionLogin = isNotEmpty(args?.username) || isNotEmpty(args?.password);
   try {
     if (!isOnline.value) {
       throw {
@@ -25,57 +23,57 @@ export const useAuth = async (args) => {
       };
     }
 
-    console.log("args -----> ", args);
-
     const response = await axios({
-      url: getUrl("/api/v1/rtsauth/oauth"),
+      url: getUrl(args.isNew ? '/api/v1/auth/register' : args.isRefresh ? '/api/v1/auth/refresh':"/api/v1/auth/login"),
       headers: {
         "Content-Type": "application/json",
         r_device_id: deviceId,
       },
       method: "post",
       data: {
-        Username: args?.username ?? "username",
-        Password: args?.password ?? "password",
-        RememberMe: args?.rememberMe ?? true,
-        RefreshToken: isActionLogin ? null : userCatch?.refresh_token,
+        ...args,
+        username: args?.username ?? "",
+        password: args?.password ?? "",
+        remember: args?.remember ?? "",
+        refreshToken: isActionLogin? null : args?.refreshToken ?? "",
       },
     });
 
-    let result = response.data;
+    // Spring returns: { data: { accessToken, refreshToken, tokenType, userId, username, email, organizationId, roles, permissions } }
+    const payload = response.data?.data ?? response.data;
+    console.log("Payload ------------------- ",payload)
 
-    result = {
-      token_type: result.token_type,
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
-      expires_in: result.expires_in,
-      expires: result.expires,
-      refresh_lifetime: result.refresh_lifetime,
+    let result = {
+      token_type: payload.tokenType ?? 'Bearer',
+      access_token: payload.accessToken,
+      refresh_token: payload.refreshToken,
+      expires_in: 86400,
+      organization_id: payload.organizationId,
     };
 
     result.created_at = new Date();
     useUserData(result);
-    // useAuthorizeIframe({
-    //   action: "set_authorize_cookie",
-    //   data: {
-    //     cookie: {
-    //       r_lang: locale ?? "en",
-    //       r_database: dbCode || "",
-    //       r_device_id: deviceId,
-    //       r_access_token: result.access_token,
-    //       r_expire: result.expires,
-    //     },
-    //     sameSite: config.sameSite,
-    //   },
-    // });
+    useAuthorizeIframe({
+      action: "set_authorize_cookie",
+      data: {
+        cookie: {
+          r_lang: locale ?? "en",
+          r_database: dbCode || "",
+          r_device_id: deviceId,
+          r_access_token: result.access_token,
+          r_expire: result.expires,
+        },
+        sameSite: config.sameSite,
+      },
+    });
 
     return { data: ref(result), error: ref(null) };
   } catch (e) {
-    const data = e?.response?.data.data;
+    const data = e?.response?.data;
     if (data) {
       if (data.error == "invalid_grant" && !isActionLogin) {
-        useCookie("rty_user_data").value = null;
-        navigateTo(localePath("/login"));
+        useCookie("r_user_data").value = null;
+        navigateTo("/auth/login");
       }
       return { error: ref(data), data: ref(null) };
     } else {
