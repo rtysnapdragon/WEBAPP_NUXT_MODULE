@@ -149,7 +149,7 @@ const processFiles = (files) => {
     else if (["jpg", "png", "jpeg", "gif", "jfif"].includes(extension)) {
       if (fileName.length > 50) {
         toast.add({
-          color: "red",
+          color: "error",
           title: `Just 50 characters can be used, therefore please rename your file.`,
         });
       } else {
@@ -173,7 +173,7 @@ const processFiles = (files) => {
               };
               if (obj.size / (1024 * 1024).toFixed(2) > 2) {
                 toast.add({
-                  color: "red",
+                  color: "error",
                   title: `The size of your file over 2 M.B Name : ${obj.Name}.`,
                 });
               } else {
@@ -189,7 +189,7 @@ const processFiles = (files) => {
 
     else {
       toast.add({
-        color: "red",
+        color: "error",
         title: `The file type is not supported. Name : ${file.name}.`,
       });
     }

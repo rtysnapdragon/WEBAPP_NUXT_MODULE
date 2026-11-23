@@ -272,7 +272,7 @@ async function onConfirm() {
       })
       .catch((error) => {
         console.log(error);
-        toast.add({title: error.Message, color: 'red' });
+        toast.add({title: error.Message, color: 'error' });
         confirmStore.setLoading(false);
       });
   } else {
@@ -297,7 +297,7 @@ async function onConfirm1() {
 
     toast.add({
       title: error?.message || 'Error',
-      color: 'red'
+      color: 'error'
     });
   } finally {
     confirmStore.setLoading(false);

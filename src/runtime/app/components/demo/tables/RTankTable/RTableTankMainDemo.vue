@@ -214,7 +214,7 @@ const actionItems = [
   { type: 'delete', label: t('delete'), icon: 'ri-delete-bin-line',color: 'delete' },
 ];
 function onAction(type, row) {
-  toast.add({ color: 'green', title: `${type} → ${row.Username ?? row.NameEn}` })
+  toast.add({ color: 'success', title: `${type} → ${row.Username ?? row.NameEn}` })
 }
 
 /* ═════════════ LOCAL ═════════════ */

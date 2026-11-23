@@ -46,7 +46,7 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
       } catch (e) {
         this.loading = false;
         toast.add({
-          color: "red",
+          color: "error",
           title: `${e?.Message}`,
         });
       }
@@ -65,7 +65,7 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
         }
       } catch (error) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: error?.Message ?? error,
         });
       }
@@ -83,14 +83,14 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
         if (data.value) {
           this.dataUser = { ...data.value };
           this.toast.add({
-            color: "green",
+            color: "success",
             title: "Success update profile",
           });
           return data.value;
         }
       } catch (e) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: `${e?.Message}`,
         });
       }
@@ -109,14 +109,14 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
           this.dataUser.Phone = obj.Phone;
           console.log("Update phone!!!", data.value);
           this.toast.add({
-            color: "green",
+            color: "success",
             title: `Success update phone`,
           });
           return true;
         }
       } catch (e) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: `${e?.Message}`,
         });
       }
@@ -137,14 +137,14 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
           this.dataUser.Email = data.value.Status == "Success" ? obj.Email : ""; // assign email that edit
 
           this.toast.add({
-            color: "green",
+            color: "success",
             title: `Success update Email`,
           });
           return data.value;
         }
       } catch (e) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: `${e?.Message}`,
         });
       }
@@ -163,14 +163,14 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
 
         if (data.value) {
           this.toast.add({
-            color: "green",
+            color: "success",
             title: `Success update Password`,
           });
           return data.value;
         }
       } catch (e) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: `${e?.Message}`,
         });
       }
@@ -188,7 +188,7 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
           : {};
       } catch (error) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: `${error?.Message}`,
         });
       }
@@ -210,7 +210,7 @@ export const useUserProfileStore = defineStore("UserProfileStore", {
         }
       } catch (error) {
         this.toast.add({
-          color: "red",
+          color: "error",
           title: `${error?.Message}`,
         });
       }

@@ -93,7 +93,7 @@ function fnClickItem(type, per, label) {
     emit("click", type);
   } else {
     toast.add({
-      color: "yellow",
+      color: "warning",
       title: `You don't have permission to ${label}.`,
       description: "Contact to administrator for permission.",
     });

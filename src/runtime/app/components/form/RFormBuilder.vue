@@ -524,7 +524,7 @@ function handleError(error) {
   // if (form.value.showErrorMassage) {
   // }
   toast.add({
-    color: "red",
+    color: "error",
     title: `${error.Message}`,
   });
   emit("onError", error);
@@ -533,7 +533,7 @@ function handleError(error) {
 function handleSuccess(data) {
   if (form.value.showSuccessMessage) {
     toast.add({
-      color: "green",
+      color: "success",
       title: "Successfully",
     });
   }

@@ -16,6 +16,16 @@ export default (path, isWeb) => {
 
   server = server?.endsWith("/") ? server.replace(/\/$/, "") : server;
 
+  // Browsers block http:// requests from an https page (mixed content) —
+  // except to localhost, which is allowed and usually has no TLS in dev.
+  if (
+    typeof window !== "undefined"
+    && window.location.protocol === "https:"
+    && !/^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(server || "")
+  ) {
+    server = server?.replace(/^http:\/\//i, "https://");
+  }
+
   return `${server}${path}`;
 };
 

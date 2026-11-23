@@ -6,9 +6,17 @@ const host =
     ? window.location.hostname
     : "localhost";
 
+// Match the page's protocol so an https page never calls an http:// API.
+// localhost is exempt: browsers allow http://localhost from https pages.
+const isLoopback = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(host);
+const protocol =
+  typeof window !== "undefined" && window.location.protocol === "https:" && !isLoopback
+    ? "https"
+    : "http";
+
 const serverUrl =
   import.meta.env.VITE_API_URL ||
-  `http://${host}:${import.meta.env.VITE_SERVER_PORT || 8080}`;
+  `${protocol}://${host}:${import.meta.env.VITE_SERVER_PORT || 8080}`;
 
 export default {
   BASE_URL,

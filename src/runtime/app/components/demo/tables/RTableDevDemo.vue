@@ -265,7 +265,7 @@ async function handleGuestAction(type, guest) {
   if(type==='view') return console.log('view')
   if(type==='edit') return openEdit(guest)
   if(type==='copy') {
-    toast.add({ color: 'green', title: tBy({en:`Copied ${guest.name}`, km:`បានចម្លង ${guest.name} រួចហើយ`}), icon: "ri-copy-fill"})
+    toast.add({ color: 'success', title: tBy({en:`Copied ${guest.name}`, km:`បានចម្លង ${guest.name} រួចហើយ`}), icon: "ri-copy-fill"})
   }
   if(type==='telegram') return console.log('telegram')
   if(type==='email') return console.log('email')

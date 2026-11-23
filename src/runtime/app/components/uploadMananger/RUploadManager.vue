@@ -156,7 +156,7 @@ function processFiles(files) {
     if (["jpg", "png", "jpeg"].includes(extension)) {
       if (file.name.length > 50) {
         toast.add({
-          color: "red",
+          color: "error",
           title: `Just 50 characters can be used. Please rename your file.`,
         });
         return Promise.resolve();
@@ -171,7 +171,7 @@ function processFiles(files) {
             const sizeMB = data.size / (1024 * 1024);
             if (sizeMB > 2) {
               toast.add({
-                color: "red",
+                color: "error",
                 title: `The size of your file is over 2MB. Name: ${file.name}`,
               });
             } else {

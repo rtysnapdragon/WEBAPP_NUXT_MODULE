@@ -46,7 +46,7 @@ function fnBack() {
     props.data.fnBack();
   } catch (error) {
     toast.add({
-      color: "red",
+      color: "error",
       title: error,
     });
   }

@@ -748,7 +748,7 @@ async function getData(force = false) {
     if ( mine.signal.aborted) return null;
     if (mine.signal.aborted) return null; // superseded by a newer request: stay silent
     lastSig = "";
-    toast.add({ color: "red", title: `${isNotEmpty(e?.Message) ? e.Message : e}` });
+    toast.add({ color: "error", title: `${isNotEmpty(e?.Message) ? e.Message : e}` });
     return [];
   } finally {
     // alive && 

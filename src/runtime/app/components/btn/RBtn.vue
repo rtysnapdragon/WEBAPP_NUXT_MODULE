@@ -364,7 +364,7 @@ function actionClick(e) {
     emit("click",e);
   } else {
     toast.add({
-      color: "yellow",
+      color: "warning",
       title: `You don't have permission to ${label.value}.`,
       description: "Contact to administrator for permission.",
     });

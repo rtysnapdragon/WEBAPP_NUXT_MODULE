@@ -42,7 +42,7 @@
 
 <script setup>
 //  :content="{ side: side,align:'',sideOffset: sideOffset}" :alignOffset="1"
-// import { FwbDropdown } from 'flowbite-vue'
+import { FwbDropdown } from 'flowbite-vue'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 const props = defineProps(['ui','mode', 'closeDelay', 'use', 'placement', 'class', 'closeInside', 'closeDelay', 'openDelay','arrow','noClose','reference', // cutom ref by parent use for uipopup use:"nuxtui"
 'content' // content:{ side: string 'top|bottom|left|right|top-start|top-end|bottom-start|bottom-end|left-start|left-end|right-start|right-end',remak

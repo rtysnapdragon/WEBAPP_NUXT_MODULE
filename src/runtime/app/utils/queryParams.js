@@ -30,7 +30,7 @@ export default (key, value) => {
       const updatedQueryString = queryString.stringify(newQueryParams);
       if (updatedQueryString.length > 2000) {
         toast.add({
-          color: "yellow",
+          color: "warning",
           title: "Query string exceeds 2000 characters, truncating.",
         });
         // return ""; // Return current URL if too long
