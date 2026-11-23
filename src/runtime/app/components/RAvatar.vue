@@ -106,7 +106,7 @@ const props = defineProps({
   },
   src: {
     type: [String, Array],
-    required: true,
+    default: '',
   },
   size: {
     type: String,

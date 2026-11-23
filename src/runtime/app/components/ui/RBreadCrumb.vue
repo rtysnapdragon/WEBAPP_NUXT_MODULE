@@ -1,6 +1,8 @@
 <script setup>
 import { computed, useSlots } from 'vue'
-import { useRouter } from 'vue-router'
+// From Nuxt, not 'vue-router': inside this module that resolves to the module's
+// own vue-router copy, whose injection key doesn't match the app's router.
+import { useRouter } from '#imports'
 import { useBreadCrumb } from '../../composables/breadCrumb'
 import RTooltip from '../RTooltip.vue'
 

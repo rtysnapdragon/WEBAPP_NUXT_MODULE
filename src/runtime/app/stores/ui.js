@@ -20,7 +20,6 @@ Features:
 
 export const useUIStore = defineStore('ui', {
   state: () => ({
-    isDark: false,
     isCollapse: false,
     isSidebarCollapsed: false,
     notifPanelOpen: false,
@@ -85,36 +84,21 @@ export const useUIStore = defineStore('ui', {
     },
 
     toggleTheme1() {
-      this.isDark = !this.isDark
-      this.applyTheme()
-
-      localStorage.setItem(
-        'rama_theme',
-        this.isDark ? 'dark' : 'light'
-      )
+      const next = this.isDark ? 'light' : 'dark'
+      this.setTheme(next)
+      localStorage.setItem('rama_theme', next)
     },
 
     initTheme() {
       if (!import.meta.client) return
-
+      // No saved choice → follow the OS (same as before: prefers-color-scheme)
       const saved = localStorage.getItem('rama_theme')
-      const prefersDark =
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-
-      this.isDark = saved
-        ? saved === 'dark'
-        : prefersDark
-
-      this.applyTheme()
+      this.setTheme(saved === 'dark' || saved === 'light' ? saved : 'system')
     },
 
     applyTheme() {
       if (!import.meta.client) return
-
-      document.documentElement.classList.toggle(
-        'dark',
-        this.isDark
-      )
+      this.setTheme(this.theme)
     },
     /* ── Locale ── */
     setLocale(locale) {
